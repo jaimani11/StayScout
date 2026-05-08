@@ -5,6 +5,7 @@ import type { OrchestratorEvent } from '@core/orchestrator-event';
 import type { TripIntent } from '@core/trip-intent';
 import type { TripProposal } from '@core/trip-proposal';
 import type { AdaptationNote, MoodSnapshot } from '@core/reasoning';
+import type { MemoryHint } from '@core/memory';
 import type { ProposalRef } from '@core/partial';
 
 export type Phase =
@@ -47,6 +48,9 @@ export interface WorkspaceState {
   turns: Turn[]; // ordered oldest → newest
   sessionId: string | null;
   inputDraft: string;
+  compareSet: string[]; // StayId list, max 3 (oldest rotates out)
+  detailViewStayId: string | null; // open when not null
+  memoryHint: MemoryHint | null; // session-scoped, set by concierge.memory.hint
 }
 
 export interface WorkspaceActions {
@@ -58,8 +62,15 @@ export interface WorkspaceActions {
     type: 'compose' | 'refine';
   }) => void;
   setInputDraft: (draft: string) => void;
+  pinStay: (id: string) => void;
+  unpinStay: (id: string) => void;
+  clearCompare: () => void;
+  openDetail: (id: string) => void;
+  closeDetail: () => void;
   reset: () => void;
 }
+
+const COMPARE_MAX = 3;
 
 const INITIAL_STATE: WorkspaceState = {
   phase: 'idle',
@@ -67,6 +78,9 @@ const INITIAL_STATE: WorkspaceState = {
   turns: [],
   sessionId: null,
   inputDraft: '',
+  compareSet: [],
+  detailViewStayId: null,
+  memoryHint: null,
 };
 
 export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set, get) => ({
@@ -207,6 +221,13 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set,
         break;
 
       case 'concierge.memory.hint':
+        set({
+          memoryHint: {
+            message: event.message,
+            signalKey: event.signalKey,
+            confidence: event.confidence,
+          },
+        });
         break;
 
       case 'mood.snapshot.ready':
@@ -230,6 +251,32 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set,
 
   setInputDraft(draft) {
     set({ inputDraft: draft });
+  },
+
+  pinStay(id) {
+    set((s) => {
+      if (s.compareSet.includes(id)) return s;
+      const next = [...s.compareSet, id];
+      // Rotate oldest out when over limit.
+      const rotated = next.length > COMPARE_MAX ? next.slice(next.length - COMPARE_MAX) : next;
+      return { compareSet: rotated };
+    });
+  },
+
+  unpinStay(id) {
+    set((s) => ({ compareSet: s.compareSet.filter((x) => x !== id) }));
+  },
+
+  clearCompare() {
+    set({ compareSet: [] });
+  },
+
+  openDetail(id) {
+    set({ detailViewStayId: id });
+  },
+
+  closeDetail() {
+    set({ detailViewStayId: null });
   },
 
   reset() {

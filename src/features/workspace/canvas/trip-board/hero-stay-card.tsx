@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import type { Stay } from '@core/stay';
 import { useReducedMotion } from '@/features/shared/motion/reduced-motion';
+import { useWorkspaceStore } from '@/features/workspace/store/workspace-store';
 import {
   BREATHE_DELAY_MS,
   BREATHE_DURATION_S,
@@ -12,6 +13,7 @@ import {
   HERO_DURATION,
   REDUCED_DURATION,
 } from './motion-tokens';
+import { PinButton } from './pin-button';
 
 /**
  * Hero stay card. Materialize choreography (spec §5.6):
@@ -23,6 +25,7 @@ import {
  */
 export function HeroStayCard({ stay }: { stay: Stay }) {
   const reduced = useReducedMotion();
+  const openDetail = useWorkspaceStore((s) => s.openDetail);
   // Stay.id is the key on the AnimatePresence wrapper above us — the
   // component remounts on hero swap, so useState starts fresh at
   // 'materialize' each time. We just schedule the transition to breathe.
@@ -56,7 +59,8 @@ export function HeroStayCard({ stay }: { stay: Stay }) {
             }
       }
       whileHover={reduced ? undefined : { scale: 1.005 }}
-      className="group relative w-full flex-shrink-0 overflow-hidden rounded-[22px] border"
+      onClick={() => openDetail(stay.id)}
+      className="group relative w-full flex-shrink-0 cursor-pointer overflow-hidden rounded-[22px] border"
       style={{
         aspectRatio: '4/3',
         maxHeight: '60%',
@@ -116,6 +120,10 @@ export function HeroStayCard({ stay }: { stay: Stay }) {
       >
         Top pick
       </motion.span>
+
+      <div className="absolute top-3 right-3">
+        <PinButton stayId={stay.id} />
+      </div>
 
       <div className="absolute right-5 bottom-5 left-5 flex items-end justify-between gap-3">
         <div>

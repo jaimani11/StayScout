@@ -4,11 +4,14 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import type { Stay } from '@core/stay';
 import { useReducedMotion } from '@/features/shared/motion/reduced-motion';
+import { useWorkspaceStore } from '@/features/workspace/store/workspace-store';
 import { ALT_DURATION, ALT_STAGGER, EASE_EMPHASIZED, REDUCED_DURATION } from './motion-tokens';
+import { PinButton } from './pin-button';
 
 /** Alternative card. Same materialize as hero, staggered 60ms per index. */
 export function AlternativeCard({ stay, index }: { stay: Stay; index: number }) {
   const reduced = useReducedMotion();
+  const openDetail = useWorkspaceStore((s) => s.openDetail);
   const photo = stay.photos[0];
 
   return (
@@ -23,7 +26,8 @@ export function AlternativeCard({ stay, index }: { stay: Stay; index: number }) 
         ease: EASE_EMPHASIZED,
       }}
       whileHover={reduced ? undefined : { scale: 1.005 }}
-      className="group relative aspect-[16/10] overflow-hidden rounded-[18px] border"
+      onClick={() => openDetail(stay.id)}
+      className="group relative aspect-[16/10] cursor-pointer overflow-hidden rounded-[18px] border"
       style={{
         borderColor: 'var(--border-subtle)',
         boxShadow: 'var(--elev-card)',
@@ -40,6 +44,9 @@ export function AlternativeCard({ stay, index }: { stay: Stay; index: number }) 
           opacity: 0.92,
         }}
       />
+      <div className="absolute top-2 right-2">
+        <PinButton stayId={stay.id} />
+      </div>
       <div className="absolute right-3 bottom-3 left-3 flex items-end justify-between gap-2">
         <p
           className="truncate"

@@ -207,4 +207,56 @@ describe('workspace store', () => {
       .beginTurn({ turnId: 't1', sessionId: 'anon_1', userMessage: 'a', type: 'compose' });
     expect(useWorkspaceStore.getState().turns[0]?.adaptationNotes).toEqual([]);
   });
+
+  it('pinStay/unpinStay manages compareSet (max 3, oldest rotates)', () => {
+    const s = useWorkspaceStore.getState();
+    s.pinStay('a');
+    s.pinStay('b');
+    s.pinStay('c');
+    expect(useWorkspaceStore.getState().compareSet).toEqual(['a', 'b', 'c']);
+    s.pinStay('d');
+    expect(useWorkspaceStore.getState().compareSet).toEqual(['b', 'c', 'd']);
+    s.unpinStay('c');
+    expect(useWorkspaceStore.getState().compareSet).toEqual(['b', 'd']);
+  });
+
+  it('pinStay is idempotent — pinning the same id twice is a no-op', () => {
+    const s = useWorkspaceStore.getState();
+    s.pinStay('a');
+    s.pinStay('a');
+    expect(useWorkspaceStore.getState().compareSet).toEqual(['a']);
+  });
+
+  it('clearCompare empties the set', () => {
+    const s = useWorkspaceStore.getState();
+    s.pinStay('a');
+    s.pinStay('b');
+    s.clearCompare();
+    expect(useWorkspaceStore.getState().compareSet).toEqual([]);
+  });
+
+  it('openDetail/closeDetail toggles detailViewStayId', () => {
+    const s = useWorkspaceStore.getState();
+    s.openDetail('mock-italy:villa');
+    expect(useWorkspaceStore.getState().detailViewStayId).toBe('mock-italy:villa');
+    s.closeDetail();
+    expect(useWorkspaceStore.getState().detailViewStayId).toBeNull();
+  });
+
+  it('concierge.memory.hint stores the hint at session level', () => {
+    useWorkspaceStore
+      .getState()
+      .beginTurn({ turnId: 't1', sessionId: 'anon_1', userMessage: 'a', type: 'compose' });
+    dispatch([
+      {
+        kind: 'concierge.memory.hint',
+        turnId: 't1',
+        message: 'You seem to prefer slower destinations.',
+        signalKey: 'slow',
+        confidence: 0.8,
+      },
+    ]);
+    expect(useWorkspaceStore.getState().memoryHint?.signalKey).toBe('slow');
+    expect(useWorkspaceStore.getState().memoryHint?.message).toContain('slower');
+  });
 });

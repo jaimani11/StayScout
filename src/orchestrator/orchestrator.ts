@@ -13,9 +13,11 @@ import type { MoodSnapshotAgentInput } from '@/agents/mood-snapshot-agent';
 import { MoodSnapshotAgent } from '@/agents/mood-snapshot-agent';
 import { routeProvider } from '@/providers';
 import { NoOpTraceLogger } from '@lib/observability/trace-logger';
+import { MemoryHinter } from '@lib/memory-hinter';
 import { computeIntentDelta } from './intent-delta';
 import { computeProposalDiff } from './proposal-diff';
 import { buildProposal, buildProposalRef } from './proposal-builder';
+import { synthesizeAdaptationNotes } from './synthesize-adaptation';
 
 interface TurnRecord {
   turnId: string;
@@ -48,6 +50,8 @@ export class Orchestrator {
   private readonly turns = new Map<string, TurnRecord>();
   private readonly seenSessions = new Set<string>();
   private readonly seenTurnIds = new Set<string>();
+  // One MemoryHinter per session — keyed by sessionId, lazy-init.
+  private readonly hinterBySession = new Map<string, MemoryHinter>();
 
   constructor(opts: OrchestratorOptions) {
     this.modelClient = opts.modelClient;
@@ -55,6 +59,15 @@ export class Orchestrator {
     this.intentAgent = opts.intentAgent ?? IntentAgent;
     this.moodSnapshotAgent = opts.moodSnapshotAgent ?? MoodSnapshotAgent;
     this.providerRouter = opts.providerRouter ?? routeProvider;
+  }
+
+  private getHinter(sessionId: string): MemoryHinter {
+    let h = this.hinterBySession.get(sessionId);
+    if (!h) {
+      h = new MemoryHinter();
+      this.hinterBySession.set(sessionId, h);
+    }
+    return h;
   }
 
   async *run(
@@ -210,6 +223,14 @@ export class Orchestrator {
         turnId: req.turnId,
         priorProposalRef: buildProposalRef(priorTurn.proposal, priorTurn.turnId),
       };
+      // Slice A: synthesize adaptation notes from the IntentDelta we
+      // already computed. Slice B's RankingAgent replaces this with real
+      // reasoning — same wire format, banner UI unchanged.
+      const synthDelta = computeIntentDelta(priorTurn.intent, intent);
+      const notes = synthesizeAdaptationNotes(synthDelta);
+      if (notes.length > 0) {
+        yield { kind: 'proposal.adaptation', turnId: req.turnId, notes };
+      }
       yield {
         kind: 'proposal.evolved',
         turnId: req.turnId,
@@ -244,6 +265,21 @@ export class Orchestrator {
     const dest = intent.destinations[0];
     if (dest) {
       yield* this.runMoodSnapshotEvents(req, dest, ctx.signal);
+    }
+
+    // ============== Memory hint (session-scoped, fires once max) ==============
+    const hinter = this.getHinter(req.sessionId);
+    hinter.observeTurn({ intent });
+    const hint = hinter.evaluate();
+    if (hint) {
+      hinter.markFired();
+      yield {
+        kind: 'concierge.memory.hint',
+        turnId: req.turnId,
+        message: hint.message,
+        signalKey: hint.signalKey,
+        confidence: hint.confidence,
+      };
     }
 
     yield {
