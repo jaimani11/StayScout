@@ -1,0 +1,116 @@
+// StayScout — Slice B1 schema. Postgres-shaped, with no Postgres-specific
+// features yet (no pgvector, no JSON arrays, no enum types). Slice C
+// introduces pgvector for memory embeddings.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============== Identity ==============
+
+model User {
+  id           String   @id // Clerk userId for authenticated; "anon_<uuid>" for anonymous
+  isAnonymous  Boolean  @default(true)
+  email        String?  @unique
+  preferences  Json? // PreferenceProfile (Slice C populates richer)
+  migratedFrom String? // anon_<uuid> if this user was migrated from an anonymous session
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  trips         Trip[]
+  conversations Conversation[]
+  memories      MemoryRecord[]
+
+  @@index([migratedFrom])
+}
+
+// ============== Conversation history ==============
+
+model Conversation {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startedAt DateTime @default(now())
+  turns     Turn[]
+  trips     Trip[]
+
+  @@index([userId, startedAt])
+}
+
+model Turn {
+  id             String       @id // turnId from the wire protocol
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  type           String // 'compose' | 'refine'
+  rawInput       String
+  intent         Json // serialized TripIntent
+  proposalId     String?
+  proposal       Json? // serialized TripProposal
+  durationMs     Int?
+  failed         Boolean      @default(false)
+  error          String?
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+// ============== Saved trips ==============
+
+model Trip {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversationId  String?
+  conversation    Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  proposalId      String // stable hash from buildProposalRef
+  proposalSummary Json // ProposalRef.summary at save time
+  proposal        Json // serialized TripProposal at save time
+  intent          Json // serialized TripIntent at save time
+  notes           String? // user's personal notes (Slice C)
+  bookmarkedAt    DateTime      @default(now())
+
+  @@unique([userId, proposalId])
+  @@index([userId, bookmarkedAt])
+}
+
+// ============== Affiliate (Slice B6 populates) ==============
+
+model AffiliateClick {
+  id               String    @id @default(cuid())
+  userId           String? // null when click came from an anonymous session
+  sessionId        String
+  turnId           String?
+  stayId           String
+  providerId       String
+  affiliateUrl     String
+  createdAt        DateTime  @default(now())
+  converted        Boolean   @default(false)
+  commissionAmount Float?
+  convertedAt      DateTime?
+
+  @@index([userId, createdAt])
+  @@index([sessionId])
+  @@index([providerId, converted])
+}
+
+// ============== Memory (Slice C populates) ==============
+
+model MemoryRecord {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      String // 'episodic' | 'structural'
+  content   String
+  signalKey String?
+  weight    Float?
+  // embedding pgvector — added in Slice C alongside the actual MemoryAgent
+  createdAt DateTime @default(now())
+
+  @@index([userId, kind, createdAt])
+  @@index([userId, signalKey])
+}

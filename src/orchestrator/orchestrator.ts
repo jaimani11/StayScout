@@ -14,18 +14,15 @@ import { MoodSnapshotAgent } from '@/agents/mood-snapshot-agent';
 import { routeProvider } from '@/providers';
 import { NoOpTraceLogger } from '@lib/observability/trace-logger';
 import { MemoryHinter } from '@lib/memory-hinter';
+import {
+  InMemorySessionStore,
+  type SessionStore,
+  type TurnRecord,
+} from '@lib/session';
 import { computeIntentDelta } from './intent-delta';
 import { computeProposalDiff } from './proposal-diff';
 import { buildProposal, buildProposalRef } from './proposal-builder';
 import { synthesizeAdaptationNotes } from './synthesize-adaptation';
-
-interface TurnRecord {
-  turnId: string;
-  sessionId: string;
-  intent: TripIntent;
-  proposal: TripProposal;
-  completedAt: number;
-}
 
 export interface OrchestratorOptions {
   modelClient: ModelClient;
@@ -33,6 +30,12 @@ export interface OrchestratorOptions {
   intentAgent?: Agent<IntentAgentInput, TripIntent>;
   moodSnapshotAgent?: Agent<MoodSnapshotAgentInput, MoodSnapshot>;
   providerRouter?: (intent: TripIntent) => Provider;
+  /**
+   * Persistence boundary. Defaults to a per-Orchestrator
+   * InMemorySessionStore so unit tests don't need to wire up a store —
+   * production passes the singleton from `@lib/session/factory`.
+   */
+  sessionStore?: SessionStore;
 }
 
 /**
@@ -47,7 +50,7 @@ export class Orchestrator {
   private readonly intentAgent: Agent<IntentAgentInput, TripIntent>;
   private readonly moodSnapshotAgent: Agent<MoodSnapshotAgentInput, MoodSnapshot>;
   private readonly providerRouter: (intent: TripIntent) => Provider;
-  private readonly turns = new Map<string, TurnRecord>();
+  private readonly sessionStore: SessionStore;
   private readonly seenSessions = new Set<string>();
   private readonly seenTurnIds = new Set<string>();
   // One MemoryHinter per session — keyed by sessionId, lazy-init.
@@ -59,6 +62,7 @@ export class Orchestrator {
     this.intentAgent = opts.intentAgent ?? IntentAgent;
     this.moodSnapshotAgent = opts.moodSnapshotAgent ?? MoodSnapshotAgent;
     this.providerRouter = opts.providerRouter ?? routeProvider;
+    this.sessionStore = opts.sessionStore ?? new InMemorySessionStore();
   }
 
   private getHinter(sessionId: string): MemoryHinter {
@@ -99,8 +103,8 @@ export class Orchestrator {
     }
 
     const priorTurn = req.input.priorProposalRef
-      ? this.turns.get(req.input.priorProposalRef.turnId)
-      : undefined;
+      ? await this.sessionStore.getTurn(req.input.priorProposalRef.turnId)
+      : null;
 
     yield {
       kind: 'turn.started',
@@ -288,11 +292,14 @@ export class Orchestrator {
       durationMs: Math.round(performance.now() - turnStartedAt),
     };
 
-    this.turns.set(req.turnId, {
+    await this.sessionStore.putTurn({
       turnId: req.turnId,
       sessionId: req.sessionId,
+      type: req.type,
+      rawInput: req.input.rawInput,
       intent,
       proposal,
+      durationMs: Math.round(performance.now() - turnStartedAt),
       completedAt: Date.now(),
     });
   }
