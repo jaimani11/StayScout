@@ -16,7 +16,7 @@ export function Header() {
           stayscout
         </span>
         <span
-          className="hidden sm:inline-block rounded-full px-2 py-0.5 text-[color:var(--ink-tertiary)] border border-[color:var(--border-subtle)]"
+          className="hidden rounded-full border border-[color:var(--border-subtle)] px-2 py-0.5 text-[color:var(--ink-tertiary)] sm:inline-block"
           style={{
             fontFamily: 'var(--font-geist-mono)',
             fontSize: '0.625rem',

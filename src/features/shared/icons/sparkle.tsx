@@ -1,10 +1,6 @@
 import type { SVGProps } from 'react';
 
-export function Sparkle({
-  size = 16,
-  strokeWidth: _ = 1.6,
-  ...props
-}: SVGProps<SVGSVGElement> & { size?: number; strokeWidth?: number }) {
+export function Sparkle({ size = 16, ...props }: SVGProps<SVGSVGElement> & { size?: number }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

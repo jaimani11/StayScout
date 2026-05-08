@@ -3,13 +3,4 @@
 // implementations later without touching call sites.
 
 export { Sparkle } from './sparkle';
-export {
-  ArrowRight,
-  Check,
-  ChevronDown,
-  ChevronRight,
-  Moon,
-  Send,
-  Sun,
-  X,
-} from 'lucide-react';
+export { ArrowRight, Check, ChevronDown, ChevronRight, Moon, Send, Sun, X } from 'lucide-react';

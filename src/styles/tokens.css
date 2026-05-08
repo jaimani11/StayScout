@@ -37,70 +37,75 @@
 
 /* ============== DARK MODE (default — cinematic) ============== */
 :root,
-:root[data-theme="dark"] {
-  --surface-base: #0B0D10;
-  --surface-raised: #14171C;
+:root[data-theme='dark'] {
+  --surface-base: #0b0d10;
+  --surface-raised: #14171c;
   --surface-elevated: rgba(255, 255, 255, 0.04);
   --surface-overlay: rgba(255, 255, 255, 0.06);
 
-  --ink-primary: #EDE6DB;
+  --ink-primary: #ede6db;
   --ink-secondary: rgba(237, 230, 219, 0.65);
-  --ink-tertiary: rgba(237, 230, 219, 0.40);
+  --ink-tertiary: rgba(237, 230, 219, 0.4);
 
-  --accent-primary: #D4A574;
+  --accent-primary: #d4a574;
   --accent-primary-soft: rgba(212, 165, 116, 0.16);
-  --accent-primary-glow: rgba(212, 165, 116, 0.40);
-  --accent-secondary: #5078C8;
+  --accent-primary-glow: rgba(212, 165, 116, 0.4);
+  --accent-secondary: #5078c8;
 
   --border-subtle: rgba(255, 255, 255, 0.08);
   --border-emphasis: rgba(255, 255, 255, 0.14);
 
-  --bloom-warm: radial-gradient(ellipse 80% 60% at 70% 20%,
-                  rgba(212, 165, 116, 0.14) 0%, transparent 60%);
-  --bloom-cool: radial-gradient(ellipse 60% 50% at 20% 90%,
-                  rgba(80, 120, 200, 0.10) 0%, transparent 60%);
+  --bloom-warm: radial-gradient(
+    ellipse 80% 60% at 70% 20%,
+    rgba(212, 165, 116, 0.14) 0%,
+    transparent 60%
+  );
+  --bloom-cool: radial-gradient(
+    ellipse 60% 50% at 20% 90%,
+    rgba(80, 120, 200, 0.1) 0%,
+    transparent 60%
+  );
 
-  --elev-card:
-    0 8px 24px -8px rgb(0 0 0 / 0.50),
-    inset 0 1px 0 rgb(255 255 255 / 0.04);
+  --elev-card: 0 8px 24px -8px rgb(0 0 0 / 0.5), inset 0 1px 0 rgb(255 255 255 / 0.04);
   --elev-hero:
-    0 18px 40px -12px rgb(0 0 0 / 0.55),
-    0 0 0 1px rgb(255 255 255 / 0.06),
+    0 18px 40px -12px rgb(0 0 0 / 0.55), 0 0 0 1px rgb(255 255 255 / 0.06),
     inset 0 1px 0 rgb(255 255 255 / 0.06);
 
   color-scheme: dark;
 }
 
 /* ============== LIGHT MODE (boutique sunset) ============== */
-:root[data-theme="light"] {
-  --surface-base: #F4EFE6;
-  --surface-raised: #FAF6EC;
-  --surface-elevated: #FFFFFF;
+:root[data-theme='light'] {
+  --surface-base: #f4efe6;
+  --surface-raised: #faf6ec;
+  --surface-elevated: #ffffff;
   --surface-overlay: rgba(42, 42, 31, 0.04);
 
-  --ink-primary: #2A2A1F;
+  --ink-primary: #2a2a1f;
   --ink-secondary: rgba(42, 42, 31, 0.65);
-  --ink-tertiary: rgba(42, 42, 31, 0.40);
+  --ink-tertiary: rgba(42, 42, 31, 0.4);
 
-  --accent-primary: #5A6B3F;
+  --accent-primary: #5a6b3f;
   --accent-primary-soft: rgba(90, 107, 63, 0.12);
-  --accent-primary-glow: rgba(90, 107, 63, 0.30);
-  --accent-secondary: #B0552F;
+  --accent-primary-glow: rgba(90, 107, 63, 0.3);
+  --accent-secondary: #b0552f;
 
-  --border-subtle: rgba(42, 42, 31, 0.10);
+  --border-subtle: rgba(42, 42, 31, 0.1);
   --border-emphasis: rgba(42, 42, 31, 0.18);
 
-  --bloom-warm: radial-gradient(ellipse 80% 60% at 70% 20%,
-                  rgba(176, 85, 47, 0.08) 0%, transparent 60%);
-  --bloom-cool: radial-gradient(ellipse 60% 50% at 20% 90%,
-                  rgba(90, 107, 63, 0.06) 0%, transparent 60%);
+  --bloom-warm: radial-gradient(
+    ellipse 80% 60% at 70% 20%,
+    rgba(176, 85, 47, 0.08) 0%,
+    transparent 60%
+  );
+  --bloom-cool: radial-gradient(
+    ellipse 60% 50% at 20% 90%,
+    rgba(90, 107, 63, 0.06) 0%,
+    transparent 60%
+  );
 
-  --elev-card:
-    0 1px 2px rgb(42 42 31 / 0.06),
-    0 1px 1px rgb(42 42 31 / 0.03);
-  --elev-hero:
-    0 24px 56px -20px rgb(42 42 31 / 0.25),
-    0 8px 16px rgb(42 42 31 / 0.05);
+  --elev-card: 0 1px 2px rgb(42 42 31 / 0.06), 0 1px 1px rgb(42 42 31 / 0.03);
+  --elev-hero: 0 24px 56px -20px rgb(42 42 31 / 0.25), 0 8px 16px rgb(42 42 31 / 0.05);
 
   color-scheme: light;
 }
@@ -110,11 +115,11 @@
    identity regardless of global theme. Spec §4.1.
 */
 :root {
-  --featured-bg: #F4EFE6;
-  --featured-bg-raised: #FAF6EC;
-  --featured-ink-primary: #2A2A1F;
+  --featured-bg: #f4efe6;
+  --featured-bg-raised: #faf6ec;
+  --featured-ink-primary: #2a2a1f;
   --featured-ink-secondary: rgba(42, 42, 31, 0.65);
-  --featured-accent: #5A6B3F;
-  --featured-accent-clay: #B0552F;
+  --featured-accent: #5a6b3f;
+  --featured-accent-clay: #b0552f;
   --featured-border: rgba(42, 42, 31, 0.14);
 }

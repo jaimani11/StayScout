@@ -50,8 +50,8 @@ export function WorkspaceShellPlaceholder() {
             color: 'var(--ink-secondary)',
           }}
         >
-          The visual foundation is in. Workspace, agents, and Trip Board come
-          online in subsequent slices.
+          The visual foundation is in. Workspace, agents, and Trip Board come online in subsequent
+          slices.
         </p>
       </div>
     </main>

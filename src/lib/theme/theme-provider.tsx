@@ -13,13 +13,7 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-export function ThemeProvider({
-  initial,
-  children,
-}: {
-  initial: ThemeMode;
-  children: ReactNode;
-}) {
+export function ThemeProvider({ initial, children }: { initial: ThemeMode; children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemeMode>(initial);
 
   const setTheme = useCallback((mode: ThemeMode) => {
@@ -38,9 +32,7 @@ export function ThemeProvider({
   }, [theme]);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggle }}>
-      {children}
-    </ThemeContext.Provider>
+    <ThemeContext.Provider value={{ theme, setTheme, toggle }}>{children}</ThemeContext.Provider>
   );
 }
 

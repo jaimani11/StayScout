@@ -23,8 +23,4 @@ export const geistMono = GeistMono;
  * Combined font variable className for <html>.
  * Applied once in app/layout.tsx so every component can read --font-* vars.
  */
-export const fontVariables = [
-  fraunces.variable,
-  inter.variable,
-  geistMono.variable,
-].join(' ');
+export const fontVariables = [fraunces.variable, inter.variable, geistMono.variable].join(' ');
