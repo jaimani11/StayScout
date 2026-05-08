@@ -1,30 +1,44 @@
-import { Orchestrator } from './orchestrator';
-import { AnthropicModelClient } from '@lib/ai/anthropic-client';
-import { NoOpTraceLogger } from '@lib/observability/trace-logger';
-import { getSessionStore } from '@lib/session';
-import { createDefaultProviderRouter } from '@/providers';
+import {
+  createOrchestratorEngine,
+  getOrchestratorEngineKind,
+  type OrchestratorEngine,
+} from './engine';
 
 /**
  * Process-level singleton so refine-flow state persists across requests
- * within the same Node process. Lazily constructs on first use because
- * route handler imports run at build time and we don't want to require
- * external keys at build time.
+ * within the same Node process. Lazily constructs on first use.
+ *
+ * Async because the LangGraph engine awaits PostgresSaver.setup() when
+ * DATABASE_URL is present. The hand-rolled engine resolves immediately,
+ * so the cost is one microtask in the no-key path.
+ *
+ * The engine kind is captured at construction time. Flipping
+ * STAYSCOUT_ORCHESTRATOR mid-process requires a server restart — by
+ * design; we don't want a hot-swap mid-conversation.
  */
-let _instance: Orchestrator | null = null;
+let _instance: OrchestratorEngine | null = null;
+let _construction: Promise<OrchestratorEngine> | null = null;
+let _kindAtConstruction: ReturnType<typeof getOrchestratorEngineKind> | null = null;
 
-export function getOrchestrator(): Orchestrator {
+export async function getOrchestrator(): Promise<OrchestratorEngine> {
   if (_instance) return _instance;
-  const modelClient = new AnthropicModelClient();
-  _instance = new Orchestrator({
-    modelClient,
-    traceLogger: NoOpTraceLogger,
-    providerRouter: createDefaultProviderRouter(modelClient),
-    sessionStore: getSessionStore(),
+  if (_construction) return _construction;
+  _kindAtConstruction = getOrchestratorEngineKind();
+  _construction = createOrchestratorEngine().then((e) => {
+    _instance = e;
+    return e;
   });
-  return _instance;
+  return _construction;
 }
 
-// Test-only: replace the instance with one that uses a MockModelClient.
-export function _setOrchestratorForTesting(instance: Orchestrator | null): void {
+/** Diagnostic: what engine is currently mounted? */
+export function getOrchestratorKind(): ReturnType<typeof getOrchestratorEngineKind> | null {
+  return _kindAtConstruction;
+}
+
+// Test-only: replace the instance with one constructed by the test.
+export function _setOrchestratorForTesting(instance: OrchestratorEngine | null): void {
   _instance = instance;
+  _construction = null;
+  _kindAtConstruction = null;
 }

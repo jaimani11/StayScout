@@ -10,6 +10,8 @@ export interface ServerFeatures {
   database: boolean;
   anthropic: boolean;
   langfuse: boolean;
+  /** Which orchestrator engine the singleton would construct right now. */
+  orchestratorEngine: 'hand-rolled' | 'langgraph';
 }
 
 function isPresent(name: string): boolean {
@@ -28,5 +30,7 @@ export function getServerFeatures(): ServerFeatures {
     database: isPresent('DATABASE_URL'),
     anthropic: isPresent('ANTHROPIC_API_KEY'),
     langfuse: isPresent('LANGFUSE_SECRET_KEY'),
+    orchestratorEngine:
+      process.env.STAYSCOUT_ORCHESTRATOR === 'langgraph' ? 'langgraph' : 'hand-rolled',
   };
 }

@@ -1,0 +1,451 @@
+import type { LangGraphRunnableConfig } from '@langchain/langgraph';
+import type { Agent, AgentContext, TraceLogger } from '@core/agent';
+import type { ConciergeRequest } from '@core/concierge-request';
+import { stepId, turnId as turnIdBrand } from '@core/ids';
+import type { ModelClient } from '@core/model-client';
+import type { OrchestratorEvent } from '@core/orchestrator-event';
+import type { Provider, ProviderContext, ProviderSearchQuery } from '@core/provider';
+import type { Destination, TripIntent } from '@core/trip-intent';
+import type { AgentTraceSummary } from '@core/trip-proposal';
+import type { MoodSnapshot } from '@core/reasoning';
+import type { IntentAgentInput } from '@/agents/intent-agent';
+import type { MoodSnapshotAgentInput } from '@/agents/mood-snapshot-agent';
+import type { MemoryHinter } from '@lib/memory-hinter';
+import type { SessionStore } from '@lib/session/session-store';
+import { computeIntentDelta } from '../intent-delta';
+import { computeProposalDiff } from '../proposal-diff';
+import { buildProposal, buildProposalRef } from '../proposal-builder';
+import { synthesizeAdaptationNotes } from '../synthesize-adaptation';
+import {
+  RUNTIME_CONTEXT_KEY,
+  type GraphState,
+  type GraphUpdate,
+  type RuntimeContext,
+} from './state';
+
+/**
+ * Per-Orchestrator dependencies the graph nodes need. Held in closure
+ * by buildGraph(); the same compiled graph is reused across invocations.
+ * Stateful helpers (getHinter, hasSeenSession, ...) are backed by the
+ * Orchestrator instance's Maps so they survive across turns.
+ */
+export interface GraphDeps {
+  modelClient: ModelClient;
+  traceLogger: TraceLogger;
+  intentAgent: Agent<IntentAgentInput, TripIntent>;
+  moodSnapshotAgent: Agent<MoodSnapshotAgentInput, MoodSnapshot>;
+  providerRouter: (intent: TripIntent) => Provider;
+  sessionStore: SessionStore;
+  getHinter: (sessionId: string) => MemoryHinter;
+  hasSeenSession: (sessionId: string) => boolean;
+  markSessionSeen: (sessionId: string) => void;
+  hasSeenTurn: (turnId: string) => boolean;
+  markTurnSeen: (turnId: string) => void;
+}
+
+function readRuntime(config: LangGraphRunnableConfig): RuntimeContext {
+  const ctx = config.configurable?.[RUNTIME_CONTEXT_KEY] as RuntimeContext | undefined;
+  if (!ctx) {
+    throw new Error('LangGraph node missing RuntimeContext — runner did not wire emit/signal');
+  }
+  return ctx;
+}
+
+function buildAgentContext(
+  req: ConciergeRequest,
+  signal: AbortSignal,
+  deps: GraphDeps,
+): AgentContext {
+  return {
+    turnId: turnIdBrand(req.turnId),
+    signal,
+    emit: { progress: () => {}, explanation: () => {} },
+    modelClient: deps.modelClient,
+    traceLogger: deps.traceLogger,
+  };
+}
+
+function buildProviderQuery(intent: TripIntent, req: ConciergeRequest): ProviderSearchQuery {
+  return {
+    destinations: intent.destinations,
+    dates: intent.dates,
+    travelers: intent.travelers,
+    ...(intent.budget.kind !== 'unspecified' ? { budget: intent.budget } : {}),
+    preferences: intent.preferences,
+    ...(req.input.compareSet ? { compareSet: req.input.compareSet } : {}),
+  };
+}
+
+function errorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  return String(err);
+}
+
+function failStepEvent(turnId: string, sId: string, err: unknown): OrchestratorEvent {
+  return {
+    kind: 'agent.step.failed',
+    turnId,
+    stepId: sId,
+    error: errorMessage(err),
+    recoverable: false,
+  };
+}
+
+function failTurnEvent(turnId: string, err: unknown, recoverable: boolean): OrchestratorEvent {
+  if (err instanceof DOMException && err.name === 'AbortError') {
+    return { kind: 'turn.failed', turnId, error: 'cancelled', recoverable: true };
+  }
+  return { kind: 'turn.failed', turnId, error: errorMessage(err), recoverable };
+}
+
+// ============== Bootstrap ==============
+
+export function makeBootstrapNode(deps: GraphDeps) {
+  return async (state: GraphState, config: LangGraphRunnableConfig): Promise<GraphUpdate> => {
+    const { emit } = readRuntime(config);
+    const req = state.request;
+    const turnStartedAt = performance.now();
+
+    if (deps.hasSeenTurn(req.turnId)) {
+      emit({
+        kind: 'turn.failed',
+        turnId: req.turnId,
+        error: 'duplicate turnId',
+        recoverable: false,
+      });
+      return { hardEnded: true, turnStartedAt };
+    }
+    deps.markTurnSeen(req.turnId);
+
+    if (!deps.hasSeenSession(req.sessionId)) {
+      deps.markSessionSeen(req.sessionId);
+      emit({
+        kind: 'session.started',
+        sessionId: req.sessionId,
+        timestamp: Date.now(),
+      });
+    }
+
+    const priorTurn = req.input.priorProposalRef
+      ? await deps.sessionStore.getTurn(req.input.priorProposalRef.turnId)
+      : null;
+
+    emit({
+      kind: 'turn.started',
+      turnId: req.turnId,
+      type: req.type,
+      ...(priorTurn ? { priorTurnId: priorTurn.turnId } : {}),
+    });
+
+    return { priorTurn, turnStartedAt };
+  };
+}
+
+// ============== Intent ==============
+
+export function makeIntentNode(deps: GraphDeps) {
+  return async (state: GraphState, config: LangGraphRunnableConfig): Promise<GraphUpdate> => {
+    const { emit, signal } = readRuntime(config);
+    const req = state.request;
+    const intentStepId = stepId(`${req.turnId}-intent`);
+
+    emit({
+      kind: 'agent.step.started',
+      turnId: req.turnId,
+      stepId: intentStepId,
+      agentId: 'intent',
+      label: req.type === 'refine' ? 'Adjusting your trip' : 'Reading your trip',
+    });
+
+    const startedAt = performance.now();
+    let intent: TripIntent;
+    try {
+      const agentCtx = buildAgentContext(req, signal, deps);
+      const agentInput: IntentAgentInput = state.priorTurn?.intent
+        ? { rawInput: req.input.rawInput, priorIntent: state.priorTurn.intent }
+        : { rawInput: req.input.rawInput };
+      intent = await deps.intentAgent.run(agentInput, agentCtx);
+    } catch (err) {
+      emit(failStepEvent(req.turnId, intentStepId, err));
+      emit(failTurnEvent(req.turnId, err, false));
+      return { hardEnded: true };
+    }
+    const durationMs = Math.round(performance.now() - startedAt);
+
+    const agentTrace: AgentTraceSummary = {
+      agents: [...state.agentTrace.agents, { id: 'intent', durationMs }],
+      totalDurationMs: state.agentTrace.totalDurationMs,
+    };
+
+    emit({
+      kind: 'agent.step.completed',
+      turnId: req.turnId,
+      stepId: intentStepId,
+      durationMs,
+    });
+
+    if (req.type === 'refine' && state.priorTurn?.intent) {
+      emit({
+        kind: 'intent.refined',
+        turnId: req.turnId,
+        intent,
+        delta: computeIntentDelta(state.priorTurn.intent, intent),
+      });
+    } else {
+      emit({ kind: 'intent.extracted', turnId: req.turnId, intent });
+    }
+
+    return { intent, agentTrace };
+  };
+}
+
+// ============== Search ==============
+
+export function makeSearchNode(deps: GraphDeps) {
+  return async (state: GraphState, config: LangGraphRunnableConfig): Promise<GraphUpdate> => {
+    const { emit, signal } = readRuntime(config);
+    if (!state.intent) return {};
+    const req = state.request;
+    const intent = state.intent;
+    const provider = deps.providerRouter(intent);
+    const searchStepId = stepId(`${req.turnId}-search`);
+
+    emit({
+      kind: 'agent.step.started',
+      turnId: req.turnId,
+      stepId: searchStepId,
+      agentId: 'search',
+      label: `Searching ${provider.displayName}`,
+    });
+
+    const startedAt = performance.now();
+    let searchResult;
+    try {
+      const providerCtx: ProviderContext = { signal, secrets: {} };
+      searchResult = await provider.search(buildProviderQuery(intent, req), providerCtx);
+    } catch (err) {
+      emit(failStepEvent(req.turnId, searchStepId, err));
+      emit(failTurnEvent(req.turnId, err, false));
+      return { hardEnded: true };
+    }
+    const durationMs = Math.round(performance.now() - startedAt);
+
+    const agentTrace: AgentTraceSummary = {
+      agents: [...state.agentTrace.agents, { id: 'search', durationMs }],
+      totalDurationMs: state.agentTrace.totalDurationMs,
+    };
+
+    emit({
+      kind: 'provider.search.completed',
+      turnId: req.turnId,
+      providerId: provider.id,
+      staysFound: searchResult.stays.length,
+      badges: searchResult.badges,
+      freshness: searchResult.freshness,
+    });
+    emit({
+      kind: 'agent.step.completed',
+      turnId: req.turnId,
+      stepId: searchStepId,
+      durationMs,
+    });
+
+    if (searchResult.stays.length === 0) {
+      emit({
+        kind: 'concierge.message',
+        turnId: req.turnId,
+        message: "*Couldn't find anything that fits — try broadening the dates?*",
+        tone: 'apologize',
+      });
+      return { searchResult, agentTrace, softEnded: true };
+    }
+
+    return { searchResult, agentTrace };
+  };
+}
+
+// ============== Compose / Refine ==============
+
+export function makeComposeNode(_deps: GraphDeps) {
+  return async (state: GraphState, config: LangGraphRunnableConfig): Promise<GraphUpdate> => {
+    const { emit } = readRuntime(config);
+    if (!state.intent || !state.searchResult) return {};
+    const req = state.request;
+
+    const totalSoFar = Math.round(performance.now() - state.turnStartedAt);
+    const agentTrace: AgentTraceSummary = {
+      agents: state.agentTrace.agents,
+      totalDurationMs: totalSoFar,
+    };
+    const proposal = buildProposal({
+      intent: state.intent,
+      stays: state.searchResult.stays,
+      agentTrace,
+    });
+    const proposalRef = buildProposalRef(proposal, req.turnId);
+
+    if (req.type === 'refine' && state.priorTurn?.proposal) {
+      emit({
+        kind: 'proposal.refining',
+        turnId: req.turnId,
+        priorProposalRef: buildProposalRef(state.priorTurn.proposal, state.priorTurn.turnId),
+      });
+      const synthDelta = computeIntentDelta(state.priorTurn.intent, state.intent);
+      const notes = synthesizeAdaptationNotes(synthDelta);
+      if (notes.length > 0) {
+        emit({ kind: 'proposal.adaptation', turnId: req.turnId, notes });
+      }
+      emit({
+        kind: 'proposal.evolved',
+        turnId: req.turnId,
+        proposal,
+        diff: computeProposalDiff(state.priorTurn.proposal, proposal),
+      });
+    } else {
+      emit({
+        kind: 'proposal.shimmering',
+        turnId: req.turnId,
+        expectedCount: 1 + proposal.alternatives.length,
+      });
+      emit({ kind: 'proposal.ready', turnId: req.turnId, proposal });
+    }
+
+    emit({
+      kind: 'proposal.bookmarkable',
+      turnId: req.turnId,
+      ref: proposalRef,
+      storage: 'session',
+    });
+
+    emit({
+      kind: 'concierge.message',
+      turnId: req.turnId,
+      message: proposal.reasoning.summary,
+      ...(req.type === 'refine' ? { tone: 'narrate' as const } : {}),
+    });
+
+    return { proposal, proposalRef, agentTrace };
+  };
+}
+
+// ============== Mood (post-proposal, non-blocking) ==============
+
+export function makeMoodNode(deps: GraphDeps) {
+  return async (state: GraphState, config: LangGraphRunnableConfig): Promise<GraphUpdate> => {
+    const { emit, signal } = readRuntime(config);
+    if (!state.proposal || !state.intent) return {};
+
+    const dest: Destination | undefined = state.intent.destinations[0];
+    if (!dest) return {};
+
+    const req = state.request;
+    const moodStepId = stepId(`${req.turnId}-mood`);
+    emit({
+      kind: 'agent.step.started',
+      turnId: req.turnId,
+      stepId: moodStepId,
+      agentId: 'mood',
+      label: 'Composing the vibe',
+    });
+
+    const startedAt = performance.now();
+    try {
+      const agentCtx = buildAgentContext(req, signal, deps);
+      const snapshot = await deps.moodSnapshotAgent.run({ destination: dest }, agentCtx);
+      const durationMs = Math.round(performance.now() - startedAt);
+      emit({
+        kind: 'agent.step.completed',
+        turnId: req.turnId,
+        stepId: moodStepId,
+        durationMs,
+      });
+      emit({
+        kind: 'mood.snapshot.ready',
+        turnId: req.turnId,
+        destinationName: snapshot.destinationName,
+        snapshot,
+      });
+    } catch (err) {
+      emit({
+        kind: 'agent.step.failed',
+        turnId: req.turnId,
+        stepId: moodStepId,
+        error: errorMessage(err),
+        recoverable: true,
+      });
+    }
+    return {};
+  };
+}
+
+// ============== Memory hint ==============
+
+export function makeMemoryHintNode(deps: GraphDeps) {
+  return async (state: GraphState, _config: LangGraphRunnableConfig): Promise<GraphUpdate> => {
+    const { emit } = readRuntime(_config);
+    if (!state.intent || !state.proposal) return {};
+    const req = state.request;
+    const hinter = deps.getHinter(req.sessionId);
+    hinter.observeTurn({ intent: state.intent });
+    const hint = hinter.evaluate();
+    if (hint) {
+      hinter.markFired();
+      emit({
+        kind: 'concierge.memory.hint',
+        turnId: req.turnId,
+        message: hint.message,
+        signalKey: hint.signalKey,
+        confidence: hint.confidence,
+      });
+    }
+    return {};
+  };
+}
+
+// ============== Complete + persist ==============
+
+export function makeCompleteNode(deps: GraphDeps) {
+  return async (state: GraphState, config: LangGraphRunnableConfig): Promise<GraphUpdate> => {
+    const { emit } = readRuntime(config);
+    const req = state.request;
+    const durationMs = Math.round(performance.now() - state.turnStartedAt);
+
+    emit({
+      kind: 'turn.completed',
+      turnId: req.turnId,
+      durationMs,
+    });
+
+    if (state.intent) {
+      await deps.sessionStore.putTurn({
+        turnId: req.turnId,
+        sessionId: req.sessionId,
+        type: req.type,
+        rawInput: req.input.rawInput,
+        intent: state.intent,
+        ...(state.proposal ? { proposal: state.proposal } : {}),
+        durationMs,
+        completedAt: Date.now(),
+      });
+    }
+    return {};
+  };
+}
+
+// ============== Routers ==============
+// Routers return abstract keys ('next', 'end', ...) that the graph maps
+// to actual node names — keeps node renames isolated from this file.
+
+export function routeAfterBootstrap(state: GraphState): 'next' | 'end' {
+  return state.hardEnded ? 'end' : 'next';
+}
+
+export function routeAfterIntent(state: GraphState): 'next' | 'end' {
+  return state.hardEnded ? 'end' : 'next';
+}
+
+export function routeAfterSearch(state: GraphState): 'compose' | 'complete' | 'end' {
+  if (state.hardEnded) return 'end';
+  if (state.softEnded) return 'complete';
+  return 'compose';
+}

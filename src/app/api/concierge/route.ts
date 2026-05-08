@@ -27,7 +27,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   const session = resolveSession(req.headers.get('cookie'));
   const requestSessionId = parsed.data.sessionId || session.sessionId;
 
-  const orchestrator = getOrchestrator();
+  const orchestrator = await getOrchestrator();
   const stream = toJsonlStream(
     orchestrator.run({ ...parsed.data, sessionId: requestSessionId }, { signal: req.signal }),
   );

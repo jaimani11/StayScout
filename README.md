@@ -8,9 +8,11 @@
 
 **Slice B1 — Persistence + Auth: complete (mock-safe).** Saved trips persist via a `SessionStore` interface with two implementations: an in-memory store (default) and a Postgres-backed Prisma store (active when `DATABASE_URL` is set). Anonymous sessions own trips by sessionId; signing in (Clerk, when configured) migrates them to the user's id idempotently.
 
+**Slice B2 — Orchestrator → LangGraph: complete (opt-in).** The hand-rolled orchestrator now has a LangGraph-driven peer behind `STAYSCOUT_ORCHESTRATOR=langgraph`. Same `run()` contract, same event stream — verified by a parity test that deep-equals event sequences from both engines. Mock-safe: `MemorySaver` checkpoint default, `PostgresSaver` when `DATABASE_URL` is set.
+
 - Specs: [`docs/superpowers/specs/`](docs/superpowers/specs/)
 - Plans: [`docs/superpowers/plans/`](docs/superpowers/plans/)
-- Tags: `slice-a1` … `slice-a10`, `slice-b1`
+- Tags: `slice-a1` … `slice-a10`, `slice-b1`, `slice-b2`
 
 ## Quick start
 
@@ -33,6 +35,7 @@ Every variable is optional. The matrix shows what each one turns on:
 | **Providers** | `MockItalyProvider` (30 curated stays) + `LLMSynthesizedProvider` (mock) | (Slice B5) Booking, Expedia, Vrbo, Hotelbeds via real APIs |
 | **Database** | In-memory `SessionStore` — process-local, lost on restart | `DATABASE_URL` → Postgres via Prisma. Run `pnpm db:migrate` once. |
 | **Auth** | Anonymous (cookie-bound `sessionId`) — saved trips work | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY` → sign-in + auto-migration of anonymous trips |
+| **Orchestrator** | Hand-rolled engine | `STAYSCOUT_ORCHESTRATOR=langgraph` → LangGraph engine (same event stream; checkpointer is `MemorySaver` unless `DATABASE_URL` is set, then `PostgresSaver`) |
 | **Observability** | Console logs only | (Slice B planned) `LANGFUSE_*` → trace export |
 
 Mixing is supported. Set just `DATABASE_URL` to persist trips without sign-in. Set just Clerk keys to enable auth without persistence (saved trips still work in-memory). Production needs all of them.
@@ -122,8 +125,8 @@ The reverse fails CI (verified via `boundaries/dependencies` rule).
 | A9 | Refine + Compare + Memory + Detail | ✓ |
 | A10 | Marketing + Mobile + Deploy | ✓ |
 | B1 | Persistence (`SessionStore` interface + Postgres impl) + Auth (Clerk + anon-to-user migration) — mock-safe | ✓ |
-| B2 | Orchestrator → LangGraph + Postgres checkpointer | next |
-| B3 | Saved trips resurfacing + share links | |
+| B2 | Orchestrator → LangGraph + Postgres checkpointer (opt-in via STAYSCOUT_ORCHESTRATOR) | ✓ |
+| B3 | Saved trips resurfacing + share links | next |
 | B4 | Affiliate redirect router + click attribution | |
 | B5 | Real provider integrations (Booking, Expedia, Vrbo, Hotelbeds) | |
 | B6 | `/destinations/[slug]` SEO + mobile bottom-sheet | |
