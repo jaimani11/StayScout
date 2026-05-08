@@ -1,0 +1,120 @@
+/* ============================================================
+   StayScout Design Tokens — spec §4
+   Two themes (cinematic dark / boutique-sunset light) plus a
+   theme-independent --featured-* set for the marketing break.
+   ============================================================ */
+
+@theme {
+  /* Typography (font families come from next/font; we only declare scale here) */
+  --text-display-xl: 4.5rem;
+  --text-display-lg: 3.5rem;
+  --text-display-md: 2.25rem;
+  --text-display-sm: 1.625rem;
+  --text-body-lg: 1.125rem;
+  --text-body: 1rem;
+  --text-body-sm: 0.875rem;
+  --text-label: 0.75rem;
+  --text-mono: 0.8125rem;
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 22px;
+  --radius-full: 9999px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-instant: 100ms;
+  --dur-fast: 200ms;
+  --dur-base: 350ms;
+  --dur-slow: 600ms;
+  --dur-cinematic: 900ms;
+}
+
+/* ============== DARK MODE (default — cinematic) ============== */
+:root,
+:root[data-theme="dark"] {
+  --surface-base: #0B0D10;
+  --surface-raised: #14171C;
+  --surface-elevated: rgba(255, 255, 255, 0.04);
+  --surface-overlay: rgba(255, 255, 255, 0.06);
+
+  --ink-primary: #EDE6DB;
+  --ink-secondary: rgba(237, 230, 219, 0.65);
+  --ink-tertiary: rgba(237, 230, 219, 0.40);
+
+  --accent-primary: #D4A574;
+  --accent-primary-soft: rgba(212, 165, 116, 0.16);
+  --accent-primary-glow: rgba(212, 165, 116, 0.40);
+  --accent-secondary: #5078C8;
+
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-emphasis: rgba(255, 255, 255, 0.14);
+
+  --bloom-warm: radial-gradient(ellipse 80% 60% at 70% 20%,
+                  rgba(212, 165, 116, 0.14) 0%, transparent 60%);
+  --bloom-cool: radial-gradient(ellipse 60% 50% at 20% 90%,
+                  rgba(80, 120, 200, 0.10) 0%, transparent 60%);
+
+  --elev-card:
+    0 8px 24px -8px rgb(0 0 0 / 0.50),
+    inset 0 1px 0 rgb(255 255 255 / 0.04);
+  --elev-hero:
+    0 18px 40px -12px rgb(0 0 0 / 0.55),
+    0 0 0 1px rgb(255 255 255 / 0.06),
+    inset 0 1px 0 rgb(255 255 255 / 0.06);
+
+  color-scheme: dark;
+}
+
+/* ============== LIGHT MODE (boutique sunset) ============== */
+:root[data-theme="light"] {
+  --surface-base: #F4EFE6;
+  --surface-raised: #FAF6EC;
+  --surface-elevated: #FFFFFF;
+  --surface-overlay: rgba(42, 42, 31, 0.04);
+
+  --ink-primary: #2A2A1F;
+  --ink-secondary: rgba(42, 42, 31, 0.65);
+  --ink-tertiary: rgba(42, 42, 31, 0.40);
+
+  --accent-primary: #5A6B3F;
+  --accent-primary-soft: rgba(90, 107, 63, 0.12);
+  --accent-primary-glow: rgba(90, 107, 63, 0.30);
+  --accent-secondary: #B0552F;
+
+  --border-subtle: rgba(42, 42, 31, 0.10);
+  --border-emphasis: rgba(42, 42, 31, 0.18);
+
+  --bloom-warm: radial-gradient(ellipse 80% 60% at 70% 20%,
+                  rgba(176, 85, 47, 0.08) 0%, transparent 60%);
+  --bloom-cool: radial-gradient(ellipse 60% 50% at 20% 90%,
+                  rgba(90, 107, 63, 0.06) 0%, transparent 60%);
+
+  --elev-card:
+    0 1px 2px rgb(42 42 31 / 0.06),
+    0 1px 1px rgb(42 42 31 / 0.03);
+  --elev-hero:
+    0 24px 56px -20px rgb(42 42 31 / 0.25),
+    0 8px 16px rgb(42 42 31 / 0.05);
+
+  color-scheme: light;
+}
+
+/* ============== FIXED BOUTIQUE-LIGHT TOKENS ==============
+   For the "Featured stays" marketing section break — keeps boutique
+   identity regardless of global theme. Spec §4.1.
+*/
+:root {
+  --featured-bg: #F4EFE6;
+  --featured-bg-raised: #FAF6EC;
+  --featured-ink-primary: #2A2A1F;
+  --featured-ink-secondary: rgba(42, 42, 31, 0.65);
+  --featured-accent: #5A6B3F;
+  --featured-accent-clay: #B0552F;
+  --featured-border: rgba(42, 42, 31, 0.14);
+}
