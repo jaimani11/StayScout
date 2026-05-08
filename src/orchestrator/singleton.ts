@@ -1,6 +1,7 @@
 import { Orchestrator } from './orchestrator';
 import { AnthropicModelClient } from '@lib/ai/anthropic-client';
 import { NoOpTraceLogger } from '@lib/observability/trace-logger';
+import { createDefaultProviderRouter } from '@/providers';
 
 /**
  * Process-level singleton so the in-memory turn map persists across
@@ -16,6 +17,7 @@ export function getOrchestrator(): Orchestrator {
   _instance = new Orchestrator({
     modelClient,
     traceLogger: NoOpTraceLogger,
+    providerRouter: createDefaultProviderRouter(modelClient),
   });
   return _instance;
 }

@@ -4,10 +4,13 @@ import { stepId, turnId as turnIdBrand } from '@core/ids';
 import type { ModelClient } from '@core/model-client';
 import type { OrchestratorEvent } from '@core/orchestrator-event';
 import type { Provider, ProviderContext, ProviderSearchQuery } from '@core/provider';
-import type { TripIntent } from '@core/trip-intent';
+import type { Destination, TripIntent } from '@core/trip-intent';
 import type { TripProposal, AgentTraceSummary } from '@core/trip-proposal';
+import type { MoodSnapshot } from '@core/reasoning';
 import type { IntentAgentInput } from '@/agents/intent-agent';
 import { IntentAgent } from '@/agents/intent-agent';
+import type { MoodSnapshotAgentInput } from '@/agents/mood-snapshot-agent';
+import { MoodSnapshotAgent } from '@/agents/mood-snapshot-agent';
 import { routeProvider } from '@/providers';
 import { NoOpTraceLogger } from '@lib/observability/trace-logger';
 import { computeIntentDelta } from './intent-delta';
@@ -26,6 +29,7 @@ export interface OrchestratorOptions {
   modelClient: ModelClient;
   traceLogger?: TraceLogger;
   intentAgent?: Agent<IntentAgentInput, TripIntent>;
+  moodSnapshotAgent?: Agent<MoodSnapshotAgentInput, MoodSnapshot>;
   providerRouter?: (intent: TripIntent) => Provider;
 }
 
@@ -39,6 +43,7 @@ export class Orchestrator {
   private readonly modelClient: ModelClient;
   private readonly traceLogger: TraceLogger;
   private readonly intentAgent: Agent<IntentAgentInput, TripIntent>;
+  private readonly moodSnapshotAgent: Agent<MoodSnapshotAgentInput, MoodSnapshot>;
   private readonly providerRouter: (intent: TripIntent) => Provider;
   private readonly turns = new Map<string, TurnRecord>();
   private readonly seenSessions = new Set<string>();
@@ -48,6 +53,7 @@ export class Orchestrator {
     this.modelClient = opts.modelClient;
     this.traceLogger = opts.traceLogger ?? NoOpTraceLogger;
     this.intentAgent = opts.intentAgent ?? IntentAgent;
+    this.moodSnapshotAgent = opts.moodSnapshotAgent ?? MoodSnapshotAgent;
     this.providerRouter = opts.providerRouter ?? routeProvider;
   }
 
@@ -233,7 +239,12 @@ export class Orchestrator {
       ...(req.type === 'refine' ? { tone: 'narrate' as const } : {}),
     };
 
-    // (MoodSnapshotAgent runs here in Slice A6 — non-blocking, post-proposal.)
+    // ============== Step 4 — Mood snapshot (post-proposal, non-blocking) ==============
+    // Failures here NEVER block the turn — proposal already shipped.
+    const dest = intent.destinations[0];
+    if (dest) {
+      yield* this.runMoodSnapshotEvents(req, dest, ctx.signal);
+    }
 
     yield {
       kind: 'turn.completed',
@@ -248,6 +259,48 @@ export class Orchestrator {
       proposal,
       completedAt: Date.now(),
     });
+  }
+
+  private async *runMoodSnapshotEvents(
+    req: ConciergeRequest,
+    destination: Destination,
+    signal: AbortSignal,
+  ): AsyncIterable<OrchestratorEvent> {
+    const moodStepId = stepId(`${req.turnId}-mood`);
+    yield {
+      kind: 'agent.step.started',
+      turnId: req.turnId,
+      stepId: moodStepId,
+      agentId: 'mood',
+      label: 'Composing the vibe',
+    };
+
+    const startedAt = performance.now();
+    try {
+      const agentCtx = this.buildAgentContext(req, signal);
+      const snapshot = await this.moodSnapshotAgent.run({ destination }, agentCtx);
+      const durationMs = Math.round(performance.now() - startedAt);
+      yield {
+        kind: 'agent.step.completed',
+        turnId: req.turnId,
+        stepId: moodStepId,
+        durationMs,
+      };
+      yield {
+        kind: 'mood.snapshot.ready',
+        turnId: req.turnId,
+        destinationName: snapshot.destinationName,
+        snapshot,
+      };
+    } catch (err) {
+      yield {
+        kind: 'agent.step.failed',
+        turnId: req.turnId,
+        stepId: moodStepId,
+        error: errorMessage(err),
+        recoverable: true,
+      };
+    }
   }
 
   private buildAgentContext(req: ConciergeRequest, signal: AbortSignal): AgentContext {

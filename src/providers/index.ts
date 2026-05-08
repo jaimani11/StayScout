@@ -4,25 +4,42 @@
 import type { Provider } from '@core/provider';
 import type { ProviderId } from '@core/ids';
 import type { TripIntent } from '@core/trip-intent';
+import type { ModelClient } from '@core/model-client';
 import { MockItalyProvider } from './mock-italy';
-import { LLMSynthesizedProvider } from './llm-synthesized';
+import { LLMSynthesizedProvider, LLMSynthesizedProviderStub } from './llm-synthesized';
 
 export const ProviderRegistry: Readonly<Record<string, Provider>> = {
   'mock-italy': MockItalyProvider,
-  'llm-synthesized': LLMSynthesizedProvider,
+  'llm-synthesized': LLMSynthesizedProviderStub,
 };
 
 /**
- * Route an intent to the right provider. Slice A: simple if/else.
- * Slice B replaces with a parallel ProviderRouter that fans out to
- * multiple real providers and merges results — same return type.
+ * Default route — used by tests and any caller without a model client.
+ * Italy queries hit the curated MockItalyProvider; others hit the stub.
  */
 export function routeProvider(intent: TripIntent): Provider {
   const dest = intent.destinations[0];
   if (dest && dest.country === 'IT' && MockItalyProvider.knowsDestination(dest)) {
     return MockItalyProvider;
   }
-  return LLMSynthesizedProvider;
+  return LLMSynthesizedProviderStub;
+}
+
+/**
+ * Production factory — builds a router that uses a real LLM provider.
+ * Called from the orchestrator singleton at construction time.
+ */
+export function createDefaultProviderRouter(
+  modelClient: ModelClient,
+): (intent: TripIntent) => Provider {
+  const llmProvider = new LLMSynthesizedProvider(modelClient);
+  return (intent) => {
+    const dest = intent.destinations[0];
+    if (dest && dest.country === 'IT' && MockItalyProvider.knowsDestination(dest)) {
+      return MockItalyProvider;
+    }
+    return llmProvider;
+  };
 }
 
 export function getProvider(id: ProviderId | string): Provider | null {
@@ -30,4 +47,4 @@ export function getProvider(id: ProviderId | string): Provider | null {
 }
 
 export { MockItalyProvider } from './mock-italy';
-export { LLMSynthesizedProvider } from './llm-synthesized';
+export { LLMSynthesizedProvider, LLMSynthesizedProviderStub } from './llm-synthesized';

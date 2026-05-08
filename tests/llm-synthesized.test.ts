@@ -1,0 +1,104 @@
+import { describe, expect, it } from 'vitest';
+import { LLMSynthesizedProvider } from '@/providers/llm-synthesized';
+import { mapLLMStayToStay, type LLMStay } from '@/providers/llm-synthesized/llm-stay';
+import { resolvePhotoId } from '@/providers/llm-synthesized/photo-resolver';
+import { TtlCache } from '@/providers/llm-synthesized/cache';
+import { StaySchema } from '@core/stay';
+import type { ProviderContext, ProviderSearchQuery } from '@core/provider';
+import { MockModelClient } from './helpers/mock-model-client';
+
+const ctx: ProviderContext = { signal: new AbortController().signal, secrets: {} };
+
+function buildQuery(overrides: Partial<ProviderSearchQuery> = {}): ProviderSearchQuery {
+  return {
+    destinations: [{ kind: 'synthesized', name: 'Tokyo', country: 'JP' }],
+    dates: { kind: 'unspecified' },
+    travelers: { adults: 1, children: { count: 0 }, infants: 0 },
+    ...overrides,
+  };
+}
+
+const sampleLLMStay: LLMStay = {
+  slug: 'tokyo-quiet-house',
+  name: 'A small guesthouse in Yanaka',
+  type: 'guesthouse',
+  location: { country: 'JP', region: 'Kanto', locality: 'Tokyo', neighborhood: 'Yanaka' },
+  description:
+    'Six tatami rooms above a coffee shop in old Tokyo. Steps from the cemetery park; mornings smell like roasted beans.',
+  pricePerNight: 220,
+  currency: 'USD',
+  amenities: ['Breakfast included', 'Wi-Fi', 'Walking distance to subway'],
+  capacity: { sleeps: 2, bedrooms: 1, bathrooms: 1 },
+  vibe: ['mid-range', 'walkable', 'foodie', 'avoid-tourist-traps'],
+  walkability: 92,
+  photoCategory: 'cityscape',
+};
+
+const sampleLLMStay2: LLMStay = {
+  ...sampleLLMStay,
+  slug: 'tokyo-bay-tower',
+  name: 'A modern apartment overlooking the bay',
+  type: 'apartment',
+  pricePerNight: 380,
+  vibe: ['mid-range', 'urban', 'fast-paced'],
+  photoCategory: 'cityscape',
+};
+
+describe('mapLLMStayToStay', () => {
+  it('produces a Stay that passes StaySchema', () => {
+    const stay = mapLLMStayToStay(sampleLLMStay);
+    expect(() => StaySchema.parse(stay)).not.toThrow();
+  });
+
+  it('namespaces id as llm-synthesized:<slug>', () => {
+    expect(mapLLMStayToStay(sampleLLMStay).id).toBe('llm-synthesized:tokyo-quiet-house');
+  });
+
+  it('attaches a category-resolved unsplash photo', () => {
+    const stay = mapLLMStayToStay(sampleLLMStay);
+    expect(stay.photos[0]?.url).toContain(resolvePhotoId('cityscape'));
+  });
+});
+
+describe('TtlCache', () => {
+  it('returns null after expiry', async () => {
+    const cache = new TtlCache<number>(1);
+    cache.set('k', 7);
+    expect(cache.get('k')).toBe(7);
+    await new Promise((r) => setTimeout(r, 10));
+    expect(cache.get('k')).toBeNull();
+  });
+});
+
+describe('LLMSynthesizedProvider', () => {
+  it('returns mapped stays from a successful generation', async () => {
+    const client = new MockModelClient().respondGenerate(() => ({
+      stays: [sampleLLMStay, sampleLLMStay2],
+    }));
+    const provider = new LLMSynthesizedProvider(client);
+    const result = await provider.search(buildQuery(), ctx);
+    expect(result.stays.length).toBe(2);
+    expect(result.stays[0]?.name).toBe(sampleLLMStay.name);
+    expect(result.badges.some((b) => b.kind === 'preview')).toBe(true);
+    expect(result.freshness.source).toBe('synthesized');
+  });
+
+  it('caches by (destination, vibe, budget) — second call hits cache', async () => {
+    let calls = 0;
+    const client = new MockModelClient().respondGenerate(() => {
+      calls += 1;
+      return { stays: [sampleLLMStay, sampleLLMStay2] };
+    });
+    const provider = new LLMSynthesizedProvider(client);
+    await provider.search(buildQuery(), ctx);
+    await provider.search(buildQuery(), ctx);
+    expect(calls).toBe(1);
+  });
+
+  it('returns empty result when no destination given', async () => {
+    const client = new MockModelClient();
+    const provider = new LLMSynthesizedProvider(client);
+    const result = await provider.search(buildQuery({ destinations: [] }), ctx);
+    expect(result.stays).toEqual([]);
+  });
+});

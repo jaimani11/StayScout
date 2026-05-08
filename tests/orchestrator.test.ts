@@ -54,7 +54,20 @@ describe('Orchestrator', () => {
     expect(kinds).toContain('proposal.ready');
     expect(kinds).toContain('proposal.bookmarkable');
     expect(kinds).toContain('concierge.message');
+    // Mood snapshot fires post-proposal (curated path for Tuscany — no LLM call)
+    expect(kinds).toContain('mood.snapshot.ready');
     expect(kinds[kinds.length - 1]).toBe('turn.completed');
+  });
+
+  it('emits mood.snapshot.ready after proposal.ready (curated path)', async () => {
+    process.env.MOCK_PROVIDER_LATENCY_MS = '0';
+    const client = new MockModelClient().respondGenerate(() => intentResponse);
+    const orch = new Orchestrator({ modelClient: client });
+    const events = await collect(orch.run(baseRequest(), { signal: new AbortController().signal }));
+    const proposalReadyIdx = events.findIndex((e) => e.kind === 'proposal.ready');
+    const moodIdx = events.findIndex((e) => e.kind === 'mood.snapshot.ready');
+    expect(proposalReadyIdx).toBeGreaterThanOrEqual(0);
+    expect(moodIdx).toBeGreaterThan(proposalReadyIdx);
   });
 
   it('does not re-emit session.started for subsequent turns in the same session', async () => {
