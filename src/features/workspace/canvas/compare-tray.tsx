@@ -2,10 +2,10 @@
 
 import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { X } from '@/features/shared/icons';
+import type { Stay } from '@core/stay';
 import { useWorkspaceStore } from '../store/workspace-store';
-import { selectStaysByIds } from '../store/derived';
 import { useReducedMotion } from '@/features/shared/motion/reduced-motion';
 import { CompareView } from './compare-view';
 
@@ -13,14 +13,39 @@ import { CompareView } from './compare-view';
  * Floating bottom strip showing pinned stays. Auto-hides when nothing is
  * pinned. Click thumbnails to unpin individually; "Compare" opens the
  * side-by-side modal; "Clear" removes all pins.
+ *
+ * Note: we subscribe to compareSet + turns separately and derive the
+ * stays array via useMemo. A naive selector that returned the array
+ * inside useWorkspaceStore would create a new array reference on every
+ * render and trip Zustand's reference-equality check, causing an
+ * infinite loop.
  */
 export function CompareTray() {
   const compareSet = useWorkspaceStore((s) => s.compareSet);
-  const stays = useWorkspaceStore((s) => selectStaysByIds(s, compareSet));
+  const turns = useWorkspaceStore((s) => s.turns);
   const unpinStay = useWorkspaceStore((s) => s.unpinStay);
   const clearCompare = useWorkspaceStore((s) => s.clearCompare);
   const reduced = useReducedMotion();
   const [open, setOpen] = useState(false);
+
+  const stays = useMemo<Stay[]>(() => {
+    const out: Stay[] = [];
+    for (const id of compareSet) {
+      for (const t of turns) {
+        if (!t.proposal) continue;
+        if (t.proposal.hero.id === id) {
+          out.push(t.proposal.hero);
+          break;
+        }
+        const alt = t.proposal.alternatives.find((a) => a.id === id);
+        if (alt) {
+          out.push(alt);
+          break;
+        }
+      }
+    }
+    return out;
+  }, [compareSet, turns]);
 
   return (
     <>
