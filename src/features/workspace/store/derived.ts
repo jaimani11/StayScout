@@ -26,6 +26,9 @@ export function selectStayById(s: WorkspaceState, stayId: string): Stay | null {
   return null;
 }
 
-export function selectStaysByIds(s: WorkspaceState, ids: readonly string[]): Stay[] {
-  return ids.map((id) => selectStayById(s, id)).filter((x): x is Stay => x !== null);
-}
+// Intentionally NOT exporting a `selectStaysByIds(state, ids)` helper here:
+// using it inside a `useWorkspaceStore(...)` selector would create a fresh
+// array every render and trigger Zustand's reference-equality re-render
+// loop. Components that need multi-stay lookups should subscribe to
+// `compareSet` + `turns` separately and derive via `useMemo`. See
+// `CompareTray` for the pattern.
