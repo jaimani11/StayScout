@@ -6,19 +6,38 @@
 
 **Slice A — Cinematic Foundation: complete.** Type a sentence, see a typed JSONL stream of agent steps, watch a Trip Board materialize. Pin to compare. Refine in plain English. Mood snapshots, memory hints, detail view, marketing scroll — all in.
 
-- Spec: [`docs/superpowers/specs/2026-05-08-stayscout-slice-a-design.md`](docs/superpowers/specs/2026-05-08-stayscout-slice-a-design.md)
+**Slice B1 — Persistence + Auth: complete (mock-safe).** Saved trips persist via a `SessionStore` interface with two implementations: an in-memory store (default) and a Postgres-backed Prisma store (active when `DATABASE_URL` is set). Anonymous sessions own trips by sessionId; signing in (Clerk, when configured) migrates them to the user's id idempotently.
+
+- Specs: [`docs/superpowers/specs/`](docs/superpowers/specs/)
 - Plans: [`docs/superpowers/plans/`](docs/superpowers/plans/)
-- Tags: `slice-a1` … `slice-a10`
+- Tags: `slice-a1` … `slice-a10`, `slice-b1`
 
 ## Quick start
 
-Requires Node 22+, pnpm 9+ (use `corepack enable` to install), and an Anthropic API key.
+Requires Node 22+, pnpm 9+ (use `corepack enable` to install). **No API keys needed for local dev.**
 
 ```bash
 pnpm install
-echo "ANTHROPIC_API_KEY=sk-..." >> .env.local
 pnpm dev          # → http://localhost:3000
 ```
+
+Without env vars, the app runs in mock mode end-to-end: deterministic provider results, in-memory session store, anonymous auth. Add keys to upgrade subsystems individually.
+
+## Modes
+
+Every variable is optional. The matrix shows what each one turns on:
+
+| Subsystem | Without keys (default) | With keys |
+|---|---|---|
+| **Models** | Mock IntentAgent fixtures, deterministic mood snapshots | `ANTHROPIC_API_KEY` → live Claude calls |
+| **Providers** | `MockItalyProvider` (30 curated stays) + `LLMSynthesizedProvider` (mock) | (Slice B5) Booking, Expedia, Vrbo, Hotelbeds via real APIs |
+| **Database** | In-memory `SessionStore` — process-local, lost on restart | `DATABASE_URL` → Postgres via Prisma. Run `pnpm db:migrate` once. |
+| **Auth** | Anonymous (cookie-bound `sessionId`) — saved trips work | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY` → sign-in + auto-migration of anonymous trips |
+| **Observability** | Console logs only | (Slice B planned) `LANGFUSE_*` → trace export |
+
+Mixing is supported. Set just `DATABASE_URL` to persist trips without sign-in. Set just Clerk keys to enable auth without persistence (saved trips still work in-memory). Production needs all of them.
+
+See [`.env.example`](./.env.example) for the full list.
 
 ## Try the wire
 
@@ -55,6 +74,10 @@ pnpm format:check   Verify formatting (used in CI)
 pnpm test           Run unit tests (skips integration)
 pnpm test:live      Live-API integration tests (requires ANTHROPIC_API_KEY + RUN_LIVE_API_TESTS=1)
 pnpm test:eval      IntentAgent golden cases against the live API (requires RUN_EVAL_TESTS=1)
+pnpm db:generate    Generate the Prisma client (runs automatically post-install)
+pnpm db:migrate     Apply pending migrations against DATABASE_URL (dev)
+pnpm db:migrate:deploy  Apply migrations (prod-safe, no schema diff prompt)
+pnpm db:studio      Open Prisma Studio against DATABASE_URL
 ```
 
 ## Architecture: layered folders
@@ -69,7 +92,10 @@ src/
   orchestrator/   Orchestrator class + diff utilities + event stream
                                                        ← deps: core, agents, providers, lib
   lib/            ai (Anthropic client + prompts), streaming (JSONL),
-                  observability (TraceLogger), session (cookie),
+                  observability (TraceLogger), session (cookie + SessionStore
+                  interface, in-memory + Postgres impls), auth (AuthState +
+                  AuthProvider, Clerk-aware), db (Prisma client factory),
+                  env (clientFeatures + getServerFeatures runtime flags),
                   quality (taste lint), curation (moods/destinations/voice),
                   memory-hinter, theme, photos      ← deps: core
   features/       UI features (workspace, marketing, landing, shared)
@@ -95,7 +121,13 @@ The reverse fails CI (verified via `boundaries/dependencies` rule).
 | A8 | Trip Board cinematic materialization | ✓ |
 | A9 | Refine + Compare + Memory + Detail | ✓ |
 | A10 | Marketing + Mobile + Deploy | ✓ |
-| **Slice B** | Postgres + Clerk + LangGraph + real Booking/Expedia/Vrbo + Langfuse + affiliate redirect + /destinations SEO + mobile bottom-sheet | next |
+| B1 | Persistence (`SessionStore` interface + Postgres impl) + Auth (Clerk + anon-to-user migration) — mock-safe | ✓ |
+| B2 | Orchestrator → LangGraph + Postgres checkpointer | next |
+| B3 | Saved trips resurfacing + share links | |
+| B4 | Affiliate redirect router + click attribution | |
+| B5 | Real provider integrations (Booking, Expedia, Vrbo, Hotelbeds) | |
+| B6 | `/destinations/[slug]` SEO + mobile bottom-sheet | |
+| B7 | Langfuse traces + cost/latency dashboard | |
 | Slice C | pgvector memory + MonitoringAgent + ItineraryAgent + Stripe + admin panel | |
 | Slice D | BookingAgent (approval-gated → autonomous) | |
 

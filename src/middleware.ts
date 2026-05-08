@@ -1,32 +1,45 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getServerFeatures } from '@lib/env';
+import { resolveSession, SESSION_COOKIE } from '@lib/session/anonymous';
 
 /**
- * Conditional auth middleware.
+ * Two responsibilities, in order:
  *
- * When NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY + CLERK_SECRET_KEY are set,
- * delegates to Clerk's middleware so request handlers can call auth().
- * Otherwise returns NextResponse.next() so the dev "no keys" mode runs
- * with zero Clerk surface area.
+ *   1. Mint the anonymous session cookie if it's missing. The first
+ *      request a fresh user makes (page or API) ends up here, so by
+ *      the time layout/route-handlers call cookies(), the session id
+ *      is already there. cookies().set() isn't available in server
+ *      components — middleware is.
  *
- * The dynamic import prevents Clerk from being evaluated at module load
- * when the flag is off — keeps build clean for keyless dev.
+ *   2. Delegate to Clerk's middleware when auth is configured.
+ *      Otherwise NextResponse.next() — keeps Clerk completely off the
+ *      keyless build path.
+ *
+ * The dynamic import on the Clerk branch ensures keyless dev never
+ * evaluates Clerk's runtime.
  */
 export default async function middleware(req: NextRequest) {
-  if (!getServerFeatures().auth) {
-    return NextResponse.next();
+  const session = resolveSession(req.headers.get('cookie'));
+
+  let res: Response | undefined;
+  if (getServerFeatures().auth) {
+    const { clerkMiddleware } = await import('@clerk/nextjs/server');
+    res = (await clerkMiddleware()(req, undefined as never)) ?? undefined;
   }
-  const { clerkMiddleware } = await import('@clerk/nextjs/server');
-  // clerkMiddleware() returns a NextMiddleware which we invoke with
-  // (req, event). We pass undefined for event because we don't use
-  // waitUntil here; Clerk handles its own background work.
-  return clerkMiddleware()(req, undefined as never);
+  if (!res) {
+    res = NextResponse.next();
+  }
+
+  if (session.isNew) {
+    res.headers.append(
+      'Set-Cookie',
+      `${SESSION_COOKIE}=${session.sessionId}; Path=/; Max-Age=${60 * 60 * 24 * 90}; SameSite=Lax; HttpOnly`,
+    );
+  }
+  return res;
 }
 
 export const config = {
-  // Match everything except Next internals + static files. Clerk's docs
-  // recommend the same pattern; keeps marketing routes (/) and API
-  // routes both inside the matcher.
   matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 };
