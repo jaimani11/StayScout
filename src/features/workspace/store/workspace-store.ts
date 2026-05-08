@@ -4,7 +4,7 @@ import { create } from 'zustand';
 import type { OrchestratorEvent } from '@core/orchestrator-event';
 import type { TripIntent } from '@core/trip-intent';
 import type { TripProposal } from '@core/trip-proposal';
-import type { MoodSnapshot } from '@core/reasoning';
+import type { AdaptationNote, MoodSnapshot } from '@core/reasoning';
 import type { ProposalRef } from '@core/partial';
 
 export type Phase =
@@ -34,6 +34,7 @@ export interface Turn {
   proposal?: TripProposal;
   proposalRef?: ProposalRef;
   moodSnapshot?: MoodSnapshot;
+  adaptationNotes: AdaptationNote[];
   conciergeMessage?: { text: string; tone?: 'narrate' | 'reassure' | 'apologize' };
   status: 'streaming' | 'settled' | 'failed';
   error?: string;
@@ -84,6 +85,7 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set,
           type,
           userMessage,
           steps: [],
+          adaptationNotes: [],
           status: 'streaming',
           startedAt: Date.now(),
         },
@@ -168,6 +170,10 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set,
         break;
 
       case 'proposal.adaptation':
+        updateCurrentTurn(set, get, (turn) => ({
+          ...turn,
+          adaptationNotes: [...turn.adaptationNotes, ...event.notes],
+        }));
         break;
 
       case 'proposal.ready':

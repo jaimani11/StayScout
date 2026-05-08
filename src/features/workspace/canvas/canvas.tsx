@@ -4,20 +4,17 @@ import { useWorkspaceStore } from '../store/workspace-store';
 import { selectCurrentTurn } from '../store/derived';
 import { EmptyState } from './empty-state';
 import { ShimmerPlaceholder } from './shimmer-placeholder';
-import { StayList } from './stay-list';
+import { TripBoard } from './trip-board/trip-board';
 
 export function Canvas() {
   const phase = useWorkspaceStore((s) => s.phase);
   const turn = useWorkspaceStore((s) => selectCurrentTurn(s));
 
-  if (phase === 'idle' || !turn) {
-    return <EmptyState />;
-  }
-  if (phase === 'shimmering' || phase === 'refining') {
-    return <ShimmerPlaceholder />;
-  }
+  if (phase === 'idle' || !turn) return <EmptyState />;
+  if (phase === 'shimmering') return <ShimmerPlaceholder />;
   if (turn.proposal) {
-    return <StayList hero={turn.proposal.hero} alternatives={turn.proposal.alternatives} />;
+    return <TripBoard proposal={turn.proposal} adaptationNotes={turn.adaptationNotes} />;
   }
+  if (phase === 'refining') return <ShimmerPlaceholder />;
   return <EmptyState />;
 }

@@ -177,4 +177,34 @@ describe('workspace store', () => {
     dispatch([{ kind: 'session.started', sessionId: 'anon_xyz', timestamp: 1 }]);
     expect(useWorkspaceStore.getState().sessionId).toBe('anon_xyz');
   });
+
+  it('proposal.adaptation appends notes to the current turn', () => {
+    useWorkspaceStore
+      .getState()
+      .beginTurn({ turnId: 't1', sessionId: 'anon_1', userMessage: 'a', type: 'refine' });
+    dispatch([
+      {
+        kind: 'proposal.adaptation',
+        turnId: 't1',
+        notes: [
+          { description: 'Reduced nightlife weighting', signal: 'vibrancy', direction: 'down' },
+          {
+            description: 'Prioritized quieter neighborhoods',
+            signal: 'noise',
+            direction: 'down',
+          },
+        ],
+      },
+    ]);
+    const turn = useWorkspaceStore.getState().turns[0];
+    expect(turn?.adaptationNotes.length).toBe(2);
+    expect(turn?.adaptationNotes[0]?.description).toContain('nightlife');
+  });
+
+  it('beginTurn initializes adaptationNotes empty', () => {
+    useWorkspaceStore
+      .getState()
+      .beginTurn({ turnId: 't1', sessionId: 'anon_1', userMessage: 'a', type: 'compose' });
+    expect(useWorkspaceStore.getState().turns[0]?.adaptationNotes).toEqual([]);
+  });
 });

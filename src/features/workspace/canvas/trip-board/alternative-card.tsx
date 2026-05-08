@@ -1,0 +1,68 @@
+'use client';
+
+import Image from 'next/image';
+import { motion } from 'framer-motion';
+import type { Stay } from '@core/stay';
+import { useReducedMotion } from '@/features/shared/motion/reduced-motion';
+import { ALT_DURATION, ALT_STAGGER, EASE_EMPHASIZED, REDUCED_DURATION } from './motion-tokens';
+
+/** Alternative card. Same materialize as hero, staggered 60ms per index. */
+export function AlternativeCard({ stay, index }: { stay: Stay; index: number }) {
+  const reduced = useReducedMotion();
+  const photo = stay.photos[0];
+
+  return (
+    <motion.div
+      layout
+      initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.96, filter: 'blur(8px)' }}
+      animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+      exit={{ opacity: 0, scale: 0.96, filter: 'blur(4px)' }}
+      transition={{
+        duration: reduced ? REDUCED_DURATION : ALT_DURATION,
+        delay: reduced ? 0 : (index + 1) * ALT_STAGGER + 0.15,
+        ease: EASE_EMPHASIZED,
+      }}
+      whileHover={reduced ? undefined : { scale: 1.005 }}
+      className="group relative aspect-[16/10] overflow-hidden rounded-[18px] border"
+      style={{
+        borderColor: 'var(--border-subtle)',
+        boxShadow: 'var(--elev-card)',
+      }}
+    >
+      {photo ? (
+        <Image src={photo.url} alt={photo.alt} fill sizes="30vw" className="object-cover" />
+      ) : null}
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.6) 100%)',
+          opacity: 0.92,
+        }}
+      />
+      <div className="absolute right-3 bottom-3 left-3 flex items-end justify-between gap-2">
+        <p
+          className="truncate"
+          style={{
+            fontFamily: 'var(--font-inter)',
+            fontSize: 'var(--text-body-sm)',
+            color: '#EDE6DB',
+            fontWeight: 500,
+          }}
+        >
+          {stay.name}
+        </p>
+        <p
+          className="flex-shrink-0"
+          style={{
+            fontFamily: 'var(--font-fraunces)',
+            fontSize: 'var(--text-body)',
+            color: 'var(--accent-primary)',
+          }}
+        >
+          {stay.pricing.pricePerNight.amount.toLocaleString()}
+        </p>
+      </div>
+    </motion.div>
+  );
+}
