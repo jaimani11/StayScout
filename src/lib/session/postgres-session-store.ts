@@ -5,8 +5,10 @@ import type {
   SavedTrip,
   SaveTripArgs,
   SessionStore,
+  SharedTrip,
   TurnRecord,
 } from './session-store';
+import { mintShareSlug as generateShareSlug } from './share-slug';
 
 /**
  * Postgres-backed SessionStore — active when DATABASE_URL is set. Uses
@@ -78,6 +80,56 @@ export class PostgresSessionStore implements SessionStore {
       where: { id: args.tripId, userId: args.ownerId },
     });
     return result.count > 0;
+  }
+
+  // ============== Share links ==============
+  async mintShareSlug(args: OwnerArgs & { tripId: string }): Promise<string | null> {
+    const existing = await this.db.trip.findFirst({
+      where: { id: args.tripId, userId: args.ownerId },
+      select: { shareSlug: true },
+    });
+    if (!existing) return null;
+    if (existing.shareSlug) return existing.shareSlug;
+
+    // Generate + persist atomically. The @unique constraint on shareSlug
+    // makes the cosmically-rare collision retryable; we cap the loop.
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const slug = generateShareSlug();
+      try {
+        await this.db.trip.update({
+          where: { id: args.tripId },
+          data: { shareSlug: slug },
+        });
+        return slug;
+      } catch (err) {
+        // Prisma raises P2002 on unique constraint conflict — retry.
+        if (
+          typeof err === 'object' &&
+          err !== null &&
+          'code' in err &&
+          (err as { code?: string }).code === 'P2002'
+        ) {
+          continue;
+        }
+        throw err;
+      }
+    }
+    throw new Error('mintShareSlug: 3 collisions in a row — entropy source unhealthy?');
+  }
+
+  async getTripBySlug(slug: string): Promise<SharedTrip | null> {
+    const row = await this.db.trip.findUnique({
+      where: { shareSlug: slug },
+    });
+    if (!row) return null;
+    const intent = row.intent as SavedTrip['intent'];
+    return {
+      proposalId: row.proposalId,
+      proposalSummary: row.proposalSummary as SavedTrip['proposalSummary'],
+      proposal: row.proposal as SavedTrip['proposal'],
+      intent: { ...intent, rawInput: '' }, // mask
+      bookmarkedAt: row.bookmarkedAt.toISOString(),
+    };
   }
 
   // ============== Migration ==============
@@ -165,6 +217,7 @@ function rowToSavedTrip(
     proposalSummary: unknown;
     proposal: unknown;
     intent: unknown;
+    shareSlug?: string | null;
     bookmarkedAt: Date;
   },
   ownerKind: 'user' | 'session',
@@ -178,6 +231,7 @@ function rowToSavedTrip(
     proposalSummary: row.proposalSummary as SavedTrip['proposalSummary'],
     proposal: row.proposal as SavedTrip['proposal'],
     intent: row.intent as SavedTrip['intent'],
+    ...(row.shareSlug ? { shareSlug: row.shareSlug } : {}),
     bookmarkedAt: row.bookmarkedAt.toISOString(),
   };
 }

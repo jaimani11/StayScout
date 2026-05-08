@@ -4,8 +4,23 @@ import type {
   SavedTrip,
   SaveTripArgs,
   SessionStore,
+  SharedTrip,
   TurnRecord,
 } from './session-store';
+import { mintShareSlug as generateShareSlug } from './share-slug';
+
+function toSharedTrip(t: SavedTrip): SharedTrip {
+  // Mask intent.rawInput — public surface should never echo what the
+  // owner typed. Structured trip parameters stay so the recipient sees
+  // "7 nights, family of 4" rather than the literal sentence.
+  return {
+    proposalId: t.proposalId,
+    proposalSummary: t.proposalSummary,
+    proposal: t.proposal,
+    intent: { ...t.intent, rawInput: '' },
+    bookmarkedAt: t.bookmarkedAt,
+  };
+}
 
 /**
  * In-memory SessionStore implementation. Always available; default when
@@ -17,6 +32,8 @@ export class InMemorySessionStore implements SessionStore {
   private readonly turns = new Map<string, TurnRecord>();
   // ownerKey: `${ownerKind}:${ownerId}` → trip-id-keyed map
   private readonly tripsByOwner = new Map<string, Map<string, SavedTrip>>();
+  /** Side index for O(1) public-read by share slug. */
+  private readonly tripsBySlug = new Map<string, SavedTrip>();
 
   // ============== Turns ==============
   async getTurn(turnId: string): Promise<TurnRecord | null> {
@@ -68,7 +85,30 @@ export class InMemorySessionStore implements SessionStore {
   async deleteTrip(args: OwnerArgs & { tripId: string }): Promise<boolean> {
     const bucket = this.tripsByOwner.get(ownerKeyOf(args));
     if (!bucket) return false;
+    const trip = bucket.get(args.tripId);
+    if (!trip) return false;
+    if (trip.shareSlug) this.tripsBySlug.delete(trip.shareSlug);
     return bucket.delete(args.tripId);
+  }
+
+  // ============== Share links ==============
+  async mintShareSlug(args: OwnerArgs & { tripId: string }): Promise<string | null> {
+    const bucket = this.tripsByOwner.get(ownerKeyOf(args));
+    const trip = bucket?.get(args.tripId);
+    if (!trip) return null;
+    if (trip.shareSlug) return trip.shareSlug;
+    // Avoid the cosmically-rare collision proactively. 95 bits of
+    // entropy means this loop almost never iterates.
+    let slug = generateShareSlug();
+    while (this.tripsBySlug.has(slug)) slug = generateShareSlug();
+    trip.shareSlug = slug;
+    this.tripsBySlug.set(slug, trip);
+    return slug;
+  }
+
+  async getTripBySlug(slug: string): Promise<SharedTrip | null> {
+    const trip = this.tripsBySlug.get(slug);
+    return trip ? toSharedTrip(trip) : null;
   }
 
   // ============== Migration ==============
@@ -105,6 +145,8 @@ export class InMemorySessionStore implements SessionStore {
         ownerId: args.toUserId,
       };
       destBucket.set(moved.id, moved);
+      // Refresh slug index → owner change must keep the link working.
+      if (moved.shareSlug) this.tripsBySlug.set(moved.shareSlug, moved);
       copied += 1;
     }
     this.tripsByOwner.set(toKey, destBucket);
@@ -123,6 +165,7 @@ export class InMemorySessionStore implements SessionStore {
   reset(): void {
     this.turns.clear();
     this.tripsByOwner.clear();
+    this.tripsBySlug.clear();
   }
 }
 

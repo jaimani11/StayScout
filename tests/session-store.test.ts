@@ -149,6 +149,63 @@ function runContract(name: string, makeStore: () => SessionStore) {
       });
       expect(deleted).toBe(false);
     });
+
+    // ============== Share links ==============
+
+    it('mintShareSlug returns a slug and is idempotent', async () => {
+      const s = makeStore();
+      const saved = await s.saveTrip(saveArgs());
+      const first = await s.mintShareSlug({
+        ownerKind: 'session',
+        ownerId: 'anon_test',
+        tripId: saved.id,
+      });
+      expect(first).not.toBeNull();
+      expect(first).toHaveLength(16);
+
+      const second = await s.mintShareSlug({
+        ownerKind: 'session',
+        ownerId: 'anon_test',
+        tripId: saved.id,
+      });
+      expect(second).toBe(first);
+    });
+
+    it('mintShareSlug returns null when the trip is not owned', async () => {
+      const s = makeStore();
+      const saved = await s.saveTrip(saveArgs({ ownerId: 'anon_a' }));
+      const result = await s.mintShareSlug({
+        ownerKind: 'session',
+        ownerId: 'anon_b',
+        tripId: saved.id,
+      });
+      expect(result).toBeNull();
+    });
+
+    it('getTripBySlug returns a sanitized SharedTrip (no rawInput)', async () => {
+      const s = makeStore();
+      const saved = await s.saveTrip(saveArgs());
+      const slug = await s.mintShareSlug({
+        ownerKind: 'session',
+        ownerId: 'anon_test',
+        tripId: saved.id,
+      });
+      if (!slug) throw new Error('mint failed');
+
+      const shared = await s.getTripBySlug(slug);
+      expect(shared).not.toBeNull();
+      expect(shared?.proposalId).toBe(saved.proposalId);
+      expect(shared?.intent.rawInput).toBe(''); // masked
+      // Owner-identifying fields must not be on SharedTrip's surface.
+      expect(shared && 'ownerId' in shared).toBe(false);
+      expect(shared && 'ownerKind' in shared).toBe(false);
+    });
+
+    it('getTripBySlug returns null for an unknown slug', async () => {
+      const s = makeStore();
+      const result = await s.getTripBySlug('Nonexistent12345');
+      expect(result).toBeNull();
+    });
   });
 }
 

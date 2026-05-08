@@ -20,6 +20,7 @@ export interface SavedTripRow {
   proposalSummary: ProposalRef['summary'];
   proposal: TripProposal;
   intent: TripIntent;
+  shareSlug?: string;
   bookmarkedAt: string;
 }
 
@@ -41,6 +42,8 @@ interface UseSavedTripsResult {
   remove: (tripId: string) => Promise<boolean>;
   /** True if a trip with this proposalId is already saved. */
   isSaved: (proposalId: string) => boolean;
+  /** Mints (or returns existing) share slug + URL for a saved trip. */
+  share: (tripId: string) => Promise<{ slug: string; url: string } | null>;
 }
 
 export function useSavedTrips(): UseSavedTripsResult {
@@ -128,5 +131,22 @@ export function useSavedTrips(): UseSavedTripsResult {
     [trips],
   );
 
-  return { trips, loading, error, mutating, refresh, save, remove, isSaved };
+  const share = useCallback(
+    async (tripId: string): Promise<{ slug: string; url: string } | null> => {
+      try {
+        const res = await fetch(`/api/trips/${tripId}/share`, { method: 'POST' });
+        if (!res.ok) throw new Error(`share ${res.status}`);
+        const data = (await res.json()) as { ok: true; slug: string; url: string };
+        // Cache the slug on the local row so a re-share doesn't re-POST.
+        setTrips((prev) => prev.map((t) => (t.id === tripId ? { ...t, shareSlug: data.slug } : t)));
+        return { slug: data.slug, url: data.url };
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'share failed');
+        return null;
+      }
+    },
+    [],
+  );
+
+  return { trips, loading, error, mutating, refresh, save, remove, isSaved, share };
 }

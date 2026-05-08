@@ -14,6 +14,7 @@ export {
   Moon,
   Pin,
   Send,
+  Share2,
   Sun,
   X,
 } from 'lucide-react';

@@ -10,9 +10,11 @@
 
 **Slice B2 — Orchestrator → LangGraph: complete (opt-in).** The hand-rolled orchestrator now has a LangGraph-driven peer behind `STAYSCOUT_ORCHESTRATOR=langgraph`. Same `run()` contract, same event stream — verified by a parity test that deep-equals event sequences from both engines. Mock-safe: `MemorySaver` checkpoint default, `PostgresSaver` when `DATABASE_URL` is set.
 
+**Slice B3 — Saved trip resurfacing + share links: complete.** Saved trips become first-class — clicking one resurfaces the proposal on the canvas; sharing produces an unguessable `/t/[slug]` URL with a "Save to my StayScout" CTA so recipients can fork into their own bucket. Slug is lazy-minted on first share (~95 bits of entropy). The public read sanitizes owner-identifying fields and the original raw prompt at the SessionStore boundary, not the route handler.
+
 - Specs: [`docs/superpowers/specs/`](docs/superpowers/specs/)
 - Plans: [`docs/superpowers/plans/`](docs/superpowers/plans/)
-- Tags: `slice-a1` … `slice-a10`, `slice-b1`, `slice-b2`
+- Tags: `slice-a1` … `slice-a10`, `slice-b1`, `slice-b2`, `slice-b3`
 
 ## Quick start
 
@@ -126,8 +128,8 @@ The reverse fails CI (verified via `boundaries/dependencies` rule).
 | A10 | Marketing + Mobile + Deploy | ✓ |
 | B1 | Persistence (`SessionStore` interface + Postgres impl) + Auth (Clerk + anon-to-user migration) — mock-safe | ✓ |
 | B2 | Orchestrator → LangGraph + Postgres checkpointer (opt-in via STAYSCOUT_ORCHESTRATOR) | ✓ |
-| B3 | Saved trips resurfacing + share links | next |
-| B4 | Affiliate redirect router + click attribution | |
+| B3 | Saved trips resurfacing + share links | ✓ |
+| B4 | Affiliate redirect router + click attribution | next |
 | B5 | Real provider integrations (Booking, Expedia, Vrbo, Hotelbeds) | |
 | B6 | `/destinations/[slug]` SEO + mobile bottom-sheet | |
 | B7 | Langfuse traces + cost/latency dashboard | |

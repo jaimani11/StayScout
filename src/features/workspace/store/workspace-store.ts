@@ -70,6 +70,19 @@ export interface WorkspaceActions {
   closeDetail: () => void;
   openSavedPanel: () => void;
   closeSavedPanel: () => void;
+  /**
+   * Push a saved trip onto the workspace as a synthetic settled turn.
+   * The canvas then renders it like any other turn — pin/compare/detail
+   * already work against a Turn record. Refining a resurfaced trip is
+   * a B3.x concern (priorTurn lookup may 404 cross-process).
+   */
+  resurfaceSavedTrip: (args: {
+    turnId: string;
+    proposal: TripProposal;
+    intent: TripIntent;
+    proposalRef: ProposalRef;
+    bookmarkedAt: string;
+  }) => void;
   reset: () => void;
 }
 
@@ -289,6 +302,33 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set,
 
   closeSavedPanel() {
     set({ savedPanelOpen: false });
+  },
+
+  resurfaceSavedTrip({ turnId, proposal, intent, proposalRef, bookmarkedAt }) {
+    set((s) => {
+      // De-dupe — clicking the same saved trip twice shouldn't stack.
+      if (s.turns.some((t) => t.turnId === turnId)) {
+        return { currentTurnId: turnId, savedPanelOpen: false, phase: 'settled' };
+      }
+      const turn: Turn = {
+        turnId,
+        type: 'compose',
+        userMessage: `(Reopened a saved trip from ${new Date(bookmarkedAt).toLocaleDateString()})`,
+        steps: [],
+        intent,
+        proposal,
+        proposalRef,
+        adaptationNotes: [],
+        status: 'settled',
+        startedAt: Date.parse(bookmarkedAt) || Date.now(),
+      };
+      return {
+        turns: [...s.turns, turn],
+        currentTurnId: turnId,
+        savedPanelOpen: false,
+        phase: 'settled',
+      };
+    });
   },
 
   reset() {

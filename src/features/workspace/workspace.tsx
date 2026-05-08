@@ -1,9 +1,11 @@
 'use client';
 
+import { Suspense } from 'react';
 import { Header } from '@/features/landing/header';
 import { ChatSidebar } from './chat-sidebar/chat-sidebar';
 import { Canvas } from './canvas/canvas';
 import { SavedTripsPanel } from './saved-trips/saved-trips-panel';
+import { UrlInit } from './url-init';
 
 /**
  * Single-screen workspace shell. Desktop: split chat (38%) + canvas (62%).
@@ -16,6 +18,10 @@ import { SavedTripsPanel } from './saved-trips/saved-trips-panel';
 export function Workspace() {
   return (
     <div className="flex h-screen flex-col">
+      {/* useSearchParams is gated behind Suspense per Next 16's CSR rules. */}
+      <Suspense fallback={null}>
+        <UrlInit />
+      </Suspense>
       <Header />
       <main className="grid min-h-0 flex-1 grid-rows-[60vh_minmax(0,1fr)] md:grid-cols-[38%_62%] md:grid-rows-1">
         {/* Mobile: canvas FIRST (visual anchor); Desktop: chat first */}

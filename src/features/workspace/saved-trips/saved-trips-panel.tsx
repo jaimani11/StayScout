@@ -5,8 +5,9 @@ import { useEffect } from 'react';
 import { Bookmark, X } from '@/features/shared/icons';
 import { useReducedMotion } from '@/features/shared/motion/reduced-motion';
 import { useWorkspaceStore } from '../store/workspace-store';
-import { useSavedTrips } from '../hooks/use-saved-trips';
+import { useSavedTrips, type SavedTripRow as SavedTripRowData } from '../hooks/use-saved-trips';
 import { SavedTripRow } from './saved-trip-row';
+import type { ProposalRef } from '@core/partial';
 
 /**
  * Slide-in panel listing saved trips. Mirrors the detail panel's
@@ -20,8 +21,28 @@ import { SavedTripRow } from './saved-trip-row';
 export function SavedTripsPanel() {
   const open = useWorkspaceStore((s) => s.savedPanelOpen);
   const closeSavedPanel = useWorkspaceStore((s) => s.closeSavedPanel);
+  const resurfaceSavedTrip = useWorkspaceStore((s) => s.resurfaceSavedTrip);
   const reduced = useReducedMotion();
-  const { trips, loading, error, mutating, remove, refresh } = useSavedTrips();
+  const { trips, loading, error, mutating, remove, refresh, share } = useSavedTrips();
+
+  function handleSelect(trip: SavedTripRowData) {
+    // Reconstruct a stable ProposalRef + push the saved trip onto the
+    // workspace as a settled turn. Use the saved trip's id as the
+    // turnId for stability across re-clicks (de-dupe via the store).
+    const proposalRef: ProposalRef = {
+      turnId: trip.id,
+      proposalId: trip.proposalId,
+      generatedAt: trip.proposal.generatedAt,
+      summary: trip.proposalSummary,
+    };
+    resurfaceSavedTrip({
+      turnId: trip.id,
+      proposal: trip.proposal,
+      intent: trip.intent,
+      proposalRef,
+      bookmarkedAt: trip.bookmarkedAt,
+    });
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -118,7 +139,9 @@ export function SavedTripsPanel() {
                       key={trip.id}
                       trip={trip}
                       index={i}
+                      onSelect={() => handleSelect(trip)}
                       onRemove={() => void remove(trip.id)}
+                      onShare={() => share(trip.id)}
                       removing={mutating}
                     />
                   ))}

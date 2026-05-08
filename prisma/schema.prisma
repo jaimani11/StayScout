@@ -72,6 +72,8 @@ model Trip {
   proposal        Json // serialized TripProposal at save time
   intent          Json // serialized TripIntent at save time
   notes           String? // user's personal notes (Slice C)
+  // Lazy-minted on first share. ~95 bits of entropy → unguessable.
+  shareSlug       String?       @unique
   bookmarkedAt    DateTime      @default(now())
 
   @@unique([userId, proposalId])
