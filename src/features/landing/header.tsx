@@ -1,4 +1,7 @@
+'use client';
+
 import { ThemeToggle } from '@/lib/theme/theme-toggle';
+import { SavedHeaderButton } from '@/features/workspace/saved-trips/saved-header-button';
 
 export function Header() {
   return (
@@ -26,7 +29,10 @@ export function Header() {
           v0.1 · public preview
         </span>
       </div>
-      <ThemeToggle />
+      <div className="flex items-center gap-2">
+        <SavedHeaderButton />
+        <ThemeToggle />
+      </div>
     </header>
   );
 }

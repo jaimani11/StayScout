@@ -3,6 +3,7 @@
 import { Header } from '@/features/landing/header';
 import { ChatSidebar } from './chat-sidebar/chat-sidebar';
 import { Canvas } from './canvas/canvas';
+import { SavedTripsPanel } from './saved-trips/saved-trips-panel';
 
 /**
  * Single-screen workspace shell. Desktop: split chat (38%) + canvas (62%).
@@ -25,6 +26,7 @@ export function Workspace() {
           <ChatSidebar />
         </div>
       </main>
+      <SavedTripsPanel />
     </div>
   );
 }

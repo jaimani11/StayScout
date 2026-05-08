@@ -1,0 +1,135 @@
+'use client';
+
+import { useCallback, useEffect, useState } from 'react';
+import type { TripIntent } from '@core/trip-intent';
+import type { TripProposal } from '@core/trip-proposal';
+import type { ProposalRef } from '@core/partial';
+
+/**
+ * Saved trip — what /api/trips/list returns. Matches SessionStore's
+ * SavedTrip shape (we keep it duplicated here to avoid the workspace
+ * feature reaching across layers into @lib/session — that would
+ * violate the boundaries lint).
+ */
+export interface SavedTripRow {
+  id: string;
+  ownerKind: 'user' | 'session';
+  ownerId: string;
+  conversationId?: string;
+  proposalId: string;
+  proposalSummary: ProposalRef['summary'];
+  proposal: TripProposal;
+  intent: TripIntent;
+  bookmarkedAt: string;
+}
+
+interface SaveArgs {
+  proposal: TripProposal;
+  intent: TripIntent;
+  proposalRef: ProposalRef;
+  conversationId?: string;
+}
+
+interface UseSavedTripsResult {
+  trips: SavedTripRow[];
+  loading: boolean;
+  error: string | null;
+  /** True while a save/delete request is in flight. */
+  mutating: boolean;
+  refresh: () => Promise<void>;
+  save: (args: SaveArgs) => Promise<SavedTripRow | null>;
+  remove: (tripId: string) => Promise<boolean>;
+  /** True if a trip with this proposalId is already saved. */
+  isSaved: (proposalId: string) => boolean;
+}
+
+export function useSavedTrips(): UseSavedTripsResult {
+  const [trips, setTrips] = useState<SavedTripRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [mutating, setMutating] = useState(false);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/trips/list', { cache: 'no-store' });
+      if (!res.ok) throw new Error(`list ${res.status}`);
+      const data = (await res.json()) as { trips: SavedTripRow[] };
+      setTrips(data.trips);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'list failed');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    // refresh() calls setLoading(true) before awaiting fetch — that's
+    // the legitimate "sync external state into React" pattern the rule
+    // is supposed to allow but flags anyway when the trigger is an
+    // async function call.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void refresh();
+  }, [refresh]);
+
+  const save = useCallback(
+    async (args: SaveArgs): Promise<SavedTripRow | null> => {
+      setMutating(true);
+      setError(null);
+      try {
+        const res = await fetch('/api/trips/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            proposal: args.proposal,
+            intent: args.intent,
+            proposalRef: args.proposalRef,
+            ...(args.conversationId ? { conversationId: args.conversationId } : {}),
+          }),
+        });
+        if (!res.ok) throw new Error(`save ${res.status}`);
+        const data = (await res.json()) as { ok: true; trip: SavedTripRow };
+        setTrips((prev) => {
+          const existing = prev.findIndex((t) => t.proposalId === data.trip.proposalId);
+          if (existing >= 0) {
+            const next = [...prev];
+            next[existing] = data.trip;
+            return next;
+          }
+          return [data.trip, ...prev];
+        });
+        return data.trip;
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'save failed');
+        return null;
+      } finally {
+        setMutating(false);
+      }
+    },
+    [],
+  );
+
+  const remove = useCallback(async (tripId: string): Promise<boolean> => {
+    setMutating(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/trips/${tripId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(`delete ${res.status}`);
+      setTrips((prev) => prev.filter((t) => t.id !== tripId));
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'delete failed');
+      return false;
+    } finally {
+      setMutating(false);
+    }
+  }, []);
+
+  const isSaved = useCallback(
+    (proposalId: string) => trips.some((t) => t.proposalId === proposalId),
+    [trips],
+  );
+
+  return { trips, loading, error, mutating, refresh, save, remove, isSaved };
+}

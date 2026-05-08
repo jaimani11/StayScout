@@ -26,6 +26,20 @@ export function selectStayById(s: WorkspaceState, stayId: string): Stay | null {
   return null;
 }
 
+/**
+ * Locate the Turn whose proposal contains the given stayId. Used by the
+ * detail panel's Save Trip CTA — the user opened detail on a stay, but
+ * what they bookmark is the entire proposal that produced it.
+ */
+export function selectTurnContainingStay(s: WorkspaceState, stayId: string): Turn | null {
+  for (const t of s.turns) {
+    if (!t.proposal) continue;
+    if (t.proposal.hero.id === stayId) return t;
+    if (t.proposal.alternatives.some((a) => a.id === stayId)) return t;
+  }
+  return null;
+}
+
 // Intentionally NOT exporting a `selectStaysByIds(state, ids)` helper here:
 // using it inside a `useWorkspaceStore(...)` selector would create a fresh
 // array every render and trigger Zustand's reference-equality re-render

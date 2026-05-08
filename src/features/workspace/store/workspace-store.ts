@@ -51,6 +51,7 @@ export interface WorkspaceState {
   compareSet: string[]; // StayId list, max 3 (oldest rotates out)
   detailViewStayId: string | null; // open when not null
   memoryHint: MemoryHint | null; // session-scoped, set by concierge.memory.hint
+  savedPanelOpen: boolean;
 }
 
 export interface WorkspaceActions {
@@ -67,6 +68,8 @@ export interface WorkspaceActions {
   clearCompare: () => void;
   openDetail: (id: string) => void;
   closeDetail: () => void;
+  openSavedPanel: () => void;
+  closeSavedPanel: () => void;
   reset: () => void;
 }
 
@@ -81,6 +84,7 @@ const INITIAL_STATE: WorkspaceState = {
   compareSet: [],
   detailViewStayId: null,
   memoryHint: null,
+  savedPanelOpen: false,
 };
 
 export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set, get) => ({
@@ -277,6 +281,14 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set,
 
   closeDetail() {
     set({ detailViewStayId: null });
+  },
+
+  openSavedPanel() {
+    set({ savedPanelOpen: true });
+  },
+
+  closeSavedPanel() {
+    set({ savedPanelOpen: false });
   },
 
   reset() {

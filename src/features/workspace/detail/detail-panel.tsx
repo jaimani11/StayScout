@@ -3,10 +3,11 @@
 import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { ExternalLink, X } from '@/features/shared/icons';
+import { Bookmark, BookmarkCheck, ExternalLink, X } from '@/features/shared/icons';
 import { useWorkspaceStore } from '../store/workspace-store';
-import { selectStayById } from '../store/derived';
+import { selectStayById, selectTurnContainingStay } from '../store/derived';
 import { useReducedMotion } from '@/features/shared/motion/reduced-motion';
+import { useSavedTrips } from '../hooks/use-saved-trips';
 import { ConfirmRedirectModal } from './confirm-redirect-modal';
 
 /**
@@ -17,9 +18,23 @@ import { ConfirmRedirectModal } from './confirm-redirect-modal';
 export function DetailPanel() {
   const stayId = useWorkspaceStore((s) => s.detailViewStayId);
   const stay = useWorkspaceStore((s) => (stayId ? selectStayById(s, stayId) : null));
+  const turn = useWorkspaceStore((s) => (stayId ? selectTurnContainingStay(s, stayId) : null));
   const closeDetail = useWorkspaceStore((s) => s.closeDetail);
+  const openSavedPanel = useWorkspaceStore((s) => s.openSavedPanel);
   const reduced = useReducedMotion();
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const { save, mutating, isSaved } = useSavedTrips();
+  const proposalRef = turn?.proposalRef;
+  const proposal = turn?.proposal;
+  const intent = turn?.intent;
+  const alreadySaved = proposalRef ? isSaved(proposalRef.proposalId) : false;
+  const canSave = !!(proposalRef && proposal && intent) && !alreadySaved && !mutating;
+
+  async function handleSave() {
+    if (!proposalRef || !proposal || !intent) return;
+    const result = await save({ proposal, intent, proposalRef });
+    if (result) openSavedPanel();
+  }
 
   useEffect(() => {
     if (!stayId) return;
@@ -171,22 +186,55 @@ export function DetailPanel() {
                 ))}
               </ul>
 
-              <button
-                type="button"
-                onClick={() => setConfirmOpen(true)}
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 transition-opacity hover:opacity-90"
-                style={{
-                  background: 'var(--accent-primary)',
-                  color: '#14171C',
-                  fontFamily: 'var(--font-inter)',
-                  fontSize: 'var(--text-body)',
-                  fontWeight: 500,
-                  letterSpacing: '-0.005em',
-                }}
-              >
-                Continue to Booking
-                <ExternalLink size={15} strokeWidth={2.2} />
-              </button>
+              <div className="mt-6 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmOpen(true)}
+                  className="flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 transition-opacity hover:opacity-90"
+                  style={{
+                    background: 'var(--accent-primary)',
+                    color: '#14171C',
+                    fontFamily: 'var(--font-inter)',
+                    fontSize: 'var(--text-body)',
+                    fontWeight: 500,
+                    letterSpacing: '-0.005em',
+                  }}
+                >
+                  Continue to Booking
+                  <ExternalLink size={15} strokeWidth={2.2} />
+                </button>
+
+                {proposalRef ? (
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={!canSave && !alreadySaved}
+                    className="flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2.5 transition-colors hover:bg-[color:var(--surface-overlay)] disabled:cursor-default disabled:opacity-70"
+                    style={{
+                      background: alreadySaved ? 'var(--surface-overlay)' : 'transparent',
+                      borderColor: 'var(--border-emphasis)',
+                      color: 'var(--ink-primary)',
+                      fontFamily: 'var(--font-inter)',
+                      fontSize: 'var(--text-body-sm)',
+                      fontWeight: 500,
+                      letterSpacing: '-0.005em',
+                    }}
+                    aria-label={alreadySaved ? 'Trip already saved' : 'Save this trip'}
+                  >
+                    {alreadySaved ? (
+                      <>
+                        <BookmarkCheck size={14} strokeWidth={1.8} />
+                        Trip saved
+                      </>
+                    ) : (
+                      <>
+                        <Bookmark size={14} strokeWidth={1.8} />
+                        {mutating ? 'Saving…' : 'Save this trip'}
+                      </>
+                    )}
+                  </button>
+                ) : null}
+              </div>
 
               <p
                 className="mt-3"
