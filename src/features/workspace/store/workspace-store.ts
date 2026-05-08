@@ -1,0 +1,248 @@
+'use client';
+
+import { create } from 'zustand';
+import type { OrchestratorEvent } from '@core/orchestrator-event';
+import type { TripIntent } from '@core/trip-intent';
+import type { TripProposal } from '@core/trip-proposal';
+import type { MoodSnapshot } from '@core/reasoning';
+import type { ProposalRef } from '@core/partial';
+
+export type Phase =
+  | 'idle'
+  | 'composing'
+  | 'shimmering'
+  | 'settled'
+  | 'refining'
+  | 'evolved'
+  | 'error';
+
+export interface AgentStep {
+  stepId: string;
+  agentId: string;
+  label: string;
+  status: 'active' | 'completed' | 'failed';
+  durationMs?: number;
+  error?: string;
+}
+
+export interface Turn {
+  turnId: string;
+  type: 'compose' | 'refine';
+  userMessage: string;
+  steps: AgentStep[];
+  intent?: TripIntent;
+  proposal?: TripProposal;
+  proposalRef?: ProposalRef;
+  moodSnapshot?: MoodSnapshot;
+  conciergeMessage?: { text: string; tone?: 'narrate' | 'reassure' | 'apologize' };
+  status: 'streaming' | 'settled' | 'failed';
+  error?: string;
+  startedAt: number;
+}
+
+export interface WorkspaceState {
+  phase: Phase;
+  currentTurnId: string | null;
+  turns: Turn[]; // ordered oldest → newest
+  sessionId: string | null;
+  inputDraft: string;
+}
+
+export interface WorkspaceActions {
+  dispatch: (event: OrchestratorEvent) => void;
+  beginTurn: (args: {
+    turnId: string;
+    sessionId: string;
+    userMessage: string;
+    type: 'compose' | 'refine';
+  }) => void;
+  setInputDraft: (draft: string) => void;
+  reset: () => void;
+}
+
+const INITIAL_STATE: WorkspaceState = {
+  phase: 'idle',
+  currentTurnId: null,
+  turns: [],
+  sessionId: null,
+  inputDraft: '',
+};
+
+export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set, get) => ({
+  ...INITIAL_STATE,
+
+  beginTurn({ turnId, sessionId, userMessage, type }) {
+    set((s) => ({
+      currentTurnId: turnId,
+      sessionId: s.sessionId ?? sessionId,
+      inputDraft: '',
+      phase: type === 'refine' ? 'refining' : 'composing',
+      turns: [
+        ...s.turns,
+        {
+          turnId,
+          type,
+          userMessage,
+          steps: [],
+          status: 'streaming',
+          startedAt: Date.now(),
+        },
+      ],
+    }));
+  },
+
+  dispatch(event: OrchestratorEvent) {
+    // Drop events from cancelled/non-current turns. session.started has no
+    // turnId, so the `'turnId' in event` guard lets it through.
+    if ('turnId' in event && event.turnId !== get().currentTurnId) {
+      return;
+    }
+
+    switch (event.kind) {
+      case 'session.started':
+        set({ sessionId: event.sessionId });
+        break;
+
+      case 'turn.started':
+        // beginTurn was called client-side already.
+        break;
+
+      case 'agent.step.started':
+        updateCurrentTurn(set, get, (turn) => ({
+          ...turn,
+          steps: [
+            ...turn.steps,
+            {
+              stepId: event.stepId,
+              agentId: event.agentId,
+              label: event.label,
+              status: 'active',
+            },
+          ],
+        }));
+        break;
+
+      case 'agent.step.progress':
+        break;
+
+      case 'agent.step.completed':
+        updateCurrentTurn(set, get, (turn) => ({
+          ...turn,
+          steps: turn.steps.map((s) =>
+            s.stepId === event.stepId
+              ? { ...s, status: 'completed', durationMs: event.durationMs }
+              : s,
+          ),
+        }));
+        break;
+
+      case 'agent.step.failed':
+        updateCurrentTurn(set, get, (turn) => ({
+          ...turn,
+          steps: turn.steps.map((s) =>
+            s.stepId === event.stepId ? { ...s, status: 'failed', error: event.error } : s,
+          ),
+        }));
+        break;
+
+      case 'agent.explanation':
+        break;
+
+      case 'intent.extracted':
+        updateCurrentTurn(set, get, (turn) => ({ ...turn, intent: event.intent }));
+        break;
+
+      case 'intent.refined':
+        updateCurrentTurn(set, get, (turn) => ({ ...turn, intent: event.intent }));
+        break;
+
+      case 'provider.search.completed':
+        break;
+
+      case 'proposal.shimmering':
+        set({ phase: 'shimmering' });
+        break;
+
+      case 'proposal.refining':
+        set({ phase: 'refining' });
+        break;
+
+      case 'proposal.adaptation':
+        break;
+
+      case 'proposal.ready':
+        set({ phase: 'settled' });
+        updateCurrentTurn(set, get, (turn) => ({
+          ...turn,
+          proposal: event.proposal as unknown as TripProposal,
+        }));
+        break;
+
+      case 'proposal.evolved':
+        set({ phase: 'evolved' });
+        updateCurrentTurn(set, get, (turn) => ({
+          ...turn,
+          proposal: event.proposal as unknown as TripProposal,
+        }));
+        break;
+
+      case 'proposal.bookmarkable':
+        updateCurrentTurn(set, get, (turn) => ({ ...turn, proposalRef: event.ref }));
+        break;
+
+      case 'proposal.provenance.computed':
+        break;
+
+      case 'concierge.message':
+        updateCurrentTurn(set, get, (turn) => ({
+          ...turn,
+          conciergeMessage: { text: event.message, ...(event.tone ? { tone: event.tone } : {}) },
+        }));
+        break;
+
+      case 'concierge.memory.hint':
+        break;
+
+      case 'mood.snapshot.ready':
+        updateCurrentTurn(set, get, (turn) => ({ ...turn, moodSnapshot: event.snapshot }));
+        break;
+
+      case 'turn.completed':
+        updateCurrentTurn(set, get, (turn) => ({ ...turn, status: 'settled' }));
+        break;
+
+      case 'turn.failed':
+        set({ phase: 'error' });
+        updateCurrentTurn(set, get, (turn) => ({
+          ...turn,
+          status: 'failed',
+          error: event.error,
+        }));
+        break;
+    }
+  },
+
+  setInputDraft(draft) {
+    set({ inputDraft: draft });
+  },
+
+  reset() {
+    set({ ...INITIAL_STATE });
+  },
+}));
+
+function updateCurrentTurn(
+  set: (
+    partial:
+      | Partial<WorkspaceState & WorkspaceActions>
+      | ((s: WorkspaceState & WorkspaceActions) => Partial<WorkspaceState & WorkspaceActions>),
+  ) => void,
+  get: () => WorkspaceState & WorkspaceActions,
+  mutator: (turn: Turn) => Turn,
+): void {
+  const state = get();
+  if (!state.currentTurnId) return;
+  set({
+    turns: state.turns.map((t) => (t.turnId === state.currentTurnId ? mutator(t) : t)),
+  });
+}

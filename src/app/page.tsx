@@ -1,11 +1,5 @@
-import { Header } from '@/features/landing/header';
-import { WorkspaceShellPlaceholder } from '@/features/landing/workspace-shell-placeholder';
+import { Workspace } from '@/features/workspace/workspace';
 
 export default function Page() {
-  return (
-    <>
-      <Header />
-      <WorkspaceShellPlaceholder />
-    </>
-  );
+  return <Workspace />;
 }
