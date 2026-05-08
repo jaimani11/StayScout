@@ -5,7 +5,7 @@ import type { ModelClient } from '@core/model-client';
 import type { OrchestratorEvent } from '@core/orchestrator-event';
 import type { Provider, ProviderContext, ProviderSearchQuery } from '@core/provider';
 import type { Destination, TripIntent } from '@core/trip-intent';
-import type { TripProposal, AgentTraceSummary } from '@core/trip-proposal';
+import type { AgentTraceSummary } from '@core/trip-proposal';
 import type { MoodSnapshot } from '@core/reasoning';
 import type { IntentAgentInput } from '@/agents/intent-agent';
 import { IntentAgent } from '@/agents/intent-agent';
@@ -14,11 +14,7 @@ import { MoodSnapshotAgent } from '@/agents/mood-snapshot-agent';
 import { routeProvider } from '@/providers';
 import { NoOpTraceLogger } from '@lib/observability/trace-logger';
 import { MemoryHinter } from '@lib/memory-hinter';
-import {
-  InMemorySessionStore,
-  type SessionStore,
-  type TurnRecord,
-} from '@lib/session';
+import { InMemorySessionStore, type SessionStore } from '@lib/session';
 import { computeIntentDelta } from './intent-delta';
 import { computeProposalDiff } from './proposal-diff';
 import { buildProposal, buildProposalRef } from './proposal-builder';

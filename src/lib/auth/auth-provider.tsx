@@ -15,13 +15,7 @@ import { ClerkAuthProvider } from './clerk-auth-provider';
  * Clerk branch is dead code and modern bundlers can tree-shake it.
  * Worst case the runtime is shipped but never executed — acceptable.
  */
-export function AuthProvider({
-  sessionId,
-  children,
-}: {
-  sessionId: string;
-  children: ReactNode;
-}) {
+export function AuthProvider({ sessionId, children }: { sessionId: string; children: ReactNode }) {
   if (clientFeatures.auth) {
     return <ClerkAuthProvider sessionId={sessionId}>{children}</ClerkAuthProvider>;
   }

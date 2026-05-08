@@ -13,7 +13,6 @@ import { getServerFeatures } from '@lib/env';
  */
 
 declare global {
-  // eslint-disable-next-line no-var
   var __stayscoutPrisma: PrismaClient | null | undefined;
 }
 

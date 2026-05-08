@@ -19,9 +19,7 @@ export interface RouteContext {
   setCookie: string | null;
 }
 
-export async function resolveRouteContext(
-  _req?: NextRequest,
-): Promise<RouteContext> {
+export async function resolveRouteContext(_req?: NextRequest): Promise<RouteContext> {
   const auth = await getServerAuth();
   // Mint anonymous session cookie if missing — first request a new
   // user makes after a cold cookie jar shouldn't hit "no session".

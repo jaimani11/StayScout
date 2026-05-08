@@ -30,10 +30,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   const parsed = SaveTripBodySchema.safeParse(body);
   if (!parsed.success) {
-    return jsonResponse(
-      { error: 'invalid request', issues: parsed.error.issues },
-      { status: 400 },
-    );
+    return jsonResponse({ error: 'invalid request', issues: parsed.error.issues }, { status: 400 });
   }
 
   const ctx = await resolveRouteContext(req);
@@ -48,9 +45,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       // Zod-parsed object has identical shape so this cast is safe.
       proposal: parsed.data.proposal as TripProposal,
       intent: parsed.data.intent,
-      ...(parsed.data.conversationId
-        ? { conversationId: parsed.data.conversationId }
-        : {}),
+      ...(parsed.data.conversationId ? { conversationId: parsed.data.conversationId } : {}),
     });
     return jsonResponse({ ok: true, trip: saved }, { status: 200 }, ctx.setCookie);
   } catch (err) {

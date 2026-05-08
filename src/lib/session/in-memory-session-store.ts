@@ -132,5 +132,7 @@ function ownerKeyOf(args: OwnerArgs): string {
 
 function cryptoRandomId(): string {
   // Edge runtime + Node both expose crypto.randomUUID
-  return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return (
+    globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
+  );
 }

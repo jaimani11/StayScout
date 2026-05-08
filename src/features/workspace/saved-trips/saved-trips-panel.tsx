@@ -151,8 +151,8 @@ function EmptyState() {
           color: 'var(--ink-secondary)',
         }}
       >
-        Nothing saved yet. Open a trip in the canvas, look closer at any stay,
-        and use Save trip to keep it here.
+        Nothing saved yet. Open a trip in the canvas, look closer at any stay, and use Save trip to
+        keep it here.
       </p>
     </div>
   );

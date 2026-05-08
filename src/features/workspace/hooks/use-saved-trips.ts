@@ -73,42 +73,39 @@ export function useSavedTrips(): UseSavedTripsResult {
     void refresh();
   }, [refresh]);
 
-  const save = useCallback(
-    async (args: SaveArgs): Promise<SavedTripRow | null> => {
-      setMutating(true);
-      setError(null);
-      try {
-        const res = await fetch('/api/trips/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            proposal: args.proposal,
-            intent: args.intent,
-            proposalRef: args.proposalRef,
-            ...(args.conversationId ? { conversationId: args.conversationId } : {}),
-          }),
-        });
-        if (!res.ok) throw new Error(`save ${res.status}`);
-        const data = (await res.json()) as { ok: true; trip: SavedTripRow };
-        setTrips((prev) => {
-          const existing = prev.findIndex((t) => t.proposalId === data.trip.proposalId);
-          if (existing >= 0) {
-            const next = [...prev];
-            next[existing] = data.trip;
-            return next;
-          }
-          return [data.trip, ...prev];
-        });
-        return data.trip;
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'save failed');
-        return null;
-      } finally {
-        setMutating(false);
-      }
-    },
-    [],
-  );
+  const save = useCallback(async (args: SaveArgs): Promise<SavedTripRow | null> => {
+    setMutating(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/trips/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          proposal: args.proposal,
+          intent: args.intent,
+          proposalRef: args.proposalRef,
+          ...(args.conversationId ? { conversationId: args.conversationId } : {}),
+        }),
+      });
+      if (!res.ok) throw new Error(`save ${res.status}`);
+      const data = (await res.json()) as { ok: true; trip: SavedTripRow };
+      setTrips((prev) => {
+        const existing = prev.findIndex((t) => t.proposalId === data.trip.proposalId);
+        if (existing >= 0) {
+          const next = [...prev];
+          next[existing] = data.trip;
+          return next;
+        }
+        return [data.trip, ...prev];
+      });
+      return data.trip;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'save failed');
+      return null;
+    } finally {
+      setMutating(false);
+    }
+  }, []);
 
   const remove = useCallback(async (tripId: string): Promise<boolean> => {
     setMutating(true);

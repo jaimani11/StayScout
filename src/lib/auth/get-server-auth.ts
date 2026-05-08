@@ -1,4 +1,4 @@
-import { cookies, headers } from 'next/headers';
+import { cookies, type headers } from 'next/headers';
 import { getServerFeatures } from '@lib/env';
 import { resolveSession, setSessionCookieHeader } from '@lib/session/anonymous';
 import type { AuthState } from './auth-state';

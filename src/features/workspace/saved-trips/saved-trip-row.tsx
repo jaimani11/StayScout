@@ -75,7 +75,7 @@ export function SavedTripRow({
           onClick={onRemove}
           disabled={removing}
           aria-label={`Remove ${summary.heroStayName}`}
-          className="grid h-7 w-7 shrink-0 place-items-center rounded-full border opacity-0 transition-all hover:bg-[color:var(--surface-overlay)] focus:opacity-100 group-hover:opacity-100 disabled:pointer-events-none disabled:opacity-30"
+          className="grid h-7 w-7 shrink-0 place-items-center rounded-full border opacity-0 transition-all group-hover:opacity-100 hover:bg-[color:var(--surface-overlay)] focus:opacity-100 disabled:pointer-events-none disabled:opacity-30"
           style={{ borderColor: 'var(--border-subtle)', color: 'var(--ink-secondary)' }}
         >
           <X size={13} strokeWidth={1.8} />

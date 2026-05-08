@@ -20,10 +20,7 @@ export const runtime = 'nodejs';
 export async function POST(_req: NextRequest): Promise<Response> {
   const auth = await getServerAuth();
   if (auth.kind !== 'authenticated') {
-    return jsonResponse(
-      { error: 'not signed in' },
-      { status: 401 },
-    );
+    return jsonResponse({ error: 'not signed in' }, { status: 401 });
   }
 
   const store = getSessionStore();

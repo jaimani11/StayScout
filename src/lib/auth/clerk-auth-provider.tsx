@@ -24,13 +24,7 @@ export function ClerkAuthProvider({
   );
 }
 
-function ClerkAuthBridge({
-  sessionId,
-  children,
-}: {
-  sessionId: string;
-  children: ReactNode;
-}) {
+function ClerkAuthBridge({ sessionId, children }: { sessionId: string; children: ReactNode }) {
   const { user, isSignedIn, isLoaded } = useUser();
   const value: AuthState =
     isLoaded && isSignedIn && user
