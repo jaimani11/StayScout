@@ -44,6 +44,13 @@ interface UseSavedTripsResult {
   isSaved: (proposalId: string) => boolean;
   /** Mints (or returns existing) share slug + URL for a saved trip. */
   share: (tripId: string) => Promise<{ slug: string; url: string } | null>;
+  /**
+   * Fire-and-forget resurface POST. Primes the SessionStore with a
+   * synthetic turn record so refining the resurfaced trip works.
+   * Errors are logged but never thrown — the local resurface UX
+   * proceeds regardless of network state.
+   */
+  resurface: (tripId: string) => Promise<void>;
 }
 
 export function useSavedTrips(): UseSavedTripsResult {
@@ -148,5 +155,13 @@ export function useSavedTrips(): UseSavedTripsResult {
     [],
   );
 
-  return { trips, loading, error, mutating, refresh, save, remove, isSaved, share };
+  const resurface = useCallback(async (tripId: string): Promise<void> => {
+    try {
+      await fetch(`/api/trips/${tripId}/resurface`, { method: 'POST' });
+    } catch (err) {
+      console.warn('[use-saved-trips] resurface failed', err);
+    }
+  }, []);
+
+  return { trips, loading, error, mutating, refresh, save, remove, isSaved, share, resurface };
 }

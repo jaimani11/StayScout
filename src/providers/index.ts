@@ -15,6 +15,7 @@ import type { ModelClient } from '@core/model-client';
 import { MockItalyProvider } from './mock-italy';
 import { LLMSynthesizedProvider, LLMSynthesizedProviderStub } from './llm-synthesized';
 import { BookingComProvider } from './booking-com';
+import { ExpediaProvider } from './expedia';
 
 /**
  * Availability-aware registry.
@@ -50,9 +51,9 @@ export function buildProviderRegistry(modelClient?: ModelClient): Registry {
   const real: Provider[] = [];
   const bookingCom = BookingComProvider.fromEnv();
   if (bookingCom) real.push(bookingCom);
-  // Future providers slot in here:
-  //   const expedia = ExpediaProvider.fromEnv(); if (expedia) real.push(expedia);
-  //   const vrbo = VrboProvider.fromEnv(); if (vrbo) real.push(vrbo);
+  const expedia = ExpediaProvider.fromEnv();
+  if (expedia) real.push(expedia);
+  // Future providers slot in here (Vrbo, Hotelbeds, ...) — same pattern.
 
   const llmProvider = modelClient
     ? new LLMSynthesizedProvider(modelClient)
@@ -209,3 +210,4 @@ export function getProvider(id: ProviderId | string): Provider | null {
 export { MockItalyProvider } from './mock-italy';
 export { LLMSynthesizedProvider, LLMSynthesizedProviderStub } from './llm-synthesized';
 export { BookingComProvider } from './booking-com';
+export { ExpediaProvider } from './expedia';

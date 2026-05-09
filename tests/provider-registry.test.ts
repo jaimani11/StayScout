@@ -18,7 +18,12 @@ import { providerId, stayId } from '@core/ids';
 import type { Stay } from '@core/stay';
 import type { TripIntent } from '@core/trip-intent';
 
-const SAVED = ['BOOKING_COM_AFFILIATE_ID', 'BOOKING_COM_API_KEY'] as const;
+const SAVED = [
+  'BOOKING_COM_AFFILIATE_ID',
+  'BOOKING_COM_API_KEY',
+  'EXPEDIA_API_KEY',
+  'EXPEDIA_SHARED_SECRET',
+] as const;
 
 const baseIntent: TripIntent = {
   destinations: [{ kind: 'curated', name: 'Tuscany', country: 'IT' }],
@@ -96,6 +101,30 @@ describe('availability-aware provider registry', () => {
     };
     const p = routeProvider(greeceIntent);
     expect(p.id).toBe('llm-synthesized');
+  });
+
+  it('registers Booking.com + Expedia together when both have keys', () => {
+    process.env.BOOKING_COM_AFFILIATE_ID = 'partner_42';
+    process.env.BOOKING_COM_API_KEY = 'key_xyz';
+    process.env.EXPEDIA_API_KEY = 'eps_key';
+    process.env.EXPEDIA_SHARED_SECRET = 'eps_secret';
+    _resetProviderRegistryForTesting();
+    const reg = buildProviderRegistry();
+    const realIds = reg.real.map((p) => p.id as string);
+    expect(realIds).toContain('booking-com');
+    expect(realIds).toContain('expedia');
+  });
+
+  it('routeProviders fans out to all available real providers', () => {
+    process.env.BOOKING_COM_AFFILIATE_ID = 'partner_42';
+    process.env.BOOKING_COM_API_KEY = 'key_xyz';
+    process.env.EXPEDIA_API_KEY = 'eps_key';
+    process.env.EXPEDIA_SHARED_SECRET = 'eps_secret';
+    _resetProviderRegistryForTesting();
+    const list = routeProviders(baseIntent);
+    const ids = list.map((p) => p.id as string);
+    expect(ids.filter((id) => id === 'booking-com')).toHaveLength(1);
+    expect(ids.filter((id) => id === 'expedia')).toHaveLength(1);
   });
 });
 

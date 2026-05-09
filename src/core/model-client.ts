@@ -40,7 +40,38 @@ export interface ModelUsage {
   cacheHitTokens?: number;
 }
 
+/**
+ * Per-call usage info reported alongside a generation result. Used by
+ * the trace logger pipeline (Slice B7) to compute cost + populate the
+ * /admin dashboard. Optional fields stay undefined when the provider
+ * doesn't report them.
+ */
+export interface ModelMeta {
+  model: string;
+  tokensIn: number;
+  tokensOut: number;
+  cacheHit?: boolean;
+}
+
+export interface GenerateWithMetaResult<T> {
+  result: T;
+  modelMeta: ModelMeta;
+}
+
 export interface ModelClient {
+  /**
+   * Convenience: returns just the parsed result. Same surface as Slice
+   * A — every existing call site stays unchanged.
+   */
   generate<T>(req: GenerateRequest<T>): Promise<T>;
+
+  /**
+   * Returns the result alongside per-call usage. Callers that want to
+   * surface cost/latency in traces use this; callers that don't care
+   * keep using `generate`. Both share an implementation in real
+   * clients — the difference is what the caller chooses to receive.
+   */
+  generateWithMeta<T>(req: GenerateRequest<T>): Promise<GenerateWithMetaResult<T>>;
+
   stream(req: StreamRequest): AsyncIterable<StreamChunk>;
 }

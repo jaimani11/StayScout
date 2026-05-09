@@ -28,7 +28,7 @@ export const IntentAgent: Agent<IntentAgentInput, TripIntent> = {
 
     const system = `${INTENT_SYSTEM_PROMPT}\n\n${INTENT_FEW_SHOTS}`;
 
-    const intent = await ctx.modelClient.generate({
+    const { result: intent, modelMeta } = await ctx.modelClient.generateWithMeta({
       model: INTENT_MODEL,
       system,
       messages: [{ role: 'user', content: userPrompt }],
@@ -49,7 +49,7 @@ export const IntentAgent: Agent<IntentAgentInput, TripIntent> = {
     const result: TripIntent = { ...parsed, rawInput: input.rawInput };
 
     const durationMs = Math.round(performance.now() - startedAt);
-    ctx.traceLogger.recordAgentRun(INTENT_AGENT_ID, input, result, durationMs);
+    ctx.traceLogger.recordAgentRun(INTENT_AGENT_ID, input, result, durationMs, modelMeta);
 
     return result;
   },

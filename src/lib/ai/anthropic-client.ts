@@ -2,8 +2,10 @@ import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 import type {
   GenerateRequest,
+  GenerateWithMetaResult,
   ModelClient,
   ModelMessage,
+  ModelMeta,
   StreamChunk,
   StreamRequest,
 } from '@core/model-client';
@@ -59,6 +61,21 @@ export class AnthropicModelClient implements ModelClient {
   }
 
   async generate<T>(req: GenerateRequest<T>): Promise<T> {
+    const { result } = await this.generateInternal(req);
+    return result;
+  }
+
+  async generateWithMeta<T>(req: GenerateRequest<T>): Promise<GenerateWithMetaResult<T>> {
+    return this.generateInternal(req);
+  }
+
+  /**
+   * Single implementation backing both `generate` (drops meta) and
+   * `generateWithMeta`. Branches on `responseSchema` for tool-use vs
+   * plain-text paths; both paths return usage from the Anthropic
+   * response object.
+   */
+  private async generateInternal<T>(req: GenerateRequest<T>): Promise<GenerateWithMetaResult<T>> {
     const systemBlocks = req.system
       ? [
           {
@@ -69,8 +86,6 @@ export class AnthropicModelClient implements ModelClient {
         ]
       : undefined;
 
-    // Tool-use path — enforces a JSON Schema output and returns the parsed
-    // argument validated against the user's Zod schema.
     if (req.responseSchema) {
       const jsonSchema = z.toJSONSchema(req.responseSchema, {
         target: 'draft-7',
@@ -108,14 +123,13 @@ export class AnthropicModelClient implements ModelClient {
             `Tool output failed schema validation: ${parsed.error.message}`,
           );
         }
-        return parsed.data;
+        return { result: parsed.data, modelMeta: this.usageToMeta(req.model, resp.usage) };
       } catch (err) {
         if (err instanceof AnthropicClientError) throw err;
         throw new AnthropicClientError('Anthropic generate() failed', err);
       }
     }
 
-    // Plain text path — returns the assistant's first text block as T.
     try {
       const resp = await this.client.messages.create({
         model: req.model,
@@ -127,10 +141,24 @@ export class AnthropicModelClient implements ModelClient {
       const textBlock = resp.content.find(
         (block): block is Anthropic.TextBlock => block.type === 'text',
       );
-      return (textBlock?.text ?? '') as T;
+      return {
+        result: (textBlock?.text ?? '') as T,
+        modelMeta: this.usageToMeta(req.model, resp.usage),
+      };
     } catch (err) {
       throw new AnthropicClientError('Anthropic generate() failed', err);
     }
+  }
+
+  private usageToMeta(model: string, usage: Anthropic.Usage | undefined): ModelMeta {
+    const tokensIn = usage?.input_tokens ?? 0;
+    const tokensOut = usage?.output_tokens ?? 0;
+    const cacheRead = usage?.cache_read_input_tokens;
+    const meta: ModelMeta = { model, tokensIn, tokensOut };
+    if (cacheRead !== null && cacheRead !== undefined && cacheRead > 0) {
+      meta.cacheHit = true;
+    }
+    return meta;
   }
 
   async *stream(req: StreamRequest): AsyncIterable<StreamChunk> {

@@ -1,4 +1,11 @@
-import type { GenerateRequest, ModelClient, StreamChunk, StreamRequest } from '@core/model-client';
+import type {
+  GenerateRequest,
+  GenerateWithMetaResult,
+  ModelClient,
+  ModelMeta,
+  StreamChunk,
+  StreamRequest,
+} from '@core/model-client';
 
 type GenerateHandler = (req: GenerateRequest<unknown>) => unknown | Promise<unknown>;
 type StreamHandler = (req: StreamRequest) => AsyncIterable<StreamChunk>;
@@ -34,6 +41,15 @@ export class MockModelClient implements ModelClient {
   }
 
   async generate<T>(req: GenerateRequest<T>): Promise<T> {
+    const { result } = await this.generateInternal(req);
+    return result;
+  }
+
+  async generateWithMeta<T>(req: GenerateRequest<T>): Promise<GenerateWithMetaResult<T>> {
+    return this.generateInternal(req);
+  }
+
+  private async generateInternal<T>(req: GenerateRequest<T>): Promise<GenerateWithMetaResult<T>> {
     this.calls.generate.push(req as GenerateRequest<unknown>);
     if (!this.generateHandler) {
       throw new Error(
@@ -46,9 +62,16 @@ export class MockModelClient implements ModelClient {
       if (!parsed.success) {
         throw new Error(`MockModelClient: response failed schema: ${parsed.error.message}`);
       }
-      return parsed.data;
+      return { result: parsed.data, modelMeta: this.fakeMeta(req.model) };
     }
-    return result as T;
+    return { result: result as T, modelMeta: this.fakeMeta(req.model) };
+  }
+
+  /** Synthetic usage. Tests that care about exact tokens override this
+   *  via the handler returning a wrapped object — but for B8 the dashboard
+   *  cost only needs non-zero, plausibly-shaped numbers. */
+  private fakeMeta(model: string): ModelMeta {
+    return { model, tokensIn: 100, tokensOut: 50 };
   }
 
   async *stream(req: StreamRequest): AsyncIterable<StreamChunk> {

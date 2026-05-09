@@ -15,6 +15,7 @@ export interface ServerFeatures {
   /** Real (env-keyed) provider availability. Mock providers are always on. */
   providers: {
     bookingCom: boolean;
+    expedia: boolean;
   };
 }
 
@@ -38,6 +39,7 @@ export function getServerFeatures(): ServerFeatures {
       process.env.STAYSCOUT_ORCHESTRATOR === 'langgraph' ? 'langgraph' : 'hand-rolled',
     providers: {
       bookingCom: isPresent('BOOKING_COM_AFFILIATE_ID') && isPresent('BOOKING_COM_API_KEY'),
+      expedia: isPresent('EXPEDIA_API_KEY') && isPresent('EXPEDIA_SHARED_SECRET'),
     },
   };
 }

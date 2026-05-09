@@ -9,6 +9,8 @@ const SAVED_KEYS = [
   'LANGFUSE_SECRET_KEY',
   'BOOKING_COM_AFFILIATE_ID',
   'BOOKING_COM_API_KEY',
+  'EXPEDIA_API_KEY',
+  'EXPEDIA_SHARED_SECRET',
 ] as const;
 
 describe('getServerFeatures', () => {
@@ -72,5 +74,11 @@ describe('getServerFeatures', () => {
     process.env.BOOKING_COM_AFFILIATE_ID = 'partner_42';
     process.env.BOOKING_COM_API_KEY = 'key_xyz';
     expect(getServerFeatures().providers.bookingCom).toBe(true);
+  });
+
+  it('providers.expedia flips on when BOTH keys are set', () => {
+    process.env.EXPEDIA_API_KEY = 'eps_key';
+    process.env.EXPEDIA_SHARED_SECRET = 'eps_secret';
+    expect(getServerFeatures().providers.expedia).toBe(true);
   });
 });

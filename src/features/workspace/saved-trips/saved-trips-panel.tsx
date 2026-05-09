@@ -23,9 +23,14 @@ export function SavedTripsPanel() {
   const closeSavedPanel = useWorkspaceStore((s) => s.closeSavedPanel);
   const resurfaceSavedTrip = useWorkspaceStore((s) => s.resurfaceSavedTrip);
   const reduced = useReducedMotion();
-  const { trips, loading, error, mutating, remove, refresh, share } = useSavedTrips();
+  const { trips, loading, error, mutating, remove, refresh, share, resurface } = useSavedTrips();
 
   function handleSelect(trip: SavedTripRowData) {
+    // Prime the SessionStore so the orchestrator's getTurn(priorProposalRef.turnId)
+    // lookup resolves on a subsequent refine. Fire-and-forget — never
+    // gates the local UX (B8 tenet: network shouldn't block resurface).
+    void resurface(trip.id);
+
     // Reconstruct a stable ProposalRef + push the saved trip onto the
     // workspace as a settled turn. Use the saved trip's id as the
     // turnId for stability across re-clicks (de-dupe via the store).

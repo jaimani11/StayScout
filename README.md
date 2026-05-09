@@ -20,9 +20,11 @@
 
 **Slice B7 — Langfuse traces + cost/latency dashboard: complete.** The existing `TraceLogger` seam now feeds a stackable composite: an always-on in-memory ring buffer + a Langfuse exporter that activates when keys are set. A new `/admin` operator dashboard surfaces summary stats (turns, P50/P95, total cost, error rate), per-agent latency bars, and a recent-turns table. Mock-safe: no Langfuse keys = no Langfuse import.
 
+**Slice B8 — Polish (B-series follow-ups): complete.** Four follow-ups paid down: `ModelClient.generateWithMeta` so IntentAgent reports cost; `/api/trips/[tripId]/resurface` primes the SessionStore so refining a resurfaced saved trip works; per-provider circuit breaker on `BaseAffiliateProvider` (3-state, configurable threshold + cooldown); Expedia reference provider mirroring Booking.com file-for-file — proves the B5 abstraction reuses cleanly.
+
 - Specs: [`docs/superpowers/specs/`](docs/superpowers/specs/)
 - Plans: [`docs/superpowers/plans/`](docs/superpowers/plans/)
-- Tags: `slice-a1` … `slice-a10`, `slice-b1` … `slice-b7`
+- Tags: `slice-a1` … `slice-a10`, `slice-b1` … `slice-b8`
 
 ## Quick start
 
@@ -42,7 +44,7 @@ Every variable is optional. The matrix shows what each one turns on:
 | Subsystem | Without keys (default) | With keys |
 |---|---|---|
 | **Models** | Mock IntentAgent fixtures, deterministic mood snapshots | `ANTHROPIC_API_KEY` → live Claude calls |
-| **Providers** | `MockItalyProvider` (30 curated stays) + `LLMSynthesizedProvider` (mock) | `BOOKING_COM_AFFILIATE_ID` + `BOOKING_COM_API_KEY` → Booking.com promoted to primary; mocks remain as fanout fallback. Future: Expedia, Vrbo, Hotelbeds. |
+| **Providers** | `MockItalyProvider` (30 curated stays) + `LLMSynthesizedProvider` (mock) | `BOOKING_COM_AFFILIATE_ID` + `BOOKING_COM_API_KEY` → Booking.com on. `EXPEDIA_API_KEY` + `EXPEDIA_SHARED_SECRET` → Expedia on. Both register together; circuit breaker isolates per-provider failures. |
 | **Database** | In-memory `SessionStore` — process-local, lost on restart | `DATABASE_URL` → Postgres via Prisma. Run `pnpm db:migrate` once. |
 | **Auth** | Anonymous (cookie-bound `sessionId`) — saved trips work | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY` → sign-in + auto-migration of anonymous trips |
 | **Orchestrator** | Hand-rolled engine | `STAYSCOUT_ORCHESTRATOR=langgraph` → LangGraph engine (same event stream; checkpointer is `MemorySaver` unless `DATABASE_URL` is set, then `PostgresSaver`) |
@@ -141,6 +143,7 @@ The reverse fails CI (verified via `boundaries/dependencies` rule).
 | B5 | Real provider integrations (Booking ref impl, framework for Expedia/Vrbo/Hotelbeds) | ✓ |
 | B6 | `/destinations/[slug]` SEO + mobile bottom-sheet | ✓ |
 | B7 | Langfuse traces + cost/latency dashboard | ✓ |
+| B8 | Polish: ModelClient.generateWithMeta + resurface refine + circuit breaker + Expedia | ✓ |
 | Slice C | pgvector memory + MonitoringAgent + ItineraryAgent + Stripe + admin panel | next |
 | Slice D | BookingAgent (approval-gated → autonomous) | |
 
