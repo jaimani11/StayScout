@@ -259,6 +259,7 @@ export function DetailPanel() {
           open={confirmOpen}
           onClose={() => setConfirmOpen(false)}
           stay={stay}
+          {...(turn?.turnId ? { turnId: turn.turnId } : {})}
         />
       ) : null}
     </>

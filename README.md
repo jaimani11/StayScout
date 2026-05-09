@@ -12,9 +12,11 @@
 
 **Slice B3 — Saved trip resurfacing + share links: complete.** Saved trips become first-class — clicking one resurfaces the proposal on the canvas; sharing produces an unguessable `/t/[slug]` URL with a "Save to my StayScout" CTA so recipients can fork into their own bucket. Slug is lazy-minted on first share (~95 bits of entropy). The public read sanitizes owner-identifying fields and the original raw prompt at the SessionStore boundary, not the route handler.
 
+**Slice B4 — Affiliate redirect + click attribution: complete.** "Continue to Booking" now hits `/api/go`, which validates the destination against a hostname allowlist (open-redirect prevention), records an `AffiliateClick` row, and 302s to the provider. Click writes never block the redirect — booking flow is sacred. Anonymous and authenticated owners both attribute correctly; new providers join by adding a hostname.
+
 - Specs: [`docs/superpowers/specs/`](docs/superpowers/specs/)
 - Plans: [`docs/superpowers/plans/`](docs/superpowers/plans/)
-- Tags: `slice-a1` … `slice-a10`, `slice-b1`, `slice-b2`, `slice-b3`
+- Tags: `slice-a1` … `slice-a10`, `slice-b1`, `slice-b2`, `slice-b3`, `slice-b4`
 
 ## Quick start
 
@@ -129,8 +131,8 @@ The reverse fails CI (verified via `boundaries/dependencies` rule).
 | B1 | Persistence (`SessionStore` interface + Postgres impl) + Auth (Clerk + anon-to-user migration) — mock-safe | ✓ |
 | B2 | Orchestrator → LangGraph + Postgres checkpointer (opt-in via STAYSCOUT_ORCHESTRATOR) | ✓ |
 | B3 | Saved trips resurfacing + share links | ✓ |
-| B4 | Affiliate redirect router + click attribution | next |
-| B5 | Real provider integrations (Booking, Expedia, Vrbo, Hotelbeds) | |
+| B4 | Affiliate redirect router + click attribution | ✓ |
+| B5 | Real provider integrations (Booking, Expedia, Vrbo, Hotelbeds) | next |
 | B6 | `/destinations/[slug]` SEO + mobile bottom-sheet | |
 | B7 | Langfuse traces + cost/latency dashboard | |
 | Slice C | pgvector memory + MonitoringAgent + ItineraryAgent + Stripe + admin panel | |

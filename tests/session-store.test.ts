@@ -206,6 +206,45 @@ function runContract(name: string, makeStore: () => SessionStore) {
       const result = await s.getTripBySlug('Nonexistent12345');
       expect(result).toBeNull();
     });
+
+    // ============== Affiliate clicks ==============
+
+    it('recordClick stores an attributed row and returns it', async () => {
+      const s = makeStore();
+      const click = await s.recordClick({
+        ownerKind: 'session',
+        ownerId: 'anon_alice',
+        sessionId: 'anon_alice',
+        stayId: 'mock-italy:aman-venice',
+        providerId: 'mock-italy',
+        affiliateUrl: 'https://example.com/redirect?id=aman-venice',
+        turnId: 't_1',
+      });
+      expect(click.id).toMatch(/^click_|^c[a-z0-9]+/); // in-mem prefix or cuid
+      expect(click.ownerKind).toBe('session');
+      expect(click.ownerId).toBe('anon_alice');
+      expect(click.stayId).toBe('mock-italy:aman-venice');
+      expect(click.providerId).toBe('mock-italy');
+      expect(click.affiliateUrl).toContain('aman-venice');
+      expect(click.turnId).toBe('t_1');
+      expect(click.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    });
+
+    it('recordClick attributes authenticated clicks to userId', async () => {
+      const s = makeStore();
+      const click = await s.recordClick({
+        ownerKind: 'user',
+        ownerId: 'user_bob',
+        sessionId: 'anon_bob_session',
+        stayId: 'mock-italy:cipriani',
+        providerId: 'mock-italy',
+        affiliateUrl: 'https://example.com/redirect?id=cipriani',
+      });
+      expect(click.ownerKind).toBe('user');
+      expect(click.ownerId).toBe('user_bob');
+      // sessionId still recorded — needed for cross-device reconciliation.
+      expect(click.sessionId).toBe('anon_bob_session');
+    });
   });
 }
 

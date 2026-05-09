@@ -52,6 +52,32 @@ export interface MigrationResult {
   alreadyMigrated: boolean;
 }
 
+export interface AffiliateClickRecord {
+  id: string;
+  ownerKind: 'user' | 'session';
+  ownerId: string;
+  /** sessionId is recorded even when ownerKind is 'user' — covers
+   *  cross-device + supports anonymous→user reconciliation in B7. */
+  sessionId: string;
+  stayId: string;
+  providerId: string;
+  affiliateUrl: string;
+  turnId?: string;
+  conversationId?: string;
+  createdAt: string; // ISO
+}
+
+export interface RecordClickArgs {
+  ownerKind: 'user' | 'session';
+  ownerId: string;
+  sessionId: string;
+  stayId: string;
+  providerId: string;
+  affiliateUrl: string;
+  turnId?: string;
+  conversationId?: string;
+}
+
 export type OwnerKind = 'user' | 'session';
 
 export interface SaveTripArgs {
@@ -109,6 +135,15 @@ export interface SessionStore {
    * projection (no ownerId, no rawInput). Returns null for unknown slug.
    */
   getTripBySlug(slug: string): Promise<SharedTrip | null>;
+
+  // ============== Affiliate clicks ==============
+  /**
+   * Append-only record of a booking redirect. Owner attribution mirrors
+   * trip ownership (user for authenticated, session for anonymous).
+   * Failures here MUST NOT block the redirect — callers wrap with
+   * try/catch + log so a DB outage doesn't break the booking flow.
+   */
+  recordClick(args: RecordClickArgs): Promise<AffiliateClickRecord>;
 
   // ============== Migration ==============
   migrateAnonymousToUser(args: {

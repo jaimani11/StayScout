@@ -3,20 +3,30 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect } from 'react';
 import type { Stay } from '@core/stay';
+import { ExternalLink } from '@/features/shared/icons';
 import { useReducedMotion } from '@/features/shared/motion/reduced-motion';
+import { generateGoUrl } from '@/lib/affiliate/go-url';
 
 /**
- * Slice A booking placeholder. The actual affiliate redirect ships in
- * Slice B alongside the click-attribution route handler.
+ * Confirm + handoff modal for the booking redirect.
+ *
+ * The CTA is a real `<a>` whose href hits `/api/go` — the server records
+ * the click and 302s to the provider's deep link. target=_blank means
+ * the user keeps StayScout in the original tab.
+ *
+ * Wording leans on the existing voice rule: italic Fraunces, no
+ * exclamations, no "discover/journey/unforgettable."
  */
 export function ConfirmRedirectModal({
   open,
   onClose,
   stay,
+  turnId,
 }: {
   open: boolean;
   onClose: () => void;
   stay: Stay;
+  turnId?: string;
 }) {
   const reduced = useReducedMotion();
 
@@ -28,6 +38,15 @@ export function ConfirmRedirectModal({
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [open, onClose]);
+
+  const goHref = generateGoUrl({ stay, ...(turnId ? { turnId } : {}) });
+  const providerHost = (() => {
+    try {
+      return new URL(stay.bookingLink.url).hostname.replace(/^www\./, '');
+    } catch {
+      return 'the provider';
+    }
+  })();
 
   return (
     <AnimatePresence>
@@ -64,7 +83,7 @@ export function ConfirmRedirectModal({
                 color: 'var(--accent-primary)',
               }}
             >
-              Slice A demo
+              Booking handoff
             </p>
             <h3
               className="mt-1 mb-2"
@@ -73,9 +92,10 @@ export function ConfirmRedirectModal({
                 fontSize: 'var(--text-display-sm)',
                 fontWeight: 400,
                 color: 'var(--ink-primary)',
+                letterSpacing: '-0.02em',
               }}
             >
-              Booking redirect lives in Slice B.
+              Continuing to {providerHost}
             </h3>
             <p
               style={{
@@ -83,26 +103,46 @@ export function ConfirmRedirectModal({
                 fontSize: 'var(--text-body-sm)',
                 fontStyle: 'italic',
                 color: 'var(--ink-secondary)',
-                lineHeight: 1.5,
+                lineHeight: 1.55,
               }}
             >
-              {stay.name} would redirect to its provider with affiliate-tracked attribution. The
-              click-attribution route handler ships in the next slice.
+              {stay.name} books through {providerHost}. Prices are identical; StayScout earns a
+              small affiliate commission on completed bookings — that&apos;s how the concierge stays
+              free.
             </p>
-            <button
-              type="button"
-              onClick={onClose}
-              className="mt-4 w-full rounded-full px-4 py-2"
-              style={{
-                background: 'var(--accent-primary)',
-                color: '#14171C',
-                fontFamily: 'var(--font-inter)',
-                fontSize: 'var(--text-body-sm)',
-                fontWeight: 500,
-              }}
-            >
-              Got it
-            </button>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+              <a
+                href={goHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={onClose}
+                className="flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-2.5 transition-opacity hover:opacity-90"
+                style={{
+                  background: 'var(--accent-primary)',
+                  color: '#14171C',
+                  fontFamily: 'var(--font-inter)',
+                  fontSize: 'var(--text-body-sm)',
+                  fontWeight: 500,
+                }}
+              >
+                Continue to {providerHost}
+                <ExternalLink size={14} strokeWidth={2.2} />
+              </a>
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex flex-1 items-center justify-center rounded-full border px-4 py-2.5 transition-colors hover:bg-[color:var(--surface-overlay)]"
+                style={{
+                  borderColor: 'var(--border-emphasis)',
+                  color: 'var(--ink-primary)',
+                  fontFamily: 'var(--font-inter)',
+                  fontSize: 'var(--text-body-sm)',
+                  fontWeight: 500,
+                }}
+              >
+                Stay here
+              </button>
+            </div>
           </motion.div>
         </motion.div>
       ) : null}

@@ -1,6 +1,8 @@
 import type {
+  AffiliateClickRecord,
   MigrationResult,
   OwnerArgs,
+  RecordClickArgs,
   SavedTrip,
   SaveTripArgs,
   SessionStore,
@@ -34,6 +36,8 @@ export class InMemorySessionStore implements SessionStore {
   private readonly tripsByOwner = new Map<string, Map<string, SavedTrip>>();
   /** Side index for O(1) public-read by share slug. */
   private readonly tripsBySlug = new Map<string, SavedTrip>();
+  /** Append-only click log. Process-local. */
+  private readonly clicks: AffiliateClickRecord[] = [];
 
   // ============== Turns ==============
   async getTurn(turnId: string): Promise<TurnRecord | null> {
@@ -111,6 +115,29 @@ export class InMemorySessionStore implements SessionStore {
     return trip ? toSharedTrip(trip) : null;
   }
 
+  // ============== Affiliate clicks ==============
+  async recordClick(args: RecordClickArgs): Promise<AffiliateClickRecord> {
+    const click: AffiliateClickRecord = {
+      id: `click_${cryptoRandomId()}`,
+      ownerKind: args.ownerKind,
+      ownerId: args.ownerId,
+      sessionId: args.sessionId,
+      stayId: args.stayId,
+      providerId: args.providerId,
+      affiliateUrl: args.affiliateUrl,
+      ...(args.turnId ? { turnId: args.turnId } : {}),
+      ...(args.conversationId ? { conversationId: args.conversationId } : {}),
+      createdAt: new Date().toISOString(),
+    };
+    this.clicks.push(click);
+    return click;
+  }
+
+  /** Test helper — read the click log. */
+  _getClicks(): readonly AffiliateClickRecord[] {
+    return this.clicks;
+  }
+
   // ============== Migration ==============
   async migrateAnonymousToUser(args: {
     fromSessionId: string;
@@ -166,6 +193,7 @@ export class InMemorySessionStore implements SessionStore {
     this.turns.clear();
     this.tripsByOwner.clear();
     this.tripsBySlug.clear();
+    this.clicks.length = 0;
   }
 }
 

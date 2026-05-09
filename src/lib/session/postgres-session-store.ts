@@ -1,7 +1,9 @@
 import type { PrismaClient } from '@prisma/client';
 import type {
+  AffiliateClickRecord,
   MigrationResult,
   OwnerArgs,
+  RecordClickArgs,
   SavedTrip,
   SaveTripArgs,
   SessionStore,
@@ -129,6 +131,40 @@ export class PostgresSessionStore implements SessionStore {
       proposal: row.proposal as SavedTrip['proposal'],
       intent: { ...intent, rawInput: '' }, // mask
       bookmarkedAt: row.bookmarkedAt.toISOString(),
+    };
+  }
+
+  // ============== Affiliate clicks ==============
+  async recordClick(args: RecordClickArgs): Promise<AffiliateClickRecord> {
+    // Authenticated user → write userId; anonymous → leave userId null
+    // (the row still has sessionId, which is the anon owner key).
+    // ensureUser keeps Prisma's foreign-key relation healthy when the
+    // owner is a User row (covers fresh authenticated users who haven't
+    // saved a trip yet).
+    if (args.ownerKind === 'user') {
+      await this.ensureUser('user', args.ownerId);
+    }
+    const row = await this.db.affiliateClick.create({
+      data: {
+        sessionId: args.sessionId,
+        ...(args.ownerKind === 'user' ? { userId: args.ownerId } : {}),
+        stayId: args.stayId,
+        providerId: args.providerId,
+        affiliateUrl: args.affiliateUrl,
+        ...(args.turnId ? { turnId: args.turnId } : {}),
+      },
+    });
+    return {
+      id: row.id,
+      ownerKind: args.ownerKind,
+      ownerId: args.ownerId,
+      sessionId: row.sessionId,
+      stayId: row.stayId,
+      providerId: row.providerId,
+      affiliateUrl: row.affiliateUrl,
+      ...(row.turnId ? { turnId: row.turnId } : {}),
+      ...(args.conversationId ? { conversationId: args.conversationId } : {}),
+      createdAt: row.createdAt.toISOString(),
     };
   }
 
