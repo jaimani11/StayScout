@@ -105,8 +105,17 @@ describe('IntentAgent', () => {
     expect(runs[0]?.durationMs).toBeGreaterThanOrEqual(0);
   });
 
-  it('rejects model output that fails schema', async () => {
+  it('falls back to a heuristic intent when model output fails schema', async () => {
+    // Resilience contract (Slice B post-bugfix): the agent NEVER throws
+    // on a malformed model response. It logs a warning and returns a
+    // synthesized intent so the demo can still progress. The path that
+    // previously threw is exercised here.
     const client = new MockModelClient().respondGenerate(() => ({ destinations: 'not-array' }));
-    await expect(IntentAgent.run({ rawInput: 'a' }, fakeContext(client))).rejects.toThrow();
+    const result = await IntentAgent.run({ rawInput: 'Tuscany, slow' }, fakeContext(client));
+    // Heuristic fallback recognised "Tuscany" as a curated destination.
+    expect(result.destinations[0]?.name).toBe('Tuscany');
+    expect(result.dates.kind).toBe('unspecified');
+    expect(result.budget.kind).toBe('unspecified');
+    expect(result.rawInput).toBe('Tuscany, slow');
   });
 });

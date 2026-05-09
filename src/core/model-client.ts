@@ -15,6 +15,14 @@ export interface GenerateRequest<T> {
   cacheKey?: string;
   maxTokens?: number;
   temperature?: number;
+  /**
+   * Optional pre-validation hook. The client applies this to the raw
+   * tool-use input before running `responseSchema.safeParse`. Use it
+   * for schema-specific coercion the model occasionally fumbles — e.g.,
+   * expanding bare-string `"unspecified"` into `{kind: "unspecified"}`
+   * for discriminated-union variants. Idempotent + side-effect-free.
+   */
+  coerce?: (raw: unknown) => unknown;
 }
 
 export interface StreamRequest {

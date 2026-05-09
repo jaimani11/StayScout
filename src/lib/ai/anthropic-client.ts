@@ -52,9 +52,13 @@ export class AnthropicModelClient implements ModelClient {
 
   constructor(opts: { apiKey?: string } = {}) {
     const apiKey = opts.apiKey ?? process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
+    // Treat empty-string as "missing." A parent-shell `ANTHROPIC_API_KEY=""`
+    // would otherwise win over .env.local (Node's dotenv loader respects
+    // existing process.env), and the failure mode is confusing. Better
+    // to fall through to the same "not set" error message.
+    if (!apiKey || apiKey.length === 0) {
       throw new AnthropicClientError(
-        'ANTHROPIC_API_KEY is not set. Add it to your .env or pass via opts.apiKey.',
+        'ANTHROPIC_API_KEY is not set (or is an empty string). Add a value to .env.local — note that a parent-shell empty-string export will override it.',
       );
     }
     this.client = new Anthropic({ apiKey });
@@ -97,6 +101,7 @@ export class AnthropicModelClient implements ModelClient {
         input_schema: { ...jsonSchema, type: 'object' as const },
       };
 
+      const startedAt = performance.now();
       try {
         const resp = await this.client.messages.create({
           model: req.model,
@@ -117,13 +122,34 @@ export class AnthropicModelClient implements ModelClient {
           );
         }
 
-        const parsed = req.responseSchema.safeParse(toolUse.input);
+        // Apply caller-supplied coercion before strict Zod parse — fixes
+        // common tool-use shortcuts (e.g. discriminated-union variants
+        // emitted as bare strings).
+        const candidate = req.coerce ? req.coerce(toolUse.input) : toolUse.input;
+        const parsed = req.responseSchema.safeParse(candidate);
         if (!parsed.success) {
+          // Log the raw model output so a caller's fallback can also
+          // see what the model actually emitted. Truncated to avoid
+          // dumping multi-page JSON to logs.
+          console.warn('[anthropic-client] tool output failed schema validation', {
+            model: req.model,
+            issues: parsed.error.issues.slice(0, 3),
+            raw: JSON.stringify(toolUse.input).slice(0, 600),
+          });
           throw new AnthropicClientError(
             `Tool output failed schema validation: ${parsed.error.message}`,
           );
         }
-        return { result: parsed.data, modelMeta: this.usageToMeta(req.model, resp.usage) };
+        const durationMs = Math.round(performance.now() - startedAt);
+        const meta = this.usageToMeta(req.model, resp.usage);
+        console.info('[anthropic-client] generate ok', {
+          model: req.model,
+          durationMs,
+          tokensIn: meta.tokensIn,
+          tokensOut: meta.tokensOut,
+          cacheHit: meta.cacheHit ?? false,
+        });
+        return { result: parsed.data, modelMeta: meta };
       } catch (err) {
         if (err instanceof AnthropicClientError) throw err;
         throw new AnthropicClientError('Anthropic generate() failed', err);

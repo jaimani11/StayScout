@@ -11,11 +11,15 @@ export async function POST(req: NextRequest): Promise<Response> {
   try {
     body = await req.json();
   } catch {
+    console.warn('[concierge] invalid JSON body');
     return Response.json({ error: 'invalid JSON body' }, { status: 400 });
   }
 
   const parsed = ConciergeRequestSchema.safeParse(body);
   if (!parsed.success) {
+    console.warn('[concierge] request failed schema validation', {
+      issues: parsed.error.issues.slice(0, 3),
+    });
     return Response.json(
       { error: 'invalid request', issues: parsed.error.issues },
       { status: 400 },
@@ -26,6 +30,13 @@ export async function POST(req: NextRequest): Promise<Response> {
   // Slice B can tighten with signed cookies + stronger validation.
   const session = resolveSession(req.headers.get('cookie'));
   const requestSessionId = parsed.data.sessionId || session.sessionId;
+
+  console.info('[concierge] incoming turn', {
+    turnId: parsed.data.turnId,
+    type: parsed.data.type,
+    sessionId: requestSessionId.slice(0, 16),
+    rawInputLen: parsed.data.input.rawInput.length,
+  });
 
   const orchestrator = await getOrchestrator();
   const stream = toJsonlStream(

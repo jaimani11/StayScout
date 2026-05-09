@@ -45,26 +45,60 @@ Inference rules:
   * If a region (Tuscany, Patagonia) is given, the country is that region's country
   * If unclear, set country: 'XX' and confidence: 0.3 on destinations
 
+CRITICAL — discriminated unions:
+- \`dates\` and \`budget\` MUST always be objects with a \`kind\` field, never bare strings.
+- WRONG: \`"dates": "unspecified"\`
+- RIGHT: \`"dates": {"kind": "unspecified"}\`
+- WRONG: \`"budget": "unspecified"\`
+- RIGHT: \`"budget": {"kind": "unspecified"}\`
+- This applies to every variant — even when the variant has no other fields, you still emit the wrapping object with the \`kind\` discriminator.
+
 Be precise. Do not editorialise.`;
 
 export const INTENT_FEW_SHOTS = `Example A:
 User input: "Italy 7 days, family of 4, walkable, budget around $6k, no tourist traps"
-Output (high level):
-- destinations: [{ kind: 'curated', name: 'Italy', country: 'IT' }]
-- duration: { nights: 7, flexible: false }
-- travelers: { adults: 2, children: { count: 2 }, infants: 0, groupKind: 'family' }
-- budget: { kind: 'total', amount: 6000, currency: 'USD', flexibility: 'flexible' }
-- vibe.tags: ['walkable', 'family-friendly', 'avoid-tourist-traps']
-- caveats: []
-- confidence: { destinations: 0.95, vibe: 0.85 }
+Output (literal JSON the tool must emit):
+{
+  "destinations": [{"kind": "curated", "name": "Italy", "country": "IT"}],
+  "dates": {"kind": "unspecified"},
+  "duration": {"nights": 7, "flexible": false},
+  "travelers": {"adults": 2, "children": {"count": 2}, "infants": 0, "groupKind": "family"},
+  "budget": {"kind": "total", "amount": 6000, "currency": "USD", "flexibility": "flexible"},
+  "vibe": {"tags": ["walkable", "family-friendly", "avoid-tourist-traps"]},
+  "preferences": {"amenities": [], "avoid": []},
+  "caveats": [],
+  "rawInput": "Italy 7 days, family of 4, walkable, budget around $6k, no tourist traps",
+  "confidence": {"destinations": 0.95, "vibe": 0.85}
+}
 
 Example B:
 User input: "Tokyo for a long weekend, just me, foodie, denser the better"
-Output (high level):
-- destinations: [{ kind: 'synthesized', name: 'Tokyo', country: 'JP' }]
-- duration: { nights: 3, flexible: true }
-- travelers: { adults: 1, children: { count: 0 }, infants: 0, groupKind: 'solo' }
-- budget: { kind: 'unspecified' }
-- vibe.tags: ['foodie', 'urban']
-- caveats: []
-- confidence: { destinations: 0.92, vibe: 0.85 }`;
+Output (literal JSON the tool must emit):
+{
+  "destinations": [{"kind": "synthesized", "name": "Tokyo", "country": "JP"}],
+  "dates": {"kind": "unspecified"},
+  "duration": {"nights": 3, "flexible": true},
+  "travelers": {"adults": 1, "children": {"count": 0}, "infants": 0, "groupKind": "solo"},
+  "budget": {"kind": "unspecified"},
+  "vibe": {"tags": ["foodie", "urban"]},
+  "preferences": {"amenities": [], "avoid": []},
+  "caveats": [],
+  "rawInput": "Tokyo for a long weekend, just me, foodie, denser the better",
+  "confidence": {"destinations": 0.92, "vibe": 0.85}
+}
+
+Example C (note: dates/budget use the object form even when 'unspecified'):
+User input: "Tuscany, slow and walkable"
+Output (literal JSON the tool must emit):
+{
+  "destinations": [{"kind": "curated", "name": "Tuscany", "country": "IT"}],
+  "dates": {"kind": "unspecified"},
+  "duration": {"nights": 0, "flexible": true},
+  "travelers": {"adults": 1, "children": {"count": 0}, "infants": 0},
+  "budget": {"kind": "unspecified"},
+  "vibe": {"tags": ["slow", "walkable"]},
+  "preferences": {"amenities": [], "avoid": []},
+  "caveats": [],
+  "rawInput": "Tuscany, slow and walkable",
+  "confidence": {"destinations": 0.95, "vibe": 0.9}
+}`;

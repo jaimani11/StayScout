@@ -8,7 +8,7 @@ import type {
 } from '@core/provider';
 import { providerId } from '@core/ids';
 import { TtlCache } from './cache';
-import { LLMStayBatchSchema, mapLLMStayToStay } from './llm-stay';
+import { LLMStayBatchSchema, coerceLlmStayBatch, mapLLMStayToStay } from './llm-stay';
 import { LLM_SYNTHESIZED_SYSTEM_PROMPT, buildLlmStayUserPrompt } from './prompts';
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
@@ -55,17 +55,38 @@ export class LLMSynthesizedProvider implements Provider {
       },
     });
 
-    const batch = await this.modelClient.generate({
-      model: MODEL_ID,
-      system: LLM_SYNTHESIZED_SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: userPrompt }],
-      responseSchema: LLMStayBatchSchema,
-      cacheKey: 'llm-synthesized-stays-v1',
-      maxTokens: 3072,
-      temperature: 0.6,
-    });
+    let batch: { stays: ReturnType<typeof mapLLMStayToStay> extends infer _s ? unknown : never };
+    try {
+      // Resilience: the model occasionally invents vibe tags outside
+      // our closed taxonomy or otherwise fumbles the schema. The
+      // `coerce` hook filters obvious junk before Zod's strict parse;
+      // anything still unfixable falls into the catch below and the
+      // provider returns an empty result rather than bubbling
+      // turn.failed up to the user.
+      batch = (await this.modelClient.generate({
+        model: MODEL_ID,
+        system: LLM_SYNTHESIZED_SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: userPrompt }],
+        responseSchema: LLMStayBatchSchema,
+        cacheKey: 'llm-synthesized-stays-v1',
+        maxTokens: 3072,
+        temperature: 0.6,
+        coerce: coerceLlmStayBatch,
+      })) as never;
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        throw err;
+      }
+      console.warn(
+        '[llm-synthesized] model call failed — returning empty result, orchestrator will surface a friendly empty-search message',
+        { error: err instanceof Error ? err.message : String(err) },
+      );
+      return this.emptyResult();
+    }
 
-    const stays = batch.stays.map(mapLLMStayToStay);
+    const stays = (batch as { stays: Parameters<typeof mapLLMStayToStay>[0][] }).stays.map(
+      mapLLMStayToStay,
+    );
     const badges: ProviderBadge[] = [{ kind: 'preview', label: 'AI Preview' }];
 
     const result: ProviderSearchResult = {

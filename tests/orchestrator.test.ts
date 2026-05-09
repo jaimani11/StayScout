@@ -129,7 +129,10 @@ describe('Orchestrator', () => {
     if (fail?.kind === 'turn.failed') expect(fail.error).toContain('duplicate');
   });
 
-  it('emits agent.step.failed when intent agent throws', async () => {
+  it('intent-agent model errors fall back to heuristic, turn still completes', async () => {
+    // Resilience contract (Slice B post-bugfix): a non-Abort error from
+    // the intent model resolves to a synthesized intent. The turn
+    // continues end-to-end instead of bubbling step.failed/turn.failed.
     process.env.MOCK_PROVIDER_LATENCY_MS = '0';
     const client = new MockModelClient().respondGenerate(() => {
       throw new Error('intent boom');
@@ -137,8 +140,9 @@ describe('Orchestrator', () => {
     const orch = new Orchestrator({ modelClient: client });
     const events = await collect(orch.run(baseRequest(), { signal: new AbortController().signal }));
     const kinds = events.map((e) => e.kind);
-    expect(kinds).toContain('agent.step.failed');
-    expect(kinds).toContain('turn.failed');
+    expect(kinds).not.toContain('turn.failed');
+    expect(kinds[kinds.length - 1]).toBe('turn.completed');
+    expect(kinds).toContain('intent.extracted');
   });
 
   it('classifies AbortError on intent agent as recoverable cancelled', async () => {

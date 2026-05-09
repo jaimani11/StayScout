@@ -59,6 +59,40 @@ export const LLMStayBatchSchema = z.object({
   stays: z.array(LLMStaySchema).min(2).max(6),
 });
 
+const VALID_VIBE_TAGS = new Set(VibeTagSchema.options);
+
+/**
+ * Coerce model output before strict Zod parse.
+ *
+ * Observed in dev: the model occasionally invents vibe tags outside our
+ * closed taxonomy (e.g. "countryside", "lakeside") even though the
+ * prompt + JSON schema constrain it. Filter those out per-stay before
+ * Zod runs — keeps the rest of the stay valid; only the bad tags are
+ * dropped. If filtering empties the array, drop a placeholder so the
+ * `min(1)` constraint still holds.
+ */
+export function coerceLlmStayBatch(raw: unknown): unknown {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return raw;
+  const obj = raw as Record<string, unknown>;
+  const stays = obj.stays;
+  if (!Array.isArray(stays)) return raw;
+  const fixedStays = stays.map((s) => {
+    if (!s || typeof s !== 'object' || Array.isArray(s)) return s;
+    const stay = s as Record<string, unknown>;
+    if (!Array.isArray(stay.vibe)) return stay;
+    const filtered = (stay.vibe as unknown[]).filter(
+      (tag): tag is string => typeof tag === 'string' && VALID_VIBE_TAGS.has(tag as never),
+    );
+    return {
+      ...stay,
+      // Preserve at least one tag so the schema's `.min(1)` holds even
+      // when the model ignored every option in our taxonomy.
+      vibe: filtered.length > 0 ? filtered : ['cultural'],
+    };
+  });
+  return { ...obj, stays: fixedStays };
+}
+
 /**
  * Map a slim LLMStay to a fully canonical Stay. We mint the namespaced id,
  * attach a category-matched Unsplash photo, set a placeholder booking

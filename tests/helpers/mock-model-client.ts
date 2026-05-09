@@ -58,7 +58,10 @@ export class MockModelClient implements ModelClient {
     }
     const result = await Promise.resolve(this.generateHandler(req as GenerateRequest<unknown>));
     if (req.responseSchema) {
-      const parsed = req.responseSchema.safeParse(result);
+      // Apply optional coercion just like the real client — keeps tests
+      // exercising the same code path.
+      const candidate = req.coerce ? req.coerce(result) : result;
+      const parsed = req.responseSchema.safeParse(candidate);
       if (!parsed.success) {
         throw new Error(`MockModelClient: response failed schema: ${parsed.error.message}`);
       }

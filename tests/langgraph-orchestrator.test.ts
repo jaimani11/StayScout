@@ -135,7 +135,10 @@ describe('LangGraphOrchestrator', () => {
     if (fail?.kind === 'turn.failed') expect(fail.error).toContain('duplicate');
   });
 
-  it('emits agent.step.failed when intent agent throws', async () => {
+  it('intent-agent model errors fall back to heuristic, turn still completes', async () => {
+    // Mirrors the legacy-engine test — both engines must honor the
+    // post-bugfix resilience contract (model error → fallback, not
+    // turn.failed).
     process.env.MOCK_PROVIDER_LATENCY_MS = '0';
     const client = new MockModelClient().respondGenerate(() => {
       throw new Error('intent boom');
@@ -143,8 +146,9 @@ describe('LangGraphOrchestrator', () => {
     const orch = new LangGraphOrchestrator({ modelClient: client });
     const events = await collect(orch.run(baseRequest(), { signal: new AbortController().signal }));
     const kinds = events.map((e) => e.kind);
-    expect(kinds).toContain('agent.step.failed');
-    expect(kinds).toContain('turn.failed');
+    expect(kinds).not.toContain('turn.failed');
+    expect(kinds[kinds.length - 1]).toBe('turn.completed');
+    expect(kinds).toContain('intent.extracted');
   });
 
   it('classifies AbortError on intent agent as recoverable cancelled', async () => {
