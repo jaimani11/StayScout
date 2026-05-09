@@ -16,9 +16,11 @@
 
 **Slice B5 — Real provider integrations (mock-safe): complete.** A `BaseAffiliateProvider` abstract class encapsulates HTTP + retry + cache + mapper boilerplate. Booking.com ships as the reference implementation — self-registers when `BOOKING_COM_AFFILIATE_ID` + `BOOKING_COM_API_KEY` are set, invisible otherwise. Availability-aware registry + `searchWithFanout` helper let multiple providers run in parallel; one provider's outage never stalls the others. Adding Expedia / Vrbo / Hotelbeds is the same pattern: declare endpoint + auth, write a mapper, slot into the registry.
 
+**Slice B6 — Destination pages + mobile bottom-sheet: complete.** Static `/destinations` index + `/destinations/[slug]` pages with hero photo, mood, featured stays, Schema.org `TouristDestination` JSON-LD, Open Graph cards, and a sitemap. The mobile workspace now opens with a draggable bottom-sheet (peek/half/full snaps) instead of the stacked split layout — chat is always at hand without dominating the canvas.
+
 - Specs: [`docs/superpowers/specs/`](docs/superpowers/specs/)
 - Plans: [`docs/superpowers/plans/`](docs/superpowers/plans/)
-- Tags: `slice-a1` … `slice-a10`, `slice-b1`, `slice-b2`, `slice-b3`, `slice-b4`, `slice-b5`
+- Tags: `slice-a1` … `slice-a10`, `slice-b1`, `slice-b2`, `slice-b3`, `slice-b4`, `slice-b5`, `slice-b6`
 
 ## Quick start
 
@@ -135,8 +137,8 @@ The reverse fails CI (verified via `boundaries/dependencies` rule).
 | B3 | Saved trips resurfacing + share links | ✓ |
 | B4 | Affiliate redirect router + click attribution | ✓ |
 | B5 | Real provider integrations (Booking ref impl, framework for Expedia/Vrbo/Hotelbeds) | ✓ |
-| B6 | `/destinations/[slug]` SEO + mobile bottom-sheet | next |
-| B7 | Langfuse traces + cost/latency dashboard | |
+| B6 | `/destinations/[slug]` SEO + mobile bottom-sheet | ✓ |
+| B7 | Langfuse traces + cost/latency dashboard | next |
 | Slice C | pgvector memory + MonitoringAgent + ItineraryAgent + Stripe + admin panel | |
 | Slice D | BookingAgent (approval-gated → autonomous) | |
 
