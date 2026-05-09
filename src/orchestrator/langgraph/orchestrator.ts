@@ -14,6 +14,7 @@ import { routeProvider } from '@/providers';
 import { NoOpTraceLogger } from '@lib/observability/trace-logger';
 import { MemoryHinter } from '@lib/memory-hinter';
 import { InMemorySessionStore, type SessionStore } from '@lib/session';
+import type { MemoryRecorder, MemoryRetriever } from '@lib/memory';
 import { createEventQueue } from './event-queue';
 import { buildGraph } from './graph';
 import type { GraphDeps } from './nodes';
@@ -28,6 +29,10 @@ export interface LangGraphOrchestratorOptions {
   sessionStore?: SessionStore;
   /** Optional LangGraph checkpoint saver. MemorySaver if omitted. */
   checkpointer?: BaseCheckpointSaver;
+  /** Slice C1 — optional memory subsystem. Same opt-in shape as the
+   *  legacy Orchestrator. */
+  memoryRecorder?: MemoryRecorder;
+  memoryRetriever?: MemoryRetriever;
 }
 
 /**
@@ -72,6 +77,8 @@ export class LangGraphOrchestrator {
       markTurnSeen: (tid) => {
         this.seenTurnIds.add(tid);
       },
+      memoryRecorder: opts.memoryRecorder ?? null,
+      memoryRetriever: opts.memoryRetriever ?? null,
     };
     this.compiledGraph = buildGraph(deps, opts.checkpointer);
   }

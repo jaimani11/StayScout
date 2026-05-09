@@ -17,6 +17,13 @@ export interface ServerFeatures {
     bookingCom: boolean;
     expedia: boolean;
   };
+  /** Slice C1 — memory subsystem backing. Surfaced on /admin. */
+  memory: {
+    /** Always 'in-memory' in C1 mock-safe path; 'pgvector' when DB + flag set. */
+    kind: 'in-memory' | 'pgvector';
+    /** 'bag-of-words' default; 'anthropic' opt-in via env flag. */
+    embedding: 'bag-of-words' | 'anthropic';
+  };
 }
 
 function isPresent(name: string): boolean {
@@ -40,6 +47,16 @@ export function getServerFeatures(): ServerFeatures {
     providers: {
       bookingCom: isPresent('BOOKING_COM_AFFILIATE_ID') && isPresent('BOOKING_COM_API_KEY'),
       expedia: isPresent('EXPEDIA_API_KEY') && isPresent('EXPEDIA_SHARED_SECRET'),
+    },
+    memory: {
+      kind:
+        isPresent('DATABASE_URL') && process.env.STAYSCOUT_PGVECTOR === '1'
+          ? 'pgvector'
+          : 'in-memory',
+      embedding:
+        isPresent('ANTHROPIC_API_KEY') && process.env.STAYSCOUT_USE_ANTHROPIC_EMBEDDINGS === '1'
+          ? 'anthropic'
+          : 'bag-of-words',
     },
   };
 }

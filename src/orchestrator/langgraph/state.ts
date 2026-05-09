@@ -6,6 +6,7 @@ import type { ProviderSearchResult } from '@core/provider';
 import type { TripIntent } from '@core/trip-intent';
 import type { AgentTraceSummary, TripProposal } from '@core/trip-proposal';
 import type { TurnRecord } from '@lib/session/session-store';
+import type { RetrievedMemories } from '@lib/memory';
 
 /**
  * Graph state — the **minimum** data flowing between nodes. Events are
@@ -61,6 +62,14 @@ export const GraphAnnotation = Annotation.Root({
   /** Wall-clock ms when bootstrap ran — basis for turn duration. */
   turnStartedAt: Annotation<number>({
     default: () => 0,
+    reducer: (_l, r) => r,
+  }),
+  /** Slice C1 — retrieval result, populated by the bootstrap node when
+   *  a memory retriever is wired. The intent node threads it into the
+   *  prompt; the memory_hint node uses it to decide whether to fire
+   *  the retrieval-driven hint vs. the heuristic. */
+  retrievedMemories: Annotation<RetrievedMemories | null>({
+    default: () => null,
     reducer: (_l, r) => r,
   }),
 });

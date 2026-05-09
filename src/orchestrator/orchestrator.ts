@@ -15,6 +15,7 @@ import { routeProvider } from '@/providers';
 import { NoOpTraceLogger } from '@lib/observability/trace-logger';
 import { MemoryHinter } from '@lib/memory-hinter';
 import { InMemorySessionStore, type SessionStore } from '@lib/session';
+import type { MemoryRecorder, MemoryRetriever, RetrievedMemories } from '@lib/memory';
 import { computeIntentDelta } from './intent-delta';
 import { computeProposalDiff } from './proposal-diff';
 import { buildProposal, buildProposalRef } from './proposal-builder';
@@ -32,6 +33,14 @@ export interface OrchestratorOptions {
    * production passes the singleton from `@lib/session/factory`.
    */
   sessionStore?: SessionStore;
+  /**
+   * Slice C1 — optional memory subsystem. When provided, the
+   * orchestrator records memories on completed turns + retrieves them
+   * before intent extraction. Default: none (no memory). Tests don't
+   * need to wire this up.
+   */
+  memoryRecorder?: MemoryRecorder;
+  memoryRetriever?: MemoryRetriever;
 }
 
 /**
@@ -47,6 +56,8 @@ export class Orchestrator {
   private readonly moodSnapshotAgent: Agent<MoodSnapshotAgentInput, MoodSnapshot>;
   private readonly providerRouter: (intent: TripIntent) => Provider;
   private readonly sessionStore: SessionStore;
+  private readonly memoryRecorder: MemoryRecorder | null;
+  private readonly memoryRetriever: MemoryRetriever | null;
   private readonly seenSessions = new Set<string>();
   private readonly seenTurnIds = new Set<string>();
   // One MemoryHinter per session — keyed by sessionId, lazy-init.
@@ -59,6 +70,8 @@ export class Orchestrator {
     this.moodSnapshotAgent = opts.moodSnapshotAgent ?? MoodSnapshotAgent;
     this.providerRouter = opts.providerRouter ?? routeProvider;
     this.sessionStore = opts.sessionStore ?? new InMemorySessionStore();
+    this.memoryRecorder = opts.memoryRecorder ?? null;
+    this.memoryRetriever = opts.memoryRetriever ?? null;
   }
 
   private getHinter(sessionId: string): MemoryHinter {
@@ -121,13 +134,37 @@ export class Orchestrator {
       label: req.type === 'refine' ? 'Adjusting your trip' : 'Reading your trip',
     };
 
+    // Slice C1: retrieve relevant prior memories before intent
+    // extraction. The owner-key mirrors trip ownership (sessionId for
+    // anonymous; userId for authenticated, surfaced via auth in route).
+    // Failures here NEVER block the intent step — fall through with
+    // null + log.
+    const memoryOwner = { ownerKind: 'session' as const, ownerId: req.sessionId };
+    let retrievedMemories: RetrievedMemories | null = null;
+    if (this.memoryRetriever) {
+      try {
+        retrievedMemories = await this.memoryRetriever.searchForTurn({
+          rawInput: req.input.rawInput,
+          owner: memoryOwner,
+        });
+      } catch (err) {
+        console.warn('[orchestrator] memory retrieval failed', {
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
+
     const intentStartedAt = performance.now();
     let intent: TripIntent;
     try {
       const agentCtx = this.buildAgentContext(req, ctx.signal);
-      const agentInput: IntentAgentInput = priorTurn?.intent
-        ? { rawInput: req.input.rawInput, priorIntent: priorTurn.intent }
-        : { rawInput: req.input.rawInput };
+      const agentInput: IntentAgentInput = {
+        rawInput: req.input.rawInput,
+        ...(priorTurn?.intent ? { priorIntent: priorTurn.intent } : {}),
+        ...(retrievedMemories?.promptBlock
+          ? { priorMemoryBlock: retrievedMemories.promptBlock }
+          : {}),
+      };
       intent = await this.intentAgent.run(agentInput, agentCtx);
     } catch (err) {
       yield this.failStep(req.turnId, intentStepId, err);
@@ -267,19 +304,39 @@ export class Orchestrator {
       yield* this.runMoodSnapshotEvents(req, dest, ctx.signal);
     }
 
-    // ============== Memory hint (session-scoped, fires once max) ==============
-    const hinter = this.getHinter(req.sessionId);
-    hinter.observeTurn({ intent });
-    const hint = hinter.evaluate();
-    if (hint) {
-      hinter.markFired();
+    // ============== Memory hint ==============
+    // Two sources of memory hints:
+    //   1. Slice C1 retrieval: cross-session semantic recall via the
+    //      MemoryRetriever (when wired). Takes precedence — surfaces
+    //      a richer hint based on prior memory, even on the first
+    //      turn of a new session.
+    //   2. Slice A9 heuristic: the in-session MemoryHinter that
+    //      accrues signal across turns. Fallback when retrieval
+    //      didn't fire.
+    // Only one hint fires per turn (the workspace renders one slot).
+    if (retrievedMemories && retrievedMemories.entries.length > 0) {
+      const top = retrievedMemories.entries[0]!;
       yield {
         kind: 'concierge.memory.hint',
         turnId: req.turnId,
-        message: hint.message,
-        signalKey: hint.signalKey,
-        confidence: hint.confidence,
+        message: `Remembered from earlier — ${top.content}`,
+        signalKey: 'memory-retrieval',
+        confidence: clampUnit(top.score),
       };
+    } else {
+      const hinter = this.getHinter(req.sessionId);
+      hinter.observeTurn({ intent });
+      const hint = hinter.evaluate();
+      if (hint) {
+        hinter.markFired();
+        yield {
+          kind: 'concierge.memory.hint',
+          turnId: req.turnId,
+          message: hint.message,
+          signalKey: hint.signalKey,
+          confidence: hint.confidence,
+        };
+      }
     }
 
     yield {
@@ -287,6 +344,18 @@ export class Orchestrator {
       turnId: req.turnId,
       durationMs: Math.round(performance.now() - turnStartedAt),
     };
+
+    // Slice C1 — record memories AFTER turn.completed so we don't
+    // block the user-visible event stream. Failures inside the
+    // recorder are caught + logged there.
+    if (this.memoryRecorder) {
+      void this.memoryRecorder.observeTurn({
+        turnId: req.turnId,
+        owner: memoryOwner,
+        intent,
+        rawInput: req.input.rawInput,
+      });
+    }
 
     await this.sessionStore.putTurn({
       turnId: req.turnId,
@@ -394,4 +463,12 @@ export class Orchestrator {
 function errorMessage(err: unknown): string {
   if (err instanceof Error) return err.message;
   return String(err);
+}
+
+/** Clamp a number to [0, 1] for the `confidence` field on hint events. */
+function clampUnit(n: number): number {
+  if (!Number.isFinite(n)) return 0;
+  if (n < 0) return 0;
+  if (n > 1) return 1;
+  return n;
 }

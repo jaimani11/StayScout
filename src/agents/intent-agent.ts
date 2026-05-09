@@ -8,6 +8,14 @@ import { coerceTripIntentShortcuts, synthesizeFallbackIntent } from './fallback-
 export interface IntentAgentInput {
   rawInput: string;
   priorIntent?: TripIntent;
+  /**
+   * Pre-formatted memory block (Slice C1). When the orchestrator's
+   * `MemoryRetriever` found relevant prior memories for the owner, it
+   * passes the formatted `<memory>` prompt block here. The agent
+   * appends it to the user message (NOT the system prompt — keeps the
+   * cached system block effective).
+   */
+  priorMemoryBlock?: string;
 }
 
 export const INTENT_AGENT_ID = agentId('intent');
@@ -39,9 +47,12 @@ export const IntentAgent: Agent<IntentAgentInput, TripIntent> = {
 
     ctx.emit.progress(input.priorIntent ? 'Adjusting your trip' : 'Reading your trip');
 
-    const userPrompt = input.priorIntent
+    const basePrompt = input.priorIntent
       ? buildRefinePrompt({ rawInput: input.rawInput, priorIntent: input.priorIntent })
       : buildComposePrompt(input.rawInput);
+    const userPrompt = input.priorMemoryBlock
+      ? `${input.priorMemoryBlock}\n\n${basePrompt}`
+      : basePrompt;
 
     const system = `${INTENT_SYSTEM_PROMPT}\n\n${INTENT_FEW_SHOTS}`;
 

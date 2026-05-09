@@ -110,7 +110,12 @@ model MemoryRecord {
   content   String
   signalKey String?
   weight    Float?
-  // embedding pgvector — added in Slice C alongside the actual MemoryAgent
+  // pgvector embedding — populated when STAYSCOUT_PGVECTOR=1 + the
+  // `vector` extension is installed. Otherwise null; the mock-safe
+  // InMemoryMemoryStore keeps embeddings in process. Slice C1 ships
+  // the schema; full migration (CREATE EXTENSION + ivfflat index) +
+  // PgvectorMemoryStore impl land in C1.x once we have a DB to test.
+  embedding Unsupported("vector(256)")?
   createdAt DateTime @default(now())
 
   @@index([userId, kind, createdAt])

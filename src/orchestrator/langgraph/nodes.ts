@@ -11,6 +11,7 @@ import type { MoodSnapshot } from '@core/reasoning';
 import type { IntentAgentInput } from '@/agents/intent-agent';
 import type { MoodSnapshotAgentInput } from '@/agents/mood-snapshot-agent';
 import type { MemoryHinter } from '@lib/memory-hinter';
+import type { MemoryRecorder, MemoryRetriever, RetrievedMemories } from '@lib/memory';
 import type { SessionStore } from '@lib/session/session-store';
 import { computeIntentDelta } from '../intent-delta';
 import { computeProposalDiff } from '../proposal-diff';
@@ -41,6 +42,12 @@ export interface GraphDeps {
   markSessionSeen: (sessionId: string) => void;
   hasSeenTurn: (turnId: string) => boolean;
   markTurnSeen: (turnId: string) => void;
+  /** Slice C1 — optional memory subsystem. Same opt-in shape as the
+   *  legacy Orchestrator: when null, the graph uses only the in-session
+   *  MemoryHinter. When supplied, retrieval runs before intent + the
+   *  recorder fires after turn.completed. */
+  memoryRecorder: MemoryRecorder | null;
+  memoryRetriever: MemoryRetriever | null;
 }
 
 function readRuntime(config: LangGraphRunnableConfig): RuntimeContext {
@@ -137,7 +144,23 @@ export function makeBootstrapNode(deps: GraphDeps) {
       ...(priorTurn ? { priorTurnId: priorTurn.turnId } : {}),
     });
 
-    return { priorTurn, turnStartedAt };
+    // Slice C1: pre-intent memory retrieval. Failures are logged + the
+    // turn proceeds without retrieved memories.
+    let retrievedMemories: RetrievedMemories | null = null;
+    if (deps.memoryRetriever) {
+      try {
+        retrievedMemories = await deps.memoryRetriever.searchForTurn({
+          rawInput: req.input.rawInput,
+          owner: { ownerKind: 'session', ownerId: req.sessionId },
+        });
+      } catch (err) {
+        console.warn('[langgraph] memory retrieval failed', {
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
+
+    return { priorTurn, turnStartedAt, retrievedMemories };
   };
 }
 
@@ -161,9 +184,13 @@ export function makeIntentNode(deps: GraphDeps) {
     let intent: TripIntent;
     try {
       const agentCtx = buildAgentContext(req, signal, deps);
-      const agentInput: IntentAgentInput = state.priorTurn?.intent
-        ? { rawInput: req.input.rawInput, priorIntent: state.priorTurn.intent }
-        : { rawInput: req.input.rawInput };
+      const agentInput: IntentAgentInput = {
+        rawInput: req.input.rawInput,
+        ...(state.priorTurn?.intent ? { priorIntent: state.priorTurn.intent } : {}),
+        ...(state.retrievedMemories?.promptBlock
+          ? { priorMemoryBlock: state.retrievedMemories.promptBlock }
+          : {}),
+      };
       intent = await deps.intentAgent.run(agentInput, agentCtx);
     } catch (err) {
       emit(failStepEvent(req.turnId, intentStepId, err));
@@ -385,6 +412,22 @@ export function makeMemoryHintNode(deps: GraphDeps) {
     const { emit } = readRuntime(_config);
     if (!state.intent || !state.proposal) return {};
     const req = state.request;
+
+    // Slice C1: retrieval-driven hint takes precedence over the
+    // in-session heuristic. Only one hint fires per turn (the workspace
+    // renders a single slot).
+    if (state.retrievedMemories && state.retrievedMemories.entries.length > 0) {
+      const top = state.retrievedMemories.entries[0]!;
+      emit({
+        kind: 'concierge.memory.hint',
+        turnId: req.turnId,
+        message: `Remembered from earlier — ${top.content}`,
+        signalKey: 'memory-retrieval',
+        confidence: clampUnit(top.score),
+      });
+      return {};
+    }
+
     const hinter = deps.getHinter(req.sessionId);
     hinter.observeTurn({ intent: state.intent });
     const hint = hinter.evaluate();
@@ -400,6 +443,13 @@ export function makeMemoryHintNode(deps: GraphDeps) {
     }
     return {};
   };
+}
+
+function clampUnit(n: number): number {
+  if (!Number.isFinite(n)) return 0;
+  if (n < 0) return 0;
+  if (n > 1) return 1;
+  return n;
 }
 
 // ============== Complete + persist ==============
@@ -427,6 +477,17 @@ export function makeCompleteNode(deps: GraphDeps) {
         durationMs,
         completedAt: Date.now(),
       });
+
+      // Slice C1 — record memories asynchronously. Recorder catches
+      // its own failures internally; never blocks the user.
+      if (deps.memoryRecorder) {
+        void deps.memoryRecorder.observeTurn({
+          turnId: req.turnId,
+          owner: { ownerKind: 'session', ownerId: req.sessionId },
+          intent: state.intent,
+          rawInput: req.input.rawInput,
+        });
+      }
     }
     return {};
   };
