@@ -1,7 +1,7 @@
 import type { ConciergeRequest } from '@core/concierge-request';
 import type { OrchestratorEvent } from '@core/orchestrator-event';
 import { AnthropicModelClient } from '@lib/ai/anthropic-client';
-import { NoOpTraceLogger } from '@lib/observability/trace-logger';
+import { getTraceLogger } from '@lib/observability';
 import { getSessionStore } from '@lib/session';
 import { getServerFeatures } from '@lib/env';
 import { createDefaultProviderRouter } from '@/providers';
@@ -37,24 +37,44 @@ export async function createOrchestratorEngine(): Promise<OrchestratorEngine> {
   const modelClient = new AnthropicModelClient();
   const sessionStore = getSessionStore();
   const providerRouter = createDefaultProviderRouter(modelClient);
+  const traceLogger = getTraceLogger();
   const kind = getOrchestratorEngineKind();
 
+  let inner: OrchestratorEngine;
   if (kind === 'langgraph') {
     const checkpointer = await getCheckpointer();
-    return new LangGraphOrchestrator({
+    inner = new LangGraphOrchestrator({
       modelClient,
-      traceLogger: NoOpTraceLogger,
+      traceLogger,
       providerRouter,
       sessionStore,
       checkpointer,
     });
+  } else {
+    inner = new Orchestrator({
+      modelClient,
+      traceLogger,
+      providerRouter,
+      sessionStore,
+    });
   }
-  return new Orchestrator({
-    modelClient,
-    traceLogger: NoOpTraceLogger,
-    providerRouter,
-    sessionStore,
-  });
+
+  // Wrap so every yielded event also flows through TraceLogger.recordEvent.
+  // The orchestrators emit events but don't (yet) auto-pipe them to the
+  // logger — doing it here keeps both engines telemetry-aligned without
+  // duplicating the wrapping in their internals.
+  return {
+    async *run(req, ctx) {
+      for await (const event of inner.run(req, ctx)) {
+        try {
+          traceLogger.recordEvent(event);
+        } catch (err) {
+          console.warn('[trace] recordEvent failed:', err);
+        }
+        yield event;
+      }
+    },
+  };
 }
 
 // For diagnostics / future telemetry.
