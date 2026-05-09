@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Share2, X } from '@/features/shared/icons';
 import type { SavedTripRow as SavedTripRowData } from '../hooks/use-saved-trips';
 import { ShareModal } from './share-modal';
+import { MonitoringBadge } from './monitoring-badge';
 
 /**
  * Single row in the saved-trips panel. Affordances:
@@ -86,6 +87,11 @@ export function SavedTripRow({
             >
               {summary.heroStayName}
             </h3>
+            {trip.monitoringEvents.length > 0 ? (
+              <div className="mt-2">
+                <MonitoringBadge events={trip.monitoringEvents} />
+              </div>
+            ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
             <button

@@ -4,12 +4,17 @@ import { useCallback, useEffect, useState } from 'react';
 import type { TripIntent } from '@core/trip-intent';
 import type { TripProposal } from '@core/trip-proposal';
 import type { ProposalRef } from '@core/partial';
+import type { MonitoringEvent } from '@lib/monitoring';
 
 /**
  * Saved trip — what /api/trips/list returns. Matches SessionStore's
  * SavedTrip shape (we keep it duplicated here to avoid the workspace
  * feature reaching across layers into @lib/session — that would
  * violate the boundaries lint).
+ *
+ * Slice C2 — `monitoringEvents` is the unacknowledged event list for
+ * this trip. Empty = no badge; non-empty = badge with the most recent
+ * event.
  */
 export interface SavedTripRow {
   id: string;
@@ -22,6 +27,7 @@ export interface SavedTripRow {
   intent: TripIntent;
   shareSlug?: string;
   bookmarkedAt: string;
+  monitoringEvents: MonitoringEvent[];
 }
 
 interface SaveArgs {
@@ -51,6 +57,12 @@ interface UseSavedTripsResult {
    * proceeds regardless of network state.
    */
   resurface: (tripId: string) => Promise<void>;
+  /**
+   * Mark monitoring events for a trip as acknowledged. Optimistic
+   * client-side: clears the local badge immediately, then POSTs
+   * server-side ack. Errors logged.
+   */
+  acknowledgeMonitoring: (tripId: string) => Promise<void>;
 }
 
 export function useSavedTrips(): UseSavedTripsResult {
@@ -98,17 +110,20 @@ export function useSavedTrips(): UseSavedTripsResult {
         }),
       });
       if (!res.ok) throw new Error(`save ${res.status}`);
-      const data = (await res.json()) as { ok: true; trip: SavedTripRow };
+      const data = (await res.json()) as { ok: true; trip: Omit<SavedTripRow, 'monitoringEvents'> };
+      // /api/trips/save doesn't run the monitoring runner — default to
+      // empty until the next /api/trips/list fetch enriches the row.
+      const tripRow: SavedTripRow = { ...data.trip, monitoringEvents: [] };
       setTrips((prev) => {
-        const existing = prev.findIndex((t) => t.proposalId === data.trip.proposalId);
+        const existing = prev.findIndex((t) => t.proposalId === tripRow.proposalId);
         if (existing >= 0) {
           const next = [...prev];
-          next[existing] = data.trip;
+          next[existing] = tripRow;
           return next;
         }
-        return [data.trip, ...prev];
+        return [tripRow, ...prev];
       });
-      return data.trip;
+      return tripRow;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'save failed');
       return null;
@@ -163,5 +178,29 @@ export function useSavedTrips(): UseSavedTripsResult {
     }
   }, []);
 
-  return { trips, loading, error, mutating, refresh, save, remove, isSaved, share, resurface };
+  const acknowledgeMonitoring = useCallback(async (tripId: string): Promise<void> => {
+    // Optimistic — clear the local badge immediately so the row stops
+    // pulsing the moment the user clicks. The server-side ack is a
+    // background sync; failures only affect the next page load.
+    setTrips((prev) => prev.map((t) => (t.id === tripId ? { ...t, monitoringEvents: [] } : t)));
+    try {
+      await fetch(`/api/trips/${tripId}/monitoring/acknowledge`, { method: 'POST' });
+    } catch (err) {
+      console.warn('[use-saved-trips] acknowledge failed', err);
+    }
+  }, []);
+
+  return {
+    trips,
+    loading,
+    error,
+    mutating,
+    refresh,
+    save,
+    remove,
+    isSaved,
+    share,
+    resurface,
+    acknowledgeMonitoring,
+  };
 }

@@ -24,9 +24,11 @@
 
 **Slice C1 — pgvector memory (mock-safe in-memory + scaffold): complete.** Persistent semantic memory across sessions: `BagOfWordsEmbedding` + `InMemoryMemoryStore` + `MemoryRecorder` + `MemoryRetriever`. The IntentAgent's user prompt now carries a `<memory>` block when retrieval finds a relevant prior turn; the workspace's existing `concierge.memory.hint` event surfaces cross-session recall instead of just the in-session heuristic. Postgres+pgvector and Anthropic embeddings have schema + env-flag scaffolding; full impls land in C1.x.
 
+**Slice C2 — MonitoringAgent (saved-trip watcher): complete.** Saved trips become living. The saved-trips panel surfaces a small badge per row when something material has changed ("↓ 7% since you saved it", "New top match"). On-demand pull model triggered from `/api/trips/list`; per-trip throttle (60s default); deterministic mock checker ships in C2 with `RealMonitoringChecker` deferred to C2.x.
+
 - Specs: [`docs/superpowers/specs/`](docs/superpowers/specs/)
 - Plans: [`docs/superpowers/plans/`](docs/superpowers/plans/)
-- Tags: `slice-a1` … `slice-a10`, `slice-b1` … `slice-b8`, `slice-c1`
+- Tags: `slice-a1` … `slice-a10`, `slice-b1` … `slice-b8`, `slice-c1`, `slice-c2`
 
 ## Quick start
 
@@ -147,8 +149,8 @@ The reverse fails CI (verified via `boundaries/dependencies` rule).
 | B7 | Langfuse traces + cost/latency dashboard | ✓ |
 | B8 | Polish: ModelClient.generateWithMeta + resurface refine + circuit breaker + Expedia | ✓ |
 | C1 | pgvector memory (mock-safe in-memory + scaffold for pgvector / Anthropic embeddings) | ✓ |
-| C2 | MonitoringAgent (saved-trip change watcher) | next |
-| C3 | ItineraryAgent (multi-day plans) | |
+| C2 | MonitoringAgent (saved-trip change watcher) | ✓ |
+| C3 | ItineraryAgent (multi-day plans) | next |
 | C4 | Stripe (premium tier) | |
 | C5 | Admin panel extensions | |
 | Slice D | BookingAgent (approval-gated → autonomous) | |

@@ -23,13 +23,30 @@ export function SavedTripsPanel() {
   const closeSavedPanel = useWorkspaceStore((s) => s.closeSavedPanel);
   const resurfaceSavedTrip = useWorkspaceStore((s) => s.resurfaceSavedTrip);
   const reduced = useReducedMotion();
-  const { trips, loading, error, mutating, remove, refresh, share, resurface } = useSavedTrips();
+  const {
+    trips,
+    loading,
+    error,
+    mutating,
+    remove,
+    refresh,
+    share,
+    resurface,
+    acknowledgeMonitoring,
+  } = useSavedTrips();
 
   function handleSelect(trip: SavedTripRowData) {
     // Prime the SessionStore so the orchestrator's getTurn(priorProposalRef.turnId)
     // lookup resolves on a subsequent refine. Fire-and-forget — never
     // gates the local UX (B8 tenet: network shouldn't block resurface).
     void resurface(trip.id);
+
+    // Slice C2: clicking a row clears its monitoring badge — the user
+    // has seen what changed (the panel was open, the row was visible
+    // long enough to be clicked).
+    if (trip.monitoringEvents.length > 0) {
+      void acknowledgeMonitoring(trip.id);
+    }
 
     // Reconstruct a stable ProposalRef + push the saved trip onto the
     // workspace as a settled turn. Use the saved trip's id as the
