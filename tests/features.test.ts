@@ -7,6 +7,8 @@ const SAVED_KEYS = [
   'DATABASE_URL',
   'ANTHROPIC_API_KEY',
   'LANGFUSE_SECRET_KEY',
+  'BOOKING_COM_AFFILIATE_ID',
+  'BOOKING_COM_API_KEY',
 ] as const;
 
 describe('getServerFeatures', () => {
@@ -56,5 +58,19 @@ describe('getServerFeatures', () => {
   it('treats empty string as not configured', () => {
     process.env.ANTHROPIC_API_KEY = '';
     expect(getServerFeatures().anthropic).toBe(false);
+  });
+
+  it('providers.bookingCom is false when only one key is set', () => {
+    process.env.BOOKING_COM_AFFILIATE_ID = 'partner_42';
+    expect(getServerFeatures().providers.bookingCom).toBe(false);
+    delete process.env.BOOKING_COM_AFFILIATE_ID;
+    process.env.BOOKING_COM_API_KEY = 'key_xyz';
+    expect(getServerFeatures().providers.bookingCom).toBe(false);
+  });
+
+  it('providers.bookingCom flips on when BOTH keys are set', () => {
+    process.env.BOOKING_COM_AFFILIATE_ID = 'partner_42';
+    process.env.BOOKING_COM_API_KEY = 'key_xyz';
+    expect(getServerFeatures().providers.bookingCom).toBe(true);
   });
 });

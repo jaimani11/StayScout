@@ -12,6 +12,10 @@ export interface ServerFeatures {
   langfuse: boolean;
   /** Which orchestrator engine the singleton would construct right now. */
   orchestratorEngine: 'hand-rolled' | 'langgraph';
+  /** Real (env-keyed) provider availability. Mock providers are always on. */
+  providers: {
+    bookingCom: boolean;
+  };
 }
 
 function isPresent(name: string): boolean {
@@ -32,5 +36,8 @@ export function getServerFeatures(): ServerFeatures {
     langfuse: isPresent('LANGFUSE_SECRET_KEY'),
     orchestratorEngine:
       process.env.STAYSCOUT_ORCHESTRATOR === 'langgraph' ? 'langgraph' : 'hand-rolled',
+    providers: {
+      bookingCom: isPresent('BOOKING_COM_AFFILIATE_ID') && isPresent('BOOKING_COM_API_KEY'),
+    },
   };
 }

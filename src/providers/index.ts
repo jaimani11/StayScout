@@ -1,46 +1,206 @@
 // Layer: providers
 // Deps: core, lib
 
-import type { Provider } from '@core/provider';
+import type {
+  Provider,
+  ProviderBadge,
+  ProviderContext,
+  ProviderSearchQuery,
+  ProviderSearchResult,
+} from '@core/provider';
 import type { ProviderId } from '@core/ids';
+import type { Stay } from '@core/stay';
 import type { TripIntent } from '@core/trip-intent';
 import type { ModelClient } from '@core/model-client';
 import { MockItalyProvider } from './mock-italy';
 import { LLMSynthesizedProvider, LLMSynthesizedProviderStub } from './llm-synthesized';
+import { BookingComProvider } from './booking-com';
+
+/**
+ * Availability-aware registry.
+ *
+ *   - Mock providers (MockItaly, LLMSynthesized) are always present —
+ *     they're the keyless-dev floor.
+ *   - Real providers self-register via their `fromEnv()` factory; if
+ *     keys are missing, the factory returns null and the registry
+ *     skips them. No "half configured" provider ever reaches the
+ *     router.
+ *   - The router asks the registry for "providers that can serve this
+ *     destination," which combines geographic capability + availability.
+ *
+ * The registry is built lazily on first access so changing env vars in
+ * tests works without process restart. Production captures it once;
+ * the cost of rebuilding is negligible.
+ */
+
+interface Registry {
+  /** All available providers, in priority order (mocks last). */
+  all: Provider[];
+  /** Real (env-keyed) providers only — for diagnostics. */
+  real: Provider[];
+  /** Mock providers — always present. */
+  mocks: Provider[];
+}
+
+let _cached: Registry | null = null;
+
+export function buildProviderRegistry(modelClient?: ModelClient): Registry {
+  if (_cached) return _cached;
+
+  const real: Provider[] = [];
+  const bookingCom = BookingComProvider.fromEnv();
+  if (bookingCom) real.push(bookingCom);
+  // Future providers slot in here:
+  //   const expedia = ExpediaProvider.fromEnv(); if (expedia) real.push(expedia);
+  //   const vrbo = VrboProvider.fromEnv(); if (vrbo) real.push(vrbo);
+
+  const llmProvider = modelClient
+    ? new LLMSynthesizedProvider(modelClient)
+    : LLMSynthesizedProviderStub;
+
+  const mocks: Provider[] = [MockItalyProvider, llmProvider];
+  _cached = { all: [...real, ...mocks], real, mocks };
+  return _cached;
+}
+
+/** Test-only — drop the cached registry so env changes take effect. */
+export function _resetProviderRegistryForTesting(): void {
+  _cached = null;
+}
+
+/**
+ * Diagnostic surface — what real providers are wired right now.
+ * Feature flags in `getServerFeatures()` use this.
+ */
+export function listAvailableRealProviders(): string[] {
+  return buildProviderRegistry().real.map((p) => p.id as string);
+}
+
+// ============== Routing ==============
+
+/**
+ * Single-provider router (back-compat). Picks the most-specific
+ * available provider for the destination — real providers > mocks
+ * within their region; MockItaly for Italy queries; LLMSynthesized
+ * everywhere else.
+ */
+export function routeProvider(intent: TripIntent, modelClient?: ModelClient): Provider {
+  const list = routeProviders(intent, modelClient);
+  return list[0] ?? LLMSynthesizedProviderStub;
+}
+
+/**
+ * Fanout list. Returns every provider that can serve the destination —
+ * caller can run them in parallel via `searchWithFanout`.
+ */
+export function routeProviders(intent: TripIntent, modelClient?: ModelClient): Provider[] {
+  const reg = buildProviderRegistry(modelClient);
+  const dest = intent.destinations[0];
+  if (!dest) {
+    const llm = reg.mocks[reg.mocks.length - 1];
+    return llm ? [llm] : [];
+  }
+
+  const result: Provider[] = [];
+
+  // Real providers whose capabilities cover this region (or are global —
+  // `regions` undefined means global).
+  for (const p of reg.real) {
+    const regions = p.capabilities.regions;
+    if (!regions || regions.includes(dest.country.toUpperCase())) {
+      result.push(p);
+    }
+  }
+
+  // Mock specialist for Italy.
+  if (dest.country === 'IT' && MockItalyProvider.knowsDestination(dest)) {
+    result.push(MockItalyProvider);
+  }
+
+  // LLM synthesized as final fallback (always available).
+  const llm = reg.mocks.find((m) => m.id !== MockItalyProvider.id);
+  if (llm) result.push(llm);
+
+  return result;
+}
+
+/**
+ * Production factory — same shape as Slice A, but consults the new
+ * registry. Mock-safe: with no real-provider keys, behavior is
+ * identical to the previous slice.
+ */
+export function createDefaultProviderRouter(
+  modelClient: ModelClient,
+): (intent: TripIntent) => Provider {
+  return (intent) => routeProvider(intent, modelClient);
+}
+
+// ============== Fanout helper ==============
+
+/**
+ * Run multiple providers in parallel and merge results. One provider's
+ * failure doesn't stall the others (Promise.allSettled). Stays are
+ * deduped by id (`{providerId}:{nativeId}`) so the same hotel from two
+ * sources still surfaces twice if the providerIds differ — the
+ * proposal builder handles ranking.
+ *
+ * Slice C will adopt this for true multi-source comparison; B5 ships
+ * the helper so it's ready.
+ */
+export async function searchWithFanout(
+  providers: Provider[],
+  query: ProviderSearchQuery,
+  ctx: ProviderContext,
+): Promise<ProviderSearchResult> {
+  if (providers.length === 0) {
+    return {
+      stays: [],
+      badges: [],
+      freshness: {
+        fetchedAt: new Date().toISOString(),
+        dataMaxAgeMs: 0,
+        source: 'live',
+      },
+    };
+  }
+  const results = await Promise.allSettled(providers.map((p) => p.search(query, ctx)));
+
+  const seen = new Set<string>();
+  const stays: Stay[] = [];
+  const badges: ProviderBadge[] = [];
+  let earliestFetched = Date.now();
+  let allCached = true;
+
+  for (const r of results) {
+    if (r.status !== 'fulfilled') continue;
+    for (const stay of r.value.stays) {
+      if (seen.has(stay.id)) continue;
+      seen.add(stay.id);
+      stays.push(stay);
+    }
+    badges.push(...r.value.badges);
+    const fetchedAt = Date.parse(r.value.freshness.fetchedAt);
+    if (fetchedAt < earliestFetched) earliestFetched = fetchedAt;
+    if (r.value.freshness.source !== 'cached') allCached = false;
+  }
+
+  return {
+    stays,
+    badges,
+    freshness: {
+      fetchedAt: new Date(earliestFetched).toISOString(),
+      dataMaxAgeMs: 30 * 60 * 1000,
+      source: allCached ? 'cached' : 'live',
+    },
+  };
+}
+
+// ============== Re-exports ==============
 
 export const ProviderRegistry: Readonly<Record<string, Provider>> = {
   'mock-italy': MockItalyProvider,
   'llm-synthesized': LLMSynthesizedProviderStub,
 };
-
-/**
- * Default route — used by tests and any caller without a model client.
- * Italy queries hit the curated MockItalyProvider; others hit the stub.
- */
-export function routeProvider(intent: TripIntent): Provider {
-  const dest = intent.destinations[0];
-  if (dest && dest.country === 'IT' && MockItalyProvider.knowsDestination(dest)) {
-    return MockItalyProvider;
-  }
-  return LLMSynthesizedProviderStub;
-}
-
-/**
- * Production factory — builds a router that uses a real LLM provider.
- * Called from the orchestrator singleton at construction time.
- */
-export function createDefaultProviderRouter(
-  modelClient: ModelClient,
-): (intent: TripIntent) => Provider {
-  const llmProvider = new LLMSynthesizedProvider(modelClient);
-  return (intent) => {
-    const dest = intent.destinations[0];
-    if (dest && dest.country === 'IT' && MockItalyProvider.knowsDestination(dest)) {
-      return MockItalyProvider;
-    }
-    return llmProvider;
-  };
-}
 
 export function getProvider(id: ProviderId | string): Provider | null {
   return ProviderRegistry[id] ?? null;
@@ -48,3 +208,4 @@ export function getProvider(id: ProviderId | string): Provider | null {
 
 export { MockItalyProvider } from './mock-italy';
 export { LLMSynthesizedProvider, LLMSynthesizedProviderStub } from './llm-synthesized';
+export { BookingComProvider } from './booking-com';

@@ -14,9 +14,11 @@
 
 **Slice B4 — Affiliate redirect + click attribution: complete.** "Continue to Booking" now hits `/api/go`, which validates the destination against a hostname allowlist (open-redirect prevention), records an `AffiliateClick` row, and 302s to the provider. Click writes never block the redirect — booking flow is sacred. Anonymous and authenticated owners both attribute correctly; new providers join by adding a hostname.
 
+**Slice B5 — Real provider integrations (mock-safe): complete.** A `BaseAffiliateProvider` abstract class encapsulates HTTP + retry + cache + mapper boilerplate. Booking.com ships as the reference implementation — self-registers when `BOOKING_COM_AFFILIATE_ID` + `BOOKING_COM_API_KEY` are set, invisible otherwise. Availability-aware registry + `searchWithFanout` helper let multiple providers run in parallel; one provider's outage never stalls the others. Adding Expedia / Vrbo / Hotelbeds is the same pattern: declare endpoint + auth, write a mapper, slot into the registry.
+
 - Specs: [`docs/superpowers/specs/`](docs/superpowers/specs/)
 - Plans: [`docs/superpowers/plans/`](docs/superpowers/plans/)
-- Tags: `slice-a1` … `slice-a10`, `slice-b1`, `slice-b2`, `slice-b3`, `slice-b4`
+- Tags: `slice-a1` … `slice-a10`, `slice-b1`, `slice-b2`, `slice-b3`, `slice-b4`, `slice-b5`
 
 ## Quick start
 
@@ -36,7 +38,7 @@ Every variable is optional. The matrix shows what each one turns on:
 | Subsystem | Without keys (default) | With keys |
 |---|---|---|
 | **Models** | Mock IntentAgent fixtures, deterministic mood snapshots | `ANTHROPIC_API_KEY` → live Claude calls |
-| **Providers** | `MockItalyProvider` (30 curated stays) + `LLMSynthesizedProvider` (mock) | (Slice B5) Booking, Expedia, Vrbo, Hotelbeds via real APIs |
+| **Providers** | `MockItalyProvider` (30 curated stays) + `LLMSynthesizedProvider` (mock) | `BOOKING_COM_AFFILIATE_ID` + `BOOKING_COM_API_KEY` → Booking.com promoted to primary; mocks remain as fanout fallback. Future: Expedia, Vrbo, Hotelbeds. |
 | **Database** | In-memory `SessionStore` — process-local, lost on restart | `DATABASE_URL` → Postgres via Prisma. Run `pnpm db:migrate` once. |
 | **Auth** | Anonymous (cookie-bound `sessionId`) — saved trips work | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY` → sign-in + auto-migration of anonymous trips |
 | **Orchestrator** | Hand-rolled engine | `STAYSCOUT_ORCHESTRATOR=langgraph` → LangGraph engine (same event stream; checkpointer is `MemorySaver` unless `DATABASE_URL` is set, then `PostgresSaver`) |
@@ -132,8 +134,8 @@ The reverse fails CI (verified via `boundaries/dependencies` rule).
 | B2 | Orchestrator → LangGraph + Postgres checkpointer (opt-in via STAYSCOUT_ORCHESTRATOR) | ✓ |
 | B3 | Saved trips resurfacing + share links | ✓ |
 | B4 | Affiliate redirect router + click attribution | ✓ |
-| B5 | Real provider integrations (Booking, Expedia, Vrbo, Hotelbeds) | next |
-| B6 | `/destinations/[slug]` SEO + mobile bottom-sheet | |
+| B5 | Real provider integrations (Booking ref impl, framework for Expedia/Vrbo/Hotelbeds) | ✓ |
+| B6 | `/destinations/[slug]` SEO + mobile bottom-sheet | next |
 | B7 | Langfuse traces + cost/latency dashboard | |
 | Slice C | pgvector memory + MonitoringAgent + ItineraryAgent + Stripe + admin panel | |
 | Slice D | BookingAgent (approval-gated → autonomous) | |
