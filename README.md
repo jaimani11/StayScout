@@ -26,9 +26,11 @@
 
 **Slice C2 — MonitoringAgent (saved-trip watcher): complete.** Saved trips become living. The saved-trips panel surfaces a small badge per row when something material has changed ("↓ 7% since you saved it", "New top match"). On-demand pull model triggered from `/api/trips/list`; per-trip throttle (60s default); deterministic mock checker ships in C2 with `RealMonitoringChecker` deferred to C2.x.
 
+**Slice C3 — ItineraryAgent (multi-day plans): complete.** Saved trips can be expanded into a 3-day plan at `/trips/[tripId]/itinerary`. Hand-curated 3-day itineraries for all 7 Italian destinations (~105 slots of authored editorial content); generic synthesized fallback for everywhere else. The saved-trips panel grows a "PLAN DAY-BY-DAY →" link per row. `ModelItineraryGenerator` (live model + Viator activity search) deferred to C3.x.
+
 - Specs: [`docs/superpowers/specs/`](docs/superpowers/specs/)
 - Plans: [`docs/superpowers/plans/`](docs/superpowers/plans/)
-- Tags: `slice-a1` … `slice-a10`, `slice-b1` … `slice-b8`, `slice-c1`, `slice-c2`
+- Tags: `slice-a1` … `slice-a10`, `slice-b1` … `slice-b8`, `slice-c1` … `slice-c3`
 
 ## Quick start
 
@@ -150,8 +152,8 @@ The reverse fails CI (verified via `boundaries/dependencies` rule).
 | B8 | Polish: ModelClient.generateWithMeta + resurface refine + circuit breaker + Expedia | ✓ |
 | C1 | pgvector memory (mock-safe in-memory + scaffold for pgvector / Anthropic embeddings) | ✓ |
 | C2 | MonitoringAgent (saved-trip change watcher) | ✓ |
-| C3 | ItineraryAgent (multi-day plans) | next |
-| C4 | Stripe (premium tier) | |
+| C3 | ItineraryAgent (multi-day plans) | ✓ |
+| C4 | Stripe (premium tier) | next |
 | C5 | Admin panel extensions | |
 | Slice D | BookingAgent (approval-gated → autonomous) | |
 

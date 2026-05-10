@@ -1,8 +1,9 @@
 'use client';
 
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { Share2, X } from '@/features/shared/icons';
+import { ArrowRight, Share2, X } from '@/features/shared/icons';
 import type { SavedTripRow as SavedTripRowData } from '../hooks/use-saved-trips';
 import { ShareModal } from './share-modal';
 import { MonitoringBadge } from './monitoring-badge';
@@ -133,17 +134,35 @@ export function SavedTripRow({
           </p>
         ) : null}
 
-        <p
-          className="mt-2"
-          style={{
-            fontFamily: 'var(--font-geist-mono)',
-            fontSize: '0.625rem',
-            letterSpacing: '0.04em',
-            color: 'var(--ink-tertiary)',
-          }}
-        >
-          Bookmarked {dateLabel}
-        </p>
+        <div className="mt-2 flex items-baseline justify-between gap-2">
+          <p
+            style={{
+              fontFamily: 'var(--font-geist-mono)',
+              fontSize: '0.625rem',
+              letterSpacing: '0.04em',
+              color: 'var(--ink-tertiary)',
+            }}
+          >
+            Bookmarked {dateLabel}
+          </p>
+          <Link
+            href={`/trips/${trip.id}/itinerary`}
+            data-row-action
+            className="inline-flex items-center gap-1 transition-colors hover:text-[color:var(--accent-primary)]"
+            style={{
+              fontFamily: 'var(--font-inter)',
+              fontSize: 'var(--text-label)',
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-secondary)',
+              fontWeight: 500,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            Plan day-by-day
+            <ArrowRight size={11} strokeWidth={2.2} />
+          </Link>
+        </div>
       </motion.li>
 
       <ShareModal
