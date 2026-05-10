@@ -182,6 +182,9 @@ export function BookingDraftModal({ trip, onClose }: BookingDraftModalProps) {
             <Field label="Primary traveler name">
               <input
                 type="text"
+                name="primary-traveler-name"
+                autoComplete="name"
+                spellCheck={false}
                 value={primaryName}
                 onChange={(e) => setPrimaryName(e.target.value)}
                 required
@@ -191,6 +194,9 @@ export function BookingDraftModal({ trip, onClose }: BookingDraftModalProps) {
             <Field label="Email">
               <input
                 type="email"
+                name="email"
+                autoComplete="email"
+                spellCheck={false}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -202,6 +208,7 @@ export function BookingDraftModal({ trip, onClose }: BookingDraftModalProps) {
                 <input
                   type="number"
                   inputMode="numeric"
+                  autoComplete="off"
                   min={1}
                   max={20}
                   value={adults}
@@ -213,6 +220,7 @@ export function BookingDraftModal({ trip, onClose }: BookingDraftModalProps) {
                 <input
                   type="number"
                   inputMode="numeric"
+                  autoComplete="off"
                   min={0}
                   max={20}
                   value={children}
@@ -253,6 +261,7 @@ export function BookingDraftModal({ trip, onClose }: BookingDraftModalProps) {
               {draft.placeholderDates && (
                 <p
                   className="mt-3"
+                  role="note"
                   style={{
                     fontFamily: 'var(--font-fraunces)',
                     fontStyle: 'italic',
@@ -261,8 +270,9 @@ export function BookingDraftModal({ trip, onClose }: BookingDraftModalProps) {
                     lineHeight: 1.5,
                   }}
                 >
-                  Note: dates are placeholders (saved trip didn&apos;t have specifics). Please
-                  cancel and re-save the trip with exact dates before confirming in production.
+                  Heads up — these dates are a stand-in because the saved trip didn&apos;t include
+                  specifics. Cancel this draft, edit the trip with exact dates, then come back to
+                  book.
                 </p>
               )}
             </div>

@@ -203,7 +203,7 @@ export function BookingConfirmationView({
           }}
         >
           {booking.status === 'confirmed'
-            ? "We'll email you a copy of this confirmation. Hold onto the provider reference for check-in."
+            ? 'This page is your confirmation — bookmark it, or keep the provider reference handy for check-in.'
             : booking.status === 'canceled'
               ? 'Refund timing depends on the cancellation policy above.'
               : 'You can try again from the saved-trips panel — drafts are not double-charged.'}
