@@ -1,6 +1,13 @@
 import Link from 'next/link';
 
-export type AdminSection = 'dashboard' | 'turns' | 'clicks' | 'bookings' | 'users' | 'memories';
+export type AdminSection =
+  | 'dashboard'
+  | 'turns'
+  | 'clicks'
+  | 'bookings'
+  | 'users'
+  | 'memories'
+  | 'affiliate';
 
 interface AdminNavProps {
   active: AdminSection;
@@ -13,6 +20,7 @@ const LINKS: Array<{ id: AdminSection; label: string; href: string }> = [
   { id: 'bookings', label: 'Bookings', href: '/admin/bookings' },
   { id: 'users', label: 'Users', href: '/admin' },
   { id: 'memories', label: 'Memories', href: '/admin/memories' },
+  { id: 'affiliate', label: 'Affiliate', href: '/admin/affiliate' },
 ];
 
 /**
