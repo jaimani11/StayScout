@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { LLMSynthesizedProvider } from '@/providers/llm-synthesized';
-import { mapLLMStayToStay, type LLMStay } from '@/providers/llm-synthesized/llm-stay';
+import {
+  coerceLlmStayBatch,
+  LLMStayBatchSchema,
+  mapLLMStayToStay,
+  type LLMStay,
+} from '@/providers/llm-synthesized/llm-stay';
 import { resolvePhotoId } from '@/providers/llm-synthesized/photo-resolver';
 import { TtlCache } from '@/providers/llm-synthesized/cache';
 import { StaySchema } from '@core/stay';
@@ -100,5 +105,71 @@ describe('LLMSynthesizedProvider', () => {
     const provider = new LLMSynthesizedProvider(client);
     const result = await provider.search(buildQuery({ destinations: [] }), ctx);
     expect(result.stays).toEqual([]);
+  });
+});
+
+describe('coerceLlmStayBatch — vibe + price tolerance', () => {
+  function bareStay(overrides: Partial<LLMStay> & Record<string, unknown> = {}) {
+    return {
+      ...sampleLLMStay,
+      ...overrides,
+    };
+  }
+
+  it('keeps a luxury Tokyo-shaped batch ($4–8K/night) parseable', () => {
+    // Regression for the production bug: model returns Aman/Mandarin/
+    // Park Hyatt for "Tokyo for a long weekend" and the entire batch
+    // was rejected by the old `pricePerNight.max(3000)`. Now passes.
+    const raw = {
+      stays: [
+        bareStay({ slug: 'aman-tokyo', pricePerNight: 4200 }),
+        bareStay({ slug: 'mandarin-tokyo', pricePerNight: 6800 }),
+      ],
+    };
+    const coerced = coerceLlmStayBatch(raw);
+    const parsed = LLMStayBatchSchema.safeParse(coerced);
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.stays).toHaveLength(2);
+      expect(parsed.data.stays[0]?.pricePerNight).toBe(4200);
+    }
+  });
+
+  it('clamps a hallucinated above-cap price to the ceiling', () => {
+    const raw = { stays: [bareStay({ pricePerNight: 999_999 })] };
+    const coerced = coerceLlmStayBatch(raw) as { stays: LLMStay[] };
+    expect(coerced.stays[0]?.pricePerNight).toBe(25_000);
+    expect(LLMStayBatchSchema.safeParse(coerced).success).toBe(false); // batch min 2 — but stay-level parse OK if alone
+  });
+
+  it('clamps a below-floor price up to the minimum', () => {
+    const raw = {
+      stays: [bareStay({ pricePerNight: 12 }), bareStay({ slug: 'b', pricePerNight: 12 })],
+    };
+    const coerced = coerceLlmStayBatch(raw) as { stays: LLMStay[] };
+    expect(coerced.stays[0]?.pricePerNight).toBe(40);
+    const parsed = LLMStayBatchSchema.safeParse(coerced);
+    expect(parsed.success).toBe(true);
+  });
+
+  it('rounds fractional prices to nearest int after clamping', () => {
+    const raw = {
+      stays: [bareStay({ pricePerNight: 27_500.7 }), bareStay({ slug: 'b', pricePerNight: 199.4 })],
+    };
+    const coerced = coerceLlmStayBatch(raw) as { stays: LLMStay[] };
+    expect(coerced.stays[0]?.pricePerNight).toBe(25_000); // clamped
+    expect(coerced.stays[1]?.pricePerNight).toBe(199); // rounded
+  });
+
+  it('still filters invalid vibe tags + preserves at least one', () => {
+    const raw = {
+      stays: [
+        bareStay({ vibe: ['countryside', 'lakeside', 'walkable'] as never }),
+        bareStay({ slug: 'b', vibe: ['nonsense', 'gibberish'] as never }),
+      ],
+    };
+    const coerced = coerceLlmStayBatch(raw) as { stays: LLMStay[] };
+    expect(coerced.stays[0]?.vibe).toEqual(['walkable']);
+    expect(coerced.stays[1]?.vibe).toEqual(['cultural']); // placeholder
   });
 });

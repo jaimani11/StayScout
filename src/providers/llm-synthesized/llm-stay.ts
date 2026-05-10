@@ -38,7 +38,15 @@ export const LLMStaySchema = z.object({
     neighborhood: z.string().optional(),
   }),
   description: z.string().min(40).max(280),
-  pricePerNight: z.number().int().min(40).max(3000),
+  // Raised from 3000 to 25000 to accommodate luxury markets (Tokyo,
+  // Singapore, NYC, London, Paris). At 3000 the model's perfectly
+  // reasonable Tokyo luxury stays (Aman, Mandarin, Park Hyatt) were
+  // all rejected and the user saw "Couldn't find anything that fits"
+  // for prompts like "Tokyo for a long weekend." 25000 is generous
+  // enough for any real-world stay while still rejecting hallucinated
+  // outliers ($999,999/night). The coercer additionally clamps so
+  // an over-cap value doesn't drop the entire stay.
+  pricePerNight: z.number().int().min(40).max(25000),
   currency: z.string().length(3),
   amenities: z.array(z.string().min(2)).min(1).max(8),
   capacity: z.object({
@@ -61,15 +69,36 @@ export const LLMStayBatchSchema = z.object({
 
 const VALID_VIBE_TAGS = new Set(VibeTagSchema.options);
 
+// Schema bounds for pricePerNight, mirrored here so the coercer can
+// clamp before strict parse. Update both together if either changes.
+const PRICE_PER_NIGHT_MIN = 40;
+const PRICE_PER_NIGHT_MAX = 25000;
+
 /**
  * Coerce model output before strict Zod parse.
  *
- * Observed in dev: the model occasionally invents vibe tags outside our
- * closed taxonomy (e.g. "countryside", "lakeside") even though the
- * prompt + JSON schema constrain it. Filter those out per-stay before
- * Zod runs — keeps the rest of the stay valid; only the bad tags are
- * dropped. If filtering empties the array, drop a placeholder so the
- * `min(1)` constraint still holds.
+ * Three observed deviations from our schema we tolerate by coercing
+ * rather than dropping the whole batch:
+ *
+ *   1. Vibe tags outside our closed taxonomy ("countryside",
+ *      "lakeside") — filter them out per-stay; preserve at least one
+ *      tag so the `min(1)` constraint still holds.
+ *
+ *   2. Prices below the floor — clamp up to the floor rather than
+ *      drop. Edge cases like ultra-budget hostels still surface as
+ *      something the user can see; a $20 number that's just a model
+ *      slip becomes a $40 floor.
+ *
+ *   3. Prices above the ceiling — clamp down to the ceiling rather
+ *      than drop. Hallucinated $999,999 values become a sane $25K
+ *      luxury cap. Real luxury markets (Tokyo, Singapore, NYC) can
+ *      legitimately produce $5K–$15K stays which are now allowed.
+ *
+ * Without (3), a "Tokyo for a long weekend" prompt would get the
+ * model returning four perfectly reasonable luxury hotels at
+ * $4–8K/night, all rejected by the old `.max(3000)`, the entire
+ * batch fails parse, and the user sees "Couldn't find anything that
+ * fits" for a prompt that should have worked.
  */
 export function coerceLlmStayBatch(raw: unknown): unknown {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return raw;
@@ -78,17 +107,22 @@ export function coerceLlmStayBatch(raw: unknown): unknown {
   if (!Array.isArray(stays)) return raw;
   const fixedStays = stays.map((s) => {
     if (!s || typeof s !== 'object' || Array.isArray(s)) return s;
-    const stay = s as Record<string, unknown>;
-    if (!Array.isArray(stay.vibe)) return stay;
-    const filtered = (stay.vibe as unknown[]).filter(
-      (tag): tag is string => typeof tag === 'string' && VALID_VIBE_TAGS.has(tag as never),
-    );
-    return {
-      ...stay,
-      // Preserve at least one tag so the schema's `.min(1)` holds even
-      // when the model ignored every option in our taxonomy.
-      vibe: filtered.length > 0 ? filtered : ['cultural'],
-    };
+    const stay = { ...(s as Record<string, unknown>) };
+    // (1) Vibe taxonomy
+    if (Array.isArray(stay.vibe)) {
+      const filtered = (stay.vibe as unknown[]).filter(
+        (tag): tag is string => typeof tag === 'string' && VALID_VIBE_TAGS.has(tag as never),
+      );
+      stay.vibe = filtered.length > 0 ? filtered : ['cultural'];
+    }
+    // (2) + (3) Price clamping
+    if (typeof stay.pricePerNight === 'number' && Number.isFinite(stay.pricePerNight)) {
+      const clamped = Math.round(
+        Math.min(PRICE_PER_NIGHT_MAX, Math.max(PRICE_PER_NIGHT_MIN, stay.pricePerNight)),
+      );
+      stay.pricePerNight = clamped;
+    }
+    return stay;
   });
   return { ...obj, stays: fixedStays };
 }
