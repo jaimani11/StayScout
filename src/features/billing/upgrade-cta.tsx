@@ -56,12 +56,24 @@ export function UpgradeCta({ signInRequired, returnPath, cancelPath }: UpgradeCt
     }
   }
 
+  const buttonLabel = loading
+    ? 'Opening checkout…'
+    : signInRequired
+      ? 'Sign in to upgrade'
+      : 'Upgrade to Premium';
+
   return (
     <div className="flex flex-col items-start gap-2">
       <button
         type="button"
         onClick={() => void handleClick()}
         disabled={loading}
+        aria-busy={loading}
+        aria-label={
+          signInRequired
+            ? 'Sign in to upgrade to premium'
+            : 'Upgrade to premium — opens Stripe Checkout in a new step'
+        }
         style={{
           fontFamily: 'var(--font-inter)',
           fontSize: 'var(--text-body-sm)',
@@ -76,14 +88,11 @@ export function UpgradeCta({ signInRequired, returnPath, cancelPath }: UpgradeCt
           transition: 'opacity 120ms ease',
         }}
       >
-        {loading
-          ? 'Opening checkout…'
-          : signInRequired
-            ? 'Sign in to upgrade'
-            : 'Upgrade to Premium'}
+        {buttonLabel}
       </button>
       {err && (
         <p
+          role="alert"
           style={{
             fontFamily: 'var(--font-inter)',
             fontSize: '0.72rem',

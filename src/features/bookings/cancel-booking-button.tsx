@@ -44,10 +44,20 @@ export function CancelBookingButton({ bookingId }: CancelBookingButtonProps) {
     }
   }
 
+  const label = pending
+    ? 'Canceling…'
+    : confirming
+      ? 'Click again to confirm cancel'
+      : 'Cancel booking';
+
   return (
     <div className="flex flex-col gap-2">
       <button
         type="button"
+        aria-label={
+          confirming ? 'Confirm cancellation. Click again to cancel the booking.' : 'Cancel booking'
+        }
+        aria-busy={pending}
         onClick={() => {
           if (confirming) {
             void fire();
@@ -69,12 +79,20 @@ export function CancelBookingButton({ bookingId }: CancelBookingButtonProps) {
           borderRadius: '0.4rem',
           cursor: pending ? 'wait' : 'pointer',
           alignSelf: 'flex-start',
+          transition: 'background 160ms ease-out, color 160ms ease-out',
         }}
       >
-        {pending ? 'Canceling…' : confirming ? 'Click again to confirm cancel' : 'Cancel booking'}
+        {label}
       </button>
+      {/* Screen-reader announcement for the confirming state — sighted
+       *  users see the button text change; AT users get the same signal
+       *  via aria-live. */}
+      <span className="sr-only" aria-live="polite" aria-atomic="true">
+        {confirming && !pending ? 'Confirm cancellation. Click again to cancel the booking.' : ''}
+      </span>
       {error && (
         <p
+          role="alert"
           style={{
             fontFamily: 'var(--font-inter)',
             fontSize: '0.72rem',

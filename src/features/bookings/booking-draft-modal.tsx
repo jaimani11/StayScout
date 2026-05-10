@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { BookingDraft } from '@core/booking';
 import type { SavedTripRow as SavedTripRowData } from '../workspace/hooks/use-saved-trips';
+import { useModalA11y } from '../shared/use-modal-a11y';
 
 interface BookingDraftModalProps {
   trip: SavedTripRowData;
@@ -41,6 +42,10 @@ export function BookingDraftModal({ trip, onClose }: BookingDraftModalProps) {
   const [children, setChildren] = useState(0);
   const [draft, setDraft] = useState<BookingDraft | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // ESC, focus trap, autofocus, body scroll lock — all wrapped behind
+  // a single hook so future modals (share, cancel-confirm) can adopt
+  // the same primitives without re-deriving them.
+  const modalRef = useModalA11y(onClose);
 
   async function handleDraft(e: React.FormEvent): Promise<void> {
     e.preventDefault();
@@ -113,10 +118,11 @@ export function BookingDraftModal({ trip, onClose }: BookingDraftModalProps) {
 
   return (
     <div
+      ref={modalRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="booking-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 md:items-center"
       style={{ background: 'rgba(0,0,0,0.55)' }}
       onClick={onClose}
     >
@@ -191,10 +197,11 @@ export function BookingDraftModal({ trip, onClose }: BookingDraftModalProps) {
                 style={fieldStyle}
               />
             </Field>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               <Field label="Adults">
                 <input
                   type="number"
+                  inputMode="numeric"
                   min={1}
                   max={20}
                   value={adults}
@@ -205,6 +212,7 @@ export function BookingDraftModal({ trip, onClose }: BookingDraftModalProps) {
               <Field label="Children">
                 <input
                   type="number"
+                  inputMode="numeric"
                   min={0}
                   max={20}
                   value={children}
