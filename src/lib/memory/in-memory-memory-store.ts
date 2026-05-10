@@ -79,6 +79,33 @@ export class InMemoryMemoryStore implements MemoryStore {
     return scored.slice(0, topK);
   }
 
+  async listForOwner(
+    args: OwnerArgs & { kind?: MemoryRecord['kind']; limit?: number },
+  ): Promise<MemoryRecord[]> {
+    const bucket = this.buckets.get(ownerKey(args));
+    if (!bucket || bucket.length === 0) return [];
+    const limit = args.limit ?? 50;
+    let view = bucket;
+    if (args.kind) view = view.filter((m) => m.kind === args.kind);
+    // Buckets are insertion-order. Admin wants most-recent-first.
+    return [...view].reverse().slice(0, limit);
+  }
+
+  async listAllOwners(): Promise<OwnerArgs[]> {
+    const owners: OwnerArgs[] = [];
+    for (const [key, bucket] of this.buckets.entries()) {
+      if (bucket.length === 0) continue;
+      const sep = key.indexOf(':');
+      if (sep < 0) continue;
+      const ownerKindRaw = key.slice(0, sep);
+      const ownerId = key.slice(sep + 1);
+      if (ownerKindRaw === 'user' || ownerKindRaw === 'session') {
+        owners.push({ ownerKind: ownerKindRaw, ownerId });
+      }
+    }
+    return owners;
+  }
+
   async clearOwner(args: OwnerArgs): Promise<void> {
     this.buckets.delete(ownerKey(args));
   }

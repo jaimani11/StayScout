@@ -30,9 +30,11 @@
 
 **Slice C4 — Stripe (premium tier): complete.** Real Stripe integration alongside a mock fallback. `BillingProvider` interface with `MockBillingProvider` (keyless dev: every authed user premium, anon free) and `StripeBillingProvider` (test or live mode, hosted Checkout, signature-verified webhook, idempotent on `event.id`, owner state synced via `checkout.session.completed` + `customer.subscription.{created,updated,deleted}`). Soft-gate on the synthesized-itinerary path — curated Italy stays free for everyone. Setup walkthrough: [`docs/billing.md`](docs/billing.md) (Stripe CLI recipe + documented end-to-end test flow with card `4242 4242 4242 4242`).
 
+**Slice C5 — Admin panel extensions: complete.** `/admin` grew from a telemetry summary into a real operator console. Four new pages: `/admin/turns/[turnId]` (per-trace drill-in with agent timeline + tokens + cost), `/admin/clicks` (affiliate click feed, owner-linked), `/admin/users/[userId]` (per-owner aggregate: trips, memories, billing entitlement, recent turns), `/admin/memories` (memory index browser with similarity search). Single auth gate via `requireAdmin()`; shared `<AdminShell>` + nav. Dashboard now surfaces a billing card alongside the existing turn/latency/cost/error stats. Only additive interface methods on the stores (`listClicks`, `listForOwner`, `listAllOwners`).
+
 - Specs: [`docs/superpowers/specs/`](docs/superpowers/specs/)
 - Plans: [`docs/superpowers/plans/`](docs/superpowers/plans/)
-- Tags: `slice-a1` … `slice-a10`, `slice-b1` … `slice-b8`, `slice-c1` … `slice-c4`
+- Tags: `slice-a1` … `slice-a10`, `slice-b1` … `slice-b8`, `slice-c1` … `slice-c5`
 
 ## Quick start
 
@@ -156,8 +158,8 @@ The reverse fails CI (verified via `boundaries/dependencies` rule).
 | C2 | MonitoringAgent (saved-trip change watcher) | ✓ |
 | C3 | ItineraryAgent (multi-day plans) | ✓ |
 | C4 | Stripe (premium tier) — real test-mode + mock fallback (`docs/billing.md`) | ✓ |
-| C5 | Admin panel extensions | next |
-| Slice D | BookingAgent (approval-gated → autonomous) | |
+| C5 | Admin panel extensions — turns, clicks, users, memories | ✓ |
+| Slice D | BookingAgent (approval-gated → autonomous) | next |
 
 ## Conventions
 

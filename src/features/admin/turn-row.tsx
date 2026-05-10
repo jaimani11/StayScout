@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { TurnRecord } from '@lib/observability';
 
 interface TurnRowProps {
@@ -7,7 +8,8 @@ interface TurnRowProps {
 /**
  * Single recent-turn row. Shows turnId tail, type, status, duration,
  * agent count, and total cost (if any agent run reported one). Status
- * dot color-coded.
+ * dot color-coded. Slice C5 — turnId is now a link to the trace
+ * detail page.
  */
 export function TurnRow({ turn }: TurnRowProps) {
   const totalCost = turn.agentRuns.reduce((sum, r) => sum + (r.costUsd ?? 0), 0);
@@ -32,15 +34,16 @@ export function TurnRow({ turn }: TurnRowProps) {
             className="inline-block h-1.5 w-1.5 rounded-full"
             style={{ background: statusColor }}
           />
-          <code
+          <Link
+            href={`/admin/turns/${encodeURIComponent(turn.turnId)}`}
             style={{
               fontFamily: 'var(--font-geist-mono)',
               fontSize: '0.7rem',
-              color: 'var(--ink-primary)',
+              color: 'var(--accent-primary)',
             }}
           >
             {turnIdTail}
-          </code>
+          </Link>
         </div>
       </td>
       <td
@@ -54,7 +57,8 @@ export function TurnRow({ turn }: TurnRowProps) {
         {turn.type ?? '—'}
       </td>
       <td className="px-3 py-2.5">
-        <code
+        <Link
+          href={`/admin/users/${encodeURIComponent(turn.sessionId)}?kind=session`}
           style={{
             fontFamily: 'var(--font-geist-mono)',
             fontSize: '0.7rem',
@@ -62,7 +66,7 @@ export function TurnRow({ turn }: TurnRowProps) {
           }}
         >
           {sessionTail}
-        </code>
+        </Link>
       </td>
       <td
         className="px-3 py-2.5 text-right"

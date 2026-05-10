@@ -90,6 +90,12 @@ describe('MemoryRecorder', () => {
       async search() {
         return [];
       },
+      async listForOwner() {
+        return [];
+      },
+      async listAllOwners() {
+        return [];
+      },
     };
     const recorder = new MemoryRecorder(brokenStore);
     await expect(

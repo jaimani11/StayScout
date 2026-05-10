@@ -138,6 +138,24 @@ export class InMemorySessionStore implements SessionStore {
     return this.clicks;
   }
 
+  async listClicks(
+    args: { owner?: OwnerArgs; limit?: number } = {},
+  ): Promise<AffiliateClickRecord[]> {
+    const limit = args.limit ?? 50;
+    // The internal log is append-order; admin views want most-recent-first.
+    // Slice from the end + reverse so we don't sort N items unnecessarily.
+    let view: AffiliateClickRecord[];
+    if (args.owner) {
+      const ownerKind = args.owner.ownerKind;
+      const ownerId = args.owner.ownerId;
+      view = this.clicks.filter((c) => c.ownerKind === ownerKind && c.ownerId === ownerId);
+    } else {
+      view = [...this.clicks];
+    }
+    view.reverse();
+    return view.slice(0, limit);
+  }
+
   // ============== Migration ==============
   async migrateAnonymousToUser(args: {
     fromSessionId: string;

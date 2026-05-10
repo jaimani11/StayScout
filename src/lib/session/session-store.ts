@@ -145,6 +145,18 @@ export interface SessionStore {
    */
   recordClick(args: RecordClickArgs): Promise<AffiliateClickRecord>;
 
+  /**
+   * List affiliate clicks, most-recent-first. With `owner` set, restricts
+   * to that owner's clicks (used by the per-owner admin view). Without,
+   * returns the global recent feed (admin clicks page). `limit` defaults
+   * to 50 to keep payload bounded.
+   *
+   * Slice C5 — admin pages call this. Production traffic should NOT call
+   * it without a small limit; sorting in-memory is fine, sorting from
+   * Postgres uses an index on createdAt.
+   */
+  listClicks(args?: { owner?: OwnerArgs; limit?: number }): Promise<AffiliateClickRecord[]>;
+
   // ============== Migration ==============
   migrateAnonymousToUser(args: {
     fromSessionId: string;

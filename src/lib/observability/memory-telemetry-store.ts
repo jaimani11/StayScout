@@ -143,6 +143,13 @@ export class MemoryTelemetryStore {
     };
   }
 
+  /** Slice C5 — admin drill-in lookup. Returns null when the turn has
+   *  scrolled out of the ring buffer (no surfaceable error; the page
+   *  renders 404). */
+  getTurn(turnId: string): TurnRecord | null {
+    return this.turnIndex.get(turnId) ?? null;
+  }
+
   /** Test-only — wipe state. */
   _reset(): void {
     this.turns.length = 0;

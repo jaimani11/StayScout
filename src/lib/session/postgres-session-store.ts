@@ -168,6 +168,33 @@ export class PostgresSessionStore implements SessionStore {
     };
   }
 
+  async listClicks(
+    args: { owner?: OwnerArgs; limit?: number } = {},
+  ): Promise<AffiliateClickRecord[]> {
+    const limit = args.limit ?? 50;
+    const where = args.owner
+      ? args.owner.ownerKind === 'user'
+        ? { userId: args.owner.ownerId }
+        : { sessionId: args.owner.ownerId, userId: null }
+      : undefined;
+    const rows = await this.db.affiliateClick.findMany({
+      ...(where ? { where } : {}),
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+    return rows.map((row) => ({
+      id: row.id,
+      ownerKind: row.userId ? ('user' as const) : ('session' as const),
+      ownerId: row.userId ?? row.sessionId,
+      sessionId: row.sessionId,
+      stayId: row.stayId,
+      providerId: row.providerId,
+      affiliateUrl: row.affiliateUrl,
+      ...(row.turnId ? { turnId: row.turnId } : {}),
+      createdAt: row.createdAt.toISOString(),
+    }));
+  }
+
   // ============== Migration ==============
   async migrateAnonymousToUser(args: {
     fromSessionId: string;

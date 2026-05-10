@@ -75,9 +75,29 @@ export interface SearchMemoryArgs extends OwnerArgs {
   scoreFloor?: number;
 }
 
+export interface ListForOwnerArgs extends OwnerArgs {
+  /** Restrict to records of this kind (admin filter convenience). */
+  kind?: MemoryKind;
+  /** Cap result size; most-recent-first. Default 50. */
+  limit?: number;
+}
+
 export interface MemoryStore {
   record(args: RecordMemoryArgs): Promise<MemoryRecord>;
   search(args: SearchMemoryArgs): Promise<MemorySearchResult[]>;
+  /**
+   * Slice C5 admin — list an owner's memories (most-recent-first), with
+   * optional kind filter. Returns all matching records up to `limit`.
+   * No similarity ranking; use `search` for that.
+   */
+  listForOwner(args: ListForOwnerArgs): Promise<MemoryRecord[]>;
+  /**
+   * Slice C5 admin — distinct owners that have at least one record.
+   * Used to render the global "/admin/memories" overview. The Postgres
+   * impl (lands in C1.x) returns this from `prisma.memoryRecord.findMany({ distinct: ['userId'] })`
+   * — until then, the in-memory impl owns this.
+   */
+  listAllOwners(): Promise<OwnerArgs[]>;
   /** Test-only — wipe an owner's memories so contract tests stay isolated. */
   clearOwner?(args: OwnerArgs): Promise<void>;
 }
