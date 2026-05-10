@@ -85,14 +85,14 @@ export default async function TurnDetailPage({ params }: PageProps) {
     key: 'error',
     label: 'Error',
     render: (r) =>
-      r.error ? <span style={{ color: 'var(--accent-warning, #ff8e6b)' }}>{r.error}</span> : '—',
+      r.error ? <span style={{ color: 'var(--accent-warning)' }}>{r.error}</span> : '—',
   });
 
   const statusColor =
     turn.status === 'completed'
       ? 'var(--accent-primary)'
       : turn.status === 'failed'
-        ? 'var(--accent-warning, #ff8e6b)'
+        ? 'var(--accent-warning)'
         : 'var(--ink-tertiary)';
 
   return (
@@ -180,8 +180,8 @@ export default async function TurnDetailPage({ params }: PageProps) {
           <div
             className="mt-4 rounded-md p-3"
             style={{
-              background: 'var(--surface-2, var(--surface-overlay))',
-              border: '1px solid var(--accent-warning, #ff8e6b)',
+              background: 'var(--surface-overlay)',
+              border: '1px solid var(--accent-warning)',
             }}
           >
             <p
@@ -190,7 +190,7 @@ export default async function TurnDetailPage({ params }: PageProps) {
                 fontSize: 'var(--text-label)',
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
-                color: 'var(--accent-warning, #ff8e6b)',
+                color: 'var(--accent-warning)',
               }}
             >
               Failure

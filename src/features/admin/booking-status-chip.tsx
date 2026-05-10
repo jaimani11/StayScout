@@ -7,17 +7,17 @@ const COLORS: Record<BookingStatus, { bg: string; fg: string; border: string }> 
     border: 'var(--accent-primary)',
   },
   canceled: {
-    bg: 'var(--surface-2, var(--surface-elevated))',
+    bg: 'var(--surface-overlay)',
     fg: 'var(--ink-tertiary)',
     border: 'var(--border-subtle)',
   },
   failed: {
     bg: 'rgba(255,142,107,0.08)',
-    fg: 'var(--accent-warning, #ff8e6b)',
-    border: 'var(--accent-warning, #ff8e6b)',
+    fg: 'var(--accent-warning)',
+    border: 'var(--accent-warning)',
   },
   draft: {
-    bg: 'var(--surface-2, var(--surface-elevated))',
+    bg: 'var(--surface-overlay)',
     fg: 'var(--ink-secondary)',
     border: 'var(--border-subtle)',
   },

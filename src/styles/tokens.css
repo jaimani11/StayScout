@@ -52,6 +52,12 @@
   --accent-primary-glow: rgba(212, 165, 116, 0.4);
   --accent-secondary: #5078c8;
 
+  /* Warning — used for failure states, cancel-confirm, monitoring alerts.
+     Distinct from accent-secondary (which is a cool counterpoint, not a
+     warning signal). Coral pairs with the cinematic palette. */
+  --accent-warning: #ff8e6b;
+  --accent-warning-soft: rgba(255, 142, 107, 0.1);
+
   --border-subtle: rgba(255, 255, 255, 0.08);
   --border-emphasis: rgba(255, 255, 255, 0.14);
 
@@ -89,6 +95,12 @@
   --accent-primary-soft: rgba(90, 107, 63, 0.12);
   --accent-primary-glow: rgba(90, 107, 63, 0.3);
   --accent-secondary: #b0552f;
+
+  /* Warning — light-mode coral, deeper than dark to keep contrast on
+     the cream base. Distinct from --accent-secondary (clay) so the
+     two never get confused in close proximity. */
+  --accent-warning: #c84a1f;
+  --accent-warning-soft: rgba(200, 74, 31, 0.08);
 
   --border-subtle: rgba(42, 42, 31, 0.1);
   --border-emphasis: rgba(42, 42, 31, 0.18);

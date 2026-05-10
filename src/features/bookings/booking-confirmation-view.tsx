@@ -32,7 +32,7 @@ export function BookingConfirmationView({
       : booking.status === 'canceled'
         ? 'var(--ink-tertiary)'
         : booking.status === 'failed'
-          ? 'var(--accent-warning, #ff8e6b)'
+          ? 'var(--accent-warning)'
           : 'var(--ink-secondary)';
 
   return (
@@ -70,7 +70,7 @@ export function BookingConfirmationView({
         <h1
           style={{
             fontFamily: 'var(--font-fraunces)',
-            fontSize: 'var(--text-display-lg, 3rem)',
+            fontSize: 'var(--text-display-lg, 3.5rem)',
             fontWeight: 300,
             color: 'var(--ink-primary)',
             letterSpacing: '-0.02em',
@@ -128,7 +128,7 @@ export function BookingConfirmationView({
       <section
         className="mb-6 rounded-[14px] border p-5"
         style={{
-          background: 'var(--surface-2, var(--surface-overlay))',
+          background: 'var(--surface-overlay)',
           borderColor: 'var(--border-subtle)',
         }}
       >
@@ -161,8 +161,8 @@ export function BookingConfirmationView({
         <section
           className="mb-6 rounded-[14px] border p-5"
           style={{
-            background: 'rgba(255,142,107,0.08)',
-            borderColor: 'var(--accent-warning, #ff8e6b)',
+            background: 'var(--accent-warning-soft)',
+            borderColor: 'var(--accent-warning)',
           }}
         >
           <p
@@ -171,7 +171,7 @@ export function BookingConfirmationView({
               fontSize: 'var(--text-label)',
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              color: 'var(--accent-warning, #ff8e6b)',
+              color: 'var(--accent-warning)',
               marginBottom: '0.5rem',
             }}
           >

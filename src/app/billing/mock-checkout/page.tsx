@@ -82,7 +82,7 @@ export default async function MockCheckoutPage({ searchParams }: PageProps) {
             fontSize: '0.65rem',
             letterSpacing: '0.06em',
             textTransform: 'uppercase',
-            color: 'var(--accent)',
+            color: 'var(--accent-primary)',
           }}
         >
           [ mock checkout ]
@@ -91,7 +91,7 @@ export default async function MockCheckoutPage({ searchParams }: PageProps) {
           className="mt-2"
           style={{
             fontFamily: 'var(--font-fraunces)',
-            fontSize: 'var(--text-display-md, 2.4rem)',
+            fontSize: 'var(--text-display-md, 2.25rem)',
             fontWeight: 300,
             color: 'var(--ink-primary)',
             letterSpacing: '-0.02em',
@@ -121,8 +121,8 @@ export default async function MockCheckoutPage({ searchParams }: PageProps) {
       <section
         className="rounded-lg p-6 md:p-8"
         style={{
-          background: 'var(--surface-2)',
-          border: '1px solid var(--surface-3)',
+          background: 'var(--surface-overlay)',
+          border: '1px solid var(--border-subtle)',
         }}
       >
         <p
@@ -147,7 +147,7 @@ export default async function MockCheckoutPage({ searchParams }: PageProps) {
                 letterSpacing: '0.04em',
                 padding: '0.7rem 1.1rem',
                 background: 'var(--ink-primary)',
-                color: 'var(--surface-1)',
+                color: 'var(--surface-base)',
                 border: 'none',
                 borderRadius: '0.4rem',
                 cursor: 'pointer',
@@ -166,7 +166,7 @@ export default async function MockCheckoutPage({ searchParams }: PageProps) {
                 padding: '0.7rem 1.1rem',
                 background: 'transparent',
                 color: 'var(--ink-secondary)',
-                border: '1px solid var(--surface-3)',
+                border: '1px solid var(--border-subtle)',
                 borderRadius: '0.4rem',
                 cursor: 'pointer',
               }}

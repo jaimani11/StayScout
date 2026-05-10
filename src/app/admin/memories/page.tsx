@@ -160,7 +160,7 @@ export default async function AdminMemoriesPage({ searchParams }: PageProps) {
             letterSpacing: '0.08em',
             textTransform: 'uppercase',
             padding: '0.1rem 0.4rem',
-            background: 'var(--surface-2, var(--surface-elevated))',
+            background: 'var(--surface-overlay)',
             color: m.kind === 'structural' ? 'var(--accent-primary)' : 'var(--ink-secondary)',
             border: '1px solid var(--border-subtle)',
             borderRadius: '0.2rem',

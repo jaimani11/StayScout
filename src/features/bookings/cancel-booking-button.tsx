@@ -63,9 +63,9 @@ export function CancelBookingButton({ bookingId }: CancelBookingButtonProps) {
           fontSize: 'var(--text-body-sm)',
           letterSpacing: '0.04em',
           padding: '0.6rem 1rem',
-          background: confirming ? 'var(--accent-warning, #ff8e6b)' : 'transparent',
-          color: confirming ? 'var(--surface-1)' : 'var(--ink-secondary)',
-          border: `1px solid ${confirming ? 'var(--accent-warning, #ff8e6b)' : 'var(--border-subtle)'}`,
+          background: confirming ? 'var(--accent-warning)' : 'transparent',
+          color: confirming ? 'var(--surface-base)' : 'var(--ink-secondary)',
+          border: `1px solid ${confirming ? 'var(--accent-warning)' : 'var(--border-subtle)'}`,
           borderRadius: '0.4rem',
           cursor: pending ? 'wait' : 'pointer',
           alignSelf: 'flex-start',
@@ -78,7 +78,7 @@ export function CancelBookingButton({ bookingId }: CancelBookingButtonProps) {
           style={{
             fontFamily: 'var(--font-inter)',
             fontSize: '0.72rem',
-            color: 'var(--accent-warning, #ff8e6b)',
+            color: 'var(--accent-warning)',
           }}
         >
           {error}

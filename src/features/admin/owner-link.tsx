@@ -34,7 +34,7 @@ export function OwnerLink({ ownerKind, ownerId, maxLength = 16 }: OwnerLinkProps
           letterSpacing: '0.08em',
           textTransform: 'uppercase',
           padding: '0.05rem 0.3rem',
-          background: 'var(--surface-2, var(--surface-elevated))',
+          background: 'var(--surface-overlay)',
           color: 'var(--ink-tertiary)',
           border: '1px solid var(--border-subtle)',
           borderRadius: '0.2rem',

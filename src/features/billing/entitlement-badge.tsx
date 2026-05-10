@@ -16,9 +16,9 @@ export function EntitlementBadge({ entitlement }: { entitlement: Entitlement }) 
         letterSpacing: '0.12em',
         textTransform: 'uppercase',
         padding: '0.2rem 0.4rem',
-        background: 'var(--surface-2)',
-        border: '1px solid var(--accent)',
-        color: 'var(--accent)',
+        background: 'var(--surface-overlay)',
+        border: '1px solid var(--accent-primary)',
+        color: 'var(--accent-primary)',
         borderRadius: '0.2rem',
       }}
     >

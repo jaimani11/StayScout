@@ -233,7 +233,7 @@ export function SharedTripView({
             style={{
               fontFamily: 'var(--font-inter)',
               fontSize: 'var(--text-body-sm)',
-              color: 'var(--accent-warning, var(--ink-secondary))',
+              color: 'var(--accent-warning)',
             }}
           >
             Couldn&apos;t save. Try again in a moment.

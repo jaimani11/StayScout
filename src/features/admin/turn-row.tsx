@@ -19,7 +19,7 @@ export function TurnRow({ turn }: TurnRowProps) {
     turn.status === 'completed'
       ? 'var(--accent-primary)'
       : turn.status === 'failed'
-        ? 'var(--accent-warning, #ff8e6b)'
+        ? 'var(--accent-warning)'
         : 'var(--ink-tertiary)';
 
   return (

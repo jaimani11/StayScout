@@ -68,7 +68,7 @@ export function UpgradeCta({ signInRequired, returnPath, cancelPath }: UpgradeCt
           letterSpacing: '0.04em',
           padding: '0.7rem 1.1rem',
           background: 'var(--ink-primary)',
-          color: 'var(--surface-1)',
+          color: 'var(--surface-base)',
           border: 'none',
           borderRadius: '0.4rem',
           cursor: loading ? 'wait' : 'pointer',

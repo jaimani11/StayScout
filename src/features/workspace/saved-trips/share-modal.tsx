@@ -186,7 +186,7 @@ export function ShareModal({ open, onClose, resolve, tripName }: ShareModalProps
                 style={{
                   fontFamily: 'var(--font-inter)',
                   fontSize: 'var(--text-body-sm)',
-                  color: 'var(--accent-warning, var(--ink-secondary))',
+                  color: 'var(--accent-warning)',
                 }}
               >
                 {error}

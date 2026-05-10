@@ -31,7 +31,7 @@ export default function DestinationsIndex() {
           className="mt-2"
           style={{
             fontFamily: 'var(--font-fraunces)',
-            fontSize: 'var(--text-display-lg, 3rem)',
+            fontSize: 'var(--text-display-lg, 3.5rem)',
             fontWeight: 300,
             color: 'var(--ink-primary)',
             letterSpacing: '-0.02em',

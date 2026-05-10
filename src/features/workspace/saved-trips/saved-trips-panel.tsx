@@ -146,7 +146,7 @@ export function SavedTripsPanel() {
                 style={{
                   fontFamily: 'var(--font-inter)',
                   fontSize: 'var(--text-body-sm)',
-                  color: 'var(--accent-warning, var(--ink-secondary))',
+                  color: 'var(--accent-warning)',
                 }}
               >
                 Couldn&apos;t load saved trips: {error}

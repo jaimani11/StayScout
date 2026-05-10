@@ -57,7 +57,7 @@ export function UpgradeCard({ destinationName, reason, returnPath, cancelPath }:
         <h1
           style={{
             fontFamily: 'var(--font-fraunces)',
-            fontSize: 'var(--text-display-md, 2.4rem)',
+            fontSize: 'var(--text-display-md, 2.25rem)',
             fontWeight: 300,
             color: 'var(--ink-primary)',
             letterSpacing: '-0.02em',
@@ -86,8 +86,8 @@ export function UpgradeCard({ destinationName, reason, returnPath, cancelPath }:
       <section
         className="rounded-lg p-6 md:p-8"
         style={{
-          background: 'var(--surface-2)',
-          border: '1px solid var(--surface-3)',
+          background: 'var(--surface-overlay)',
+          border: '1px solid var(--border-subtle)',
         }}
       >
         <h2
@@ -143,7 +143,7 @@ export function UpgradeCard({ destinationName, reason, returnPath, cancelPath }:
                   width: '0.35rem',
                   height: '0.35rem',
                   borderRadius: '50%',
-                  background: 'var(--accent)',
+                  background: 'var(--accent-primary)',
                   marginTop: '0.55rem',
                   flexShrink: 0,
                 }}

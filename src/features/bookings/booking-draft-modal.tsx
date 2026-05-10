@@ -124,7 +124,7 @@ export function BookingDraftModal({ trip, onClose }: BookingDraftModalProps) {
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-md rounded-[16px] border p-6 md:p-8"
         style={{
-          background: 'var(--surface-1, var(--surface-elevated))',
+          background: 'var(--surface-raised)',
           borderColor: 'var(--border-subtle)',
           boxShadow: '0 24px 64px rgba(0,0,0,0.45)',
         }}
@@ -225,10 +225,7 @@ export function BookingDraftModal({ trip, onClose }: BookingDraftModalProps) {
 
         {phase !== 'form' && draft && (
           <div className="flex flex-col gap-4">
-            <div
-              className="rounded-md p-4"
-              style={{ background: 'var(--surface-2, var(--surface-overlay))' }}
-            >
+            <div className="rounded-md p-4" style={{ background: 'var(--surface-overlay)' }}>
               <DraftLine label="Dates" value={`${draft.checkIn} → ${draft.checkOut}`} />
               <DraftLine label="Nights" value={String(draft.nights)} />
               <DraftLine
@@ -252,7 +249,7 @@ export function BookingDraftModal({ trip, onClose }: BookingDraftModalProps) {
                     fontFamily: 'var(--font-fraunces)',
                     fontStyle: 'italic',
                     fontSize: '0.78rem',
-                    color: 'var(--accent-warning, #ff8e6b)',
+                    color: 'var(--accent-warning)',
                     lineHeight: 1.5,
                   }}
                 >
@@ -298,7 +295,7 @@ const fieldStyle: React.CSSProperties = {
   width: '100%',
   fontFamily: 'var(--font-inter)',
   fontSize: 'var(--text-body-sm)',
-  background: 'var(--surface-2, var(--surface-overlay))',
+  background: 'var(--surface-overlay)',
   border: '1px solid var(--border-subtle)',
   borderRadius: '0.4rem',
   padding: '0.6rem 0.8rem',
@@ -374,7 +371,7 @@ function PrimaryButton({ children, ...rest }: React.ButtonHTMLAttributes<HTMLBut
         letterSpacing: '0.04em',
         padding: '0.6rem 1rem',
         background: 'var(--ink-primary)',
-        color: 'var(--surface-1)',
+        color: 'var(--surface-base)',
         border: 'none',
         borderRadius: '0.4rem',
         cursor: rest.disabled ? 'wait' : 'pointer',
@@ -416,8 +413,8 @@ function ErrorBanner({ text }: { text: string }) {
         fontFamily: 'var(--font-inter)',
         fontSize: '0.78rem',
         background: 'rgba(255,142,107,0.08)',
-        color: 'var(--accent-warning, #ff8e6b)',
-        border: '1px solid var(--accent-warning, #ff8e6b)',
+        color: 'var(--accent-warning)',
+        border: '1px solid var(--accent-warning)',
       }}
     >
       {text}

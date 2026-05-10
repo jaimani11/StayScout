@@ -105,7 +105,7 @@ export function PollEntitlement() {
           style={{
             fontFamily: 'var(--font-inter)',
             fontSize: 'var(--text-body-sm)',
-            color: 'var(--accent)',
+            color: 'var(--accent-primary)',
             textDecoration: 'underline',
           }}
         >

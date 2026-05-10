@@ -44,7 +44,7 @@ export default function BillingReturnPage() {
           className="mt-4"
           style={{
             fontFamily: 'var(--font-fraunces)',
-            fontSize: 'var(--text-display-md, 2.4rem)',
+            fontSize: 'var(--text-display-md, 2.25rem)',
             fontWeight: 300,
             color: 'var(--ink-primary)',
             letterSpacing: '-0.02em',
