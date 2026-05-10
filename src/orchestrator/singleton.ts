@@ -15,30 +15,52 @@ import {
  * The engine kind is captured at construction time. Flipping
  * STAYSCOUT_ORCHESTRATOR mid-process requires a server restart — by
  * design; we don't want a hot-swap mid-conversation.
+ *
+ * `globalThis`-anchored — see comment in src/lib/session/factory.ts.
  */
-let _instance: OrchestratorEngine | null = null;
-let _construction: Promise<OrchestratorEngine> | null = null;
-let _kindAtConstruction: ReturnType<typeof getOrchestratorEngineKind> | null = null;
+type OrchKind = ReturnType<typeof getOrchestratorEngineKind>;
+declare global {
+  var __stayscoutOrchestrator:
+    | {
+        instance: OrchestratorEngine | null;
+        construction: Promise<OrchestratorEngine> | null;
+        kindAtConstruction: OrchKind | null;
+      }
+    | undefined;
+}
+
+function slot() {
+  if (!globalThis.__stayscoutOrchestrator) {
+    globalThis.__stayscoutOrchestrator = {
+      instance: null,
+      construction: null,
+      kindAtConstruction: null,
+    };
+  }
+  return globalThis.__stayscoutOrchestrator;
+}
 
 export async function getOrchestrator(): Promise<OrchestratorEngine> {
-  if (_instance) return _instance;
-  if (_construction) return _construction;
-  _kindAtConstruction = getOrchestratorEngineKind();
-  _construction = createOrchestratorEngine().then((e) => {
-    _instance = e;
+  const s = slot();
+  if (s.instance) return s.instance;
+  if (s.construction) return s.construction;
+  s.kindAtConstruction = getOrchestratorEngineKind();
+  s.construction = createOrchestratorEngine().then((e) => {
+    s.instance = e;
     return e;
   });
-  return _construction;
+  return s.construction;
 }
 
 /** Diagnostic: what engine is currently mounted? */
-export function getOrchestratorKind(): ReturnType<typeof getOrchestratorEngineKind> | null {
-  return _kindAtConstruction;
+export function getOrchestratorKind(): OrchKind | null {
+  return slot().kindAtConstruction;
 }
 
 // Test-only: replace the instance with one constructed by the test.
 export function _setOrchestratorForTesting(instance: OrchestratorEngine | null): void {
-  _instance = instance;
-  _construction = null;
-  _kindAtConstruction = null;
+  const s = slot();
+  s.instance = instance;
+  s.construction = null;
+  s.kindAtConstruction = null;
 }

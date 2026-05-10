@@ -14,17 +14,20 @@ export interface ItinerarySubsystem {
   kind: 'curated' | 'model';
 }
 
-let _cached: ItinerarySubsystem | null = null;
+// Process-global anchor — see comment in src/lib/session/factory.ts.
+declare global {
+  var __stayscoutItinerarySubsystem: ItinerarySubsystem | undefined;
+}
 
 export function getItinerarySubsystem(): ItinerarySubsystem {
-  if (_cached) return _cached;
+  if (globalThis.__stayscoutItinerarySubsystem) return globalThis.__stayscoutItinerarySubsystem;
   const store = getInMemoryItineraryStore();
   const synthesized = new SynthesizedItineraryGenerator();
   const generator = new CuratedItineraryGenerator(synthesized);
-  _cached = { store, generator, kind: 'curated' };
-  return _cached;
+  globalThis.__stayscoutItinerarySubsystem = { store, generator, kind: 'curated' };
+  return globalThis.__stayscoutItinerarySubsystem;
 }
 
 export function _resetItinerarySubsystemForTesting(): void {
-  _cached = null;
+  globalThis.__stayscoutItinerarySubsystem = undefined;
 }

@@ -43,10 +43,13 @@ interface Registry {
   mocks: Provider[];
 }
 
-let _cached: Registry | null = null;
+// Process-global anchor — see comment in src/lib/session/factory.ts.
+declare global {
+  var __stayscoutProviderRegistry: Registry | undefined;
+}
 
 export function buildProviderRegistry(modelClient?: ModelClient): Registry {
-  if (_cached) return _cached;
+  if (globalThis.__stayscoutProviderRegistry) return globalThis.__stayscoutProviderRegistry;
 
   const real: Provider[] = [];
   const bookingCom = BookingComProvider.fromEnv();
@@ -60,13 +63,13 @@ export function buildProviderRegistry(modelClient?: ModelClient): Registry {
     : LLMSynthesizedProviderStub;
 
   const mocks: Provider[] = [MockItalyProvider, llmProvider];
-  _cached = { all: [...real, ...mocks], real, mocks };
-  return _cached;
+  globalThis.__stayscoutProviderRegistry = { all: [...real, ...mocks], real, mocks };
+  return globalThis.__stayscoutProviderRegistry;
 }
 
 /** Test-only — drop the cached registry so env changes take effect. */
 export function _resetProviderRegistryForTesting(): void {
-  _cached = null;
+  globalThis.__stayscoutProviderRegistry = undefined;
 }
 
 /**

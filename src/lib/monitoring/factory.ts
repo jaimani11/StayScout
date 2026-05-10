@@ -24,17 +24,20 @@ export interface MonitoringSubsystem {
   kind: 'mock' | 'real';
 }
 
-let _cached: MonitoringSubsystem | null = null;
+// Process-global anchor — see comment in src/lib/session/factory.ts.
+declare global {
+  var __stayscoutMonitoringSubsystem: MonitoringSubsystem | undefined;
+}
 
 export function getMonitoringSubsystem(): MonitoringSubsystem {
-  if (_cached) return _cached;
+  if (globalThis.__stayscoutMonitoringSubsystem) return globalThis.__stayscoutMonitoringSubsystem;
   const store = getInMemoryMonitoringStore();
   const checker = new MockMonitoringChecker();
   const runner = new MonitoringRunner(store, checker);
-  _cached = { store, checker, runner, kind: 'mock' };
-  return _cached;
+  globalThis.__stayscoutMonitoringSubsystem = { store, checker, runner, kind: 'mock' };
+  return globalThis.__stayscoutMonitoringSubsystem;
 }
 
 export function _resetMonitoringSubsystemForTesting(): void {
-  _cached = null;
+  globalThis.__stayscoutMonitoringSubsystem = undefined;
 }

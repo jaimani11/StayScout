@@ -30,15 +30,21 @@ export interface MemorySubsystem {
   embeddingKind: 'bag-of-words' | 'anthropic';
 }
 
-let _cached: MemorySubsystem | null = null;
+// Process-global anchor — see comment in src/lib/session/factory.ts.
+// Especially important for memory: each MemorySubsystem owns its own
+// InMemoryMemoryStore + buckets Map; two subsystems = two separate
+// memory rings, recorder writes invisible to retriever in another ctx.
+declare global {
+  var __stayscoutMemorySubsystem: MemorySubsystem | undefined;
+}
 
 export function getMemorySubsystem(): MemorySubsystem {
-  if (_cached) return _cached;
+  if (globalThis.__stayscoutMemorySubsystem) return globalThis.__stayscoutMemorySubsystem;
   const embedding = new BagOfWordsEmbedding(256);
   const store: MemoryStore = new InMemoryMemoryStore(embedding);
   const recorder = new MemoryRecorder(store);
   const retriever = new MemoryRetriever(store);
-  _cached = {
+  globalThis.__stayscoutMemorySubsystem = {
     store,
     recorder,
     retriever,
@@ -46,10 +52,10 @@ export function getMemorySubsystem(): MemorySubsystem {
     kind: 'in-memory',
     embeddingKind: 'bag-of-words',
   };
-  return _cached;
+  return globalThis.__stayscoutMemorySubsystem;
 }
 
 /** Test-only — drop the cached subsystem. */
 export function _resetMemorySubsystemForTesting(): void {
-  _cached = null;
+  globalThis.__stayscoutMemorySubsystem = undefined;
 }

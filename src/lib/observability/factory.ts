@@ -11,18 +11,21 @@ import { MemoryTraceLogger } from './memory-trace-logger';
  * dashboard's read API. Reset only when env changes (tests).
  */
 
-let _cached: TraceLogger | null = null;
+// Process-global anchor — see comment in src/lib/session/factory.ts.
+declare global {
+  var __stayscoutTraceLogger: TraceLogger | undefined;
+}
 
 export function getTraceLogger(): TraceLogger {
-  if (_cached) return _cached;
+  if (globalThis.__stayscoutTraceLogger) return globalThis.__stayscoutTraceLogger;
   const sinks: TraceLogger[] = [new MemoryTraceLogger()];
   const langfuse = LangfuseTraceLogger.fromEnv();
   if (langfuse) sinks.push(langfuse);
-  _cached = new CompositeTraceLogger(sinks);
-  return _cached;
+  globalThis.__stayscoutTraceLogger = new CompositeTraceLogger(sinks);
+  return globalThis.__stayscoutTraceLogger;
 }
 
 /** Test-only — drop the cached composite so env changes take effect. */
 export function _resetTraceLoggerForTesting(): void {
-  _cached = null;
+  globalThis.__stayscoutTraceLogger = undefined;
 }

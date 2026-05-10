@@ -20,7 +20,10 @@ export interface BillingSubsystem {
   kind: 'mock' | 'stripe';
 }
 
-let _cached: BillingSubsystem | null = null;
+// Process-global anchor — see comment in src/lib/session/factory.ts.
+declare global {
+  var __stayscoutBillingSubsystem: BillingSubsystem | undefined;
+}
 
 /**
  * Pick the billing provider once per process.
@@ -34,7 +37,7 @@ let _cached: BillingSubsystem | null = null;
  * `_resetBillingSubsystemForTesting()`.
  */
 export function getBillingSubsystem(): BillingSubsystem {
-  if (_cached) return _cached;
+  if (globalThis.__stayscoutBillingSubsystem) return globalThis.__stayscoutBillingSubsystem;
 
   const store: InMemorySubscriptionStore = getInMemorySubscriptionStore();
   const eventLog: InMemoryWebhookEventStore = getInMemoryWebhookEventStore();
@@ -54,8 +57,8 @@ export function getBillingSubsystem(): BillingSubsystem {
       store,
       eventLog,
     });
-    _cached = { provider, store, eventLog, kind: 'stripe' };
-    return _cached;
+    globalThis.__stayscoutBillingSubsystem = { provider, store, eventLog, kind: 'stripe' };
+    return globalThis.__stayscoutBillingSubsystem;
   }
 
   if (someSet) {
@@ -68,17 +71,17 @@ export function getBillingSubsystem(): BillingSubsystem {
     );
   }
 
-  _cached = {
+  globalThis.__stayscoutBillingSubsystem = {
     provider: new MockBillingProvider(),
     store,
     eventLog,
     kind: 'mock',
   };
-  return _cached;
+  return globalThis.__stayscoutBillingSubsystem;
 }
 
 export function _resetBillingSubsystemForTesting(): void {
-  _cached = null;
+  globalThis.__stayscoutBillingSubsystem = undefined;
 }
 
 function nonEmpty(v: string | undefined): string | null {

@@ -23,10 +23,16 @@ export interface BookingSubsystem {
   liveEnabled: boolean;
 }
 
-let _cached: BookingSubsystem | null = null;
+// Process-global anchor — module-local `_cached` produced two
+// subsystems in Next dev (API route + server component) which meant
+// MockBookingProvider's internal `bookingsByKey` Map diverged across
+// contexts. Bookings made in one couldn't be seen by the other.
+declare global {
+  var __stayscoutBookingSubsystem: BookingSubsystem | undefined;
+}
 
 export function getBookingSubsystem(): BookingSubsystem {
-  if (_cached) return _cached;
+  if (globalThis.__stayscoutBookingSubsystem) return globalThis.__stayscoutBookingSubsystem;
   const store: InMemoryBookingStore = getInMemoryBookingStore();
   const provider = new MockBookingProvider();
   const liveEnabled = process.env.STAYSCOUT_LIVE_BOOKING === '1';
@@ -35,10 +41,10 @@ export function getBookingSubsystem(): BookingSubsystem {
       '[booking] STAYSCOUT_LIVE_BOOKING is set but real provider booking lands in D.x — using MockBookingProvider for now.',
     );
   }
-  _cached = { provider, store, kind: 'mock', liveEnabled };
-  return _cached;
+  globalThis.__stayscoutBookingSubsystem = { provider, store, kind: 'mock', liveEnabled };
+  return globalThis.__stayscoutBookingSubsystem;
 }
 
 export function _resetBookingSubsystemForTesting(): void {
-  _cached = null;
+  globalThis.__stayscoutBookingSubsystem = undefined;
 }
