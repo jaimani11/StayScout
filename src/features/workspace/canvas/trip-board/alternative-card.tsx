@@ -8,9 +8,21 @@ import { useWorkspaceStore } from '@/features/workspace/store/workspace-store';
 import { ALT_DURATION, ALT_STAGGER, EASE_EMPHASIZED, REDUCED_DURATION } from './motion-tokens';
 import { PinButton } from './pin-button';
 import { ProvenanceBadge } from '@/features/shared/provenance-badge';
+import { ExpediaCta } from '@/features/shared/expedia-cta';
+import type { TripIntent } from '@core/trip-intent';
 
 /** Alternative card. Same materialize as hero, staggered 60ms per index. */
-export function AlternativeCard({ stay, index }: { stay: Stay; index: number }) {
+export function AlternativeCard({
+  stay,
+  index,
+  intent,
+  turnId,
+}: {
+  stay: Stay;
+  index: number;
+  intent: TripIntent;
+  turnId?: string;
+}) {
   const reduced = useReducedMotion();
   const openDetail = useWorkspaceStore((s) => s.openDetail);
   const photo = stay.photos[0];
@@ -49,7 +61,10 @@ export function AlternativeCard({ stay, index }: { stay: Stay; index: number }) 
         <ProvenanceBadge providerId={stay.providerId} />
         <PinButton stayId={stay.id} />
       </div>
-      <div className="absolute right-3 bottom-3 left-3 flex items-end justify-between gap-2">
+      <div className="absolute right-3 bottom-2 left-3">
+        <ExpediaCta stay={stay} intent={intent} {...(turnId ? { turnId } : {})} variant="compact" />
+      </div>
+      <div className="absolute right-3 bottom-7 left-3 flex items-end justify-between gap-2">
         <p
           className="truncate"
           style={{

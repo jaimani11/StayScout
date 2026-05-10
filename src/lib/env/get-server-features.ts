@@ -38,6 +38,13 @@ export interface ServerFeatures {
      *  this flag without surprises in the demo. */
     liveEnabled: boolean;
   };
+  /** Slice E2 — Expedia affiliate creator platform. Surfaced on /admin. */
+  affiliate: {
+    /** True iff a non-empty Expedia affcid is configured. Affiliate
+     *  links work without it (URL still resolves) but commission
+     *  doesn't track. */
+    expediaConfigured: boolean;
+  };
 }
 
 function isPresent(name: string): boolean {
@@ -87,6 +94,12 @@ export function getServerFeatures(): ServerFeatures {
       // switch behind STAYSCOUT_LIVE_BOOKING + per-provider keys.
       kind: 'mock',
       liveEnabled: process.env.STAYSCOUT_LIVE_BOOKING === '1',
+    },
+    affiliate: {
+      // True when ANY of the four affcid forms is set. Mirrors the
+      // multi-name resolution in getExpediaAffiliateConfig().
+      expediaConfigured:
+        isPresent('NEXT_PUBLIC_EXPEDIA_AFFILIATE_CID') || isPresent('EXPEDIA_AFFILIATE_CID'),
     },
   };
 }

@@ -3,13 +3,14 @@
 import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { Bookmark, BookmarkCheck, ExternalLink, X } from '@/features/shared/icons';
+import { Bookmark, BookmarkCheck, X } from '@/features/shared/icons';
 import { useWorkspaceStore } from '../store/workspace-store';
 import { selectStayById, selectTurnContainingStay } from '../store/derived';
 import { useReducedMotion } from '@/features/shared/motion/reduced-motion';
 import { useSavedTrips } from '../hooks/use-saved-trips';
 import { ConfirmRedirectModal } from './confirm-redirect-modal';
 import { ProvenanceBadge } from '@/features/shared/provenance-badge';
+import { ExpediaCta } from '@/features/shared/expedia-cta';
 
 /**
  * Side-panel detail view. Triggered by clicking a stay card. Slides in
@@ -190,23 +191,20 @@ export function DetailPanel() {
                 ))}
               </ul>
 
-              <div className="mt-6 flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={() => setConfirmOpen(true)}
-                  className="flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 transition-opacity hover:opacity-90"
-                  style={{
-                    background: 'var(--accent-primary)',
-                    color: '#14171C',
-                    fontFamily: 'var(--font-inter)',
-                    fontSize: 'var(--text-body)',
-                    fontWeight: 500,
-                    letterSpacing: '-0.005em',
-                  }}
-                >
-                  Continue to Booking
-                  <ExternalLink size={15} strokeWidth={2.2} />
-                </button>
+              <div className="mt-6 flex flex-col gap-3">
+                {/* Primary affiliate CTA — replaces the old "Continue to
+                 *  Booking" button. Built-in disclosure (Powered by Expedia
+                 *  · Affiliate link · Prices may change) lives directly
+                 *  beneath the button. Routes via /r/[id] for click
+                 *  attribution + recordClick. */}
+                {intent ? (
+                  <ExpediaCta
+                    stay={stay}
+                    intent={intent}
+                    {...(turn?.turnId ? { turnId: turn.turnId } : {})}
+                    variant="primary"
+                  />
+                ) : null}
 
                 {proposalRef ? (
                   <button
@@ -239,20 +237,6 @@ export function DetailPanel() {
                   </button>
                 ) : null}
               </div>
-
-              <p
-                className="mt-3"
-                style={{
-                  fontFamily: 'var(--font-fraunces)',
-                  fontSize: 'var(--text-body-sm)',
-                  fontStyle: 'italic',
-                  fontWeight: 300,
-                  color: 'var(--ink-tertiary)',
-                  lineHeight: 1.45,
-                }}
-              >
-                StayScout earns affiliate commission on bookings. Prices identical.
-              </p>
             </div>
           </motion.aside>
         ) : null}

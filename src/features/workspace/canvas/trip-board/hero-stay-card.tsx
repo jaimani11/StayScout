@@ -15,6 +15,8 @@ import {
 } from './motion-tokens';
 import { PinButton } from './pin-button';
 import { ProvenanceBadge } from '@/features/shared/provenance-badge';
+import { ExpediaCta } from '@/features/shared/expedia-cta';
+import type { TripIntent } from '@core/trip-intent';
 
 /**
  * Hero stay card. Materialize choreography (spec §5.6):
@@ -24,7 +26,15 @@ import { ProvenanceBadge } from '@/features/shared/provenance-badge';
  *
  * Reduced motion: 200ms cross-fade, no breathing.
  */
-export function HeroStayCard({ stay }: { stay: Stay }) {
+export function HeroStayCard({
+  stay,
+  intent,
+  turnId,
+}: {
+  stay: Stay;
+  intent: TripIntent;
+  turnId?: string;
+}) {
   const reduced = useReducedMotion();
   const openDetail = useWorkspaceStore((s) => s.openDetail);
   // Stay.id is the key on the AnimatePresence wrapper above us — the
@@ -153,19 +163,27 @@ export function HeroStayCard({ stay }: { stay: Stay }) {
             {stay.location.neighborhood ? ` · ${stay.location.neighborhood}` : ''}
           </p>
         </div>
-        <p
-          style={{
-            fontFamily: 'var(--font-fraunces)',
-            fontSize: 'var(--text-display-sm)',
-            color: 'var(--accent-primary)',
-            letterSpacing: '-0.01em',
-          }}
-        >
-          {stay.pricing.pricePerNight.amount.toLocaleString()}{' '}
-          <span style={{ fontSize: 'var(--text-body-sm)' }}>
-            {stay.pricing.pricePerNight.currency}
-          </span>
-        </p>
+        <div className="flex flex-col items-end gap-1">
+          <p
+            style={{
+              fontFamily: 'var(--font-fraunces)',
+              fontSize: 'var(--text-display-sm)',
+              color: 'var(--accent-primary)',
+              letterSpacing: '-0.01em',
+            }}
+          >
+            {stay.pricing.pricePerNight.amount.toLocaleString()}{' '}
+            <span style={{ fontSize: 'var(--text-body-sm)' }}>
+              {stay.pricing.pricePerNight.currency}
+            </span>
+          </p>
+          <ExpediaCta
+            stay={stay}
+            intent={intent}
+            {...(turnId ? { turnId } : {})}
+            variant="compact"
+          />
+        </div>
       </div>
     </motion.div>
   );

@@ -44,7 +44,7 @@ export default async function AdminPage() {
         features.langfuse ? ' Durable copy lives in Langfuse.' : ''
       }`}
     >
-      <section className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-5">
+      <section className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
         <SummaryCard
           label="Turns"
           value={String(summary.turns)}
@@ -75,6 +75,16 @@ export default async function AdminPage() {
               : 'authed users premium · anon free'
           }
           emphasized={features.billing.kind === 'stripe'}
+        />
+        <SummaryCard
+          label="Affiliate"
+          value={features.affiliate.expediaConfigured ? 'Expedia · Live' : 'Untracked'}
+          caption={
+            features.affiliate.expediaConfigured
+              ? 'affcid attached on every CTA'
+              : 'CTAs work · commission not tracked'
+          }
+          emphasized={features.affiliate.expediaConfigured}
         />
       </section>
 
