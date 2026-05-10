@@ -81,8 +81,10 @@ export function SavedTripRow({
                 color: 'var(--ink-tertiary)',
               }}
             >
-              {summary.destinationName} · {summary.nights}{' '}
-              {summary.nights === 1 ? 'night' : 'nights'}
+              {summary.destinationName}
+              {summary.nights > 0
+                ? ` · ${summary.nights} ${summary.nights === 1 ? 'night' : 'nights'}`
+                : ''}
             </p>
             <h3
               className="mt-1 truncate"

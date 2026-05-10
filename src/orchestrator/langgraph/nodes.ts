@@ -386,12 +386,17 @@ export function makeMoodNode(deps: GraphDeps) {
         stepId: moodStepId,
         durationMs,
       });
-      emit({
-        kind: 'mood.snapshot.ready',
-        turnId: req.turnId,
-        destinationName: snapshot.destinationName,
-        snapshot,
-      });
+      // Defense-in-depth: skip emission when text is empty (rare LLM
+      // edge; curated paths always produce text). Avoids blank mood
+      // chrome in the UI.
+      if (snapshot.text.trim().length > 0) {
+        emit({
+          kind: 'mood.snapshot.ready',
+          turnId: req.turnId,
+          destinationName: snapshot.destinationName,
+          snapshot,
+        });
+      }
     } catch (err) {
       emit({
         kind: 'agent.step.failed',

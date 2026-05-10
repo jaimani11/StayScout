@@ -394,12 +394,18 @@ export class Orchestrator {
         stepId: moodStepId,
         durationMs,
       };
-      yield {
-        kind: 'mood.snapshot.ready',
-        turnId: req.turnId,
-        destinationName: snapshot.destinationName,
-        snapshot,
-      };
+      // Only emit when the agent actually produced renderable text —
+      // a snapshot with empty `text` reaches the UI as blank chrome.
+      // Curated paths always produce text; LLM paths can occasionally
+      // return empty on flaky model calls. Defense-in-depth.
+      if (snapshot.text.trim().length > 0) {
+        yield {
+          kind: 'mood.snapshot.ready',
+          turnId: req.turnId,
+          destinationName: snapshot.destinationName,
+          snapshot,
+        };
+      }
     } catch (err) {
       yield {
         kind: 'agent.step.failed',

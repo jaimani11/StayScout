@@ -173,7 +173,10 @@ export function BookingDraftModal({ trip, onClose }: BookingDraftModalProps) {
               color: 'var(--ink-tertiary)',
             }}
           >
-            {trip.proposalSummary.destinationName} · {trip.proposalSummary.nights} nights
+            {trip.proposalSummary.destinationName}
+            {trip.proposalSummary.nights > 0
+              ? ` · ${trip.proposalSummary.nights} ${trip.proposalSummary.nights === 1 ? 'night' : 'nights'}`
+              : ''}
           </p>
         </header>
 

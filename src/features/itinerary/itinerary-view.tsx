@@ -48,7 +48,8 @@ export function ItineraryView({
             color: 'var(--ink-tertiary)',
           }}
         >
-          Day-by-day · {destinationName} · {nights} {nights === 1 ? 'night' : 'nights'}
+          Day-by-day · {destinationName}
+          {nights > 0 ? ` · ${nights} ${nights === 1 ? 'night' : 'nights'}` : ''}
         </p>
         <h1
           style={{
