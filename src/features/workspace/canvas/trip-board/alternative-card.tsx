@@ -7,6 +7,7 @@ import { useReducedMotion } from '@/features/shared/motion/reduced-motion';
 import { useWorkspaceStore } from '@/features/workspace/store/workspace-store';
 import { ALT_DURATION, ALT_STAGGER, EASE_EMPHASIZED, REDUCED_DURATION } from './motion-tokens';
 import { PinButton } from './pin-button';
+import { ProvenanceBadge } from '@/features/shared/provenance-badge';
 
 /** Alternative card. Same materialize as hero, staggered 60ms per index. */
 export function AlternativeCard({ stay, index }: { stay: Stay; index: number }) {
@@ -44,7 +45,8 @@ export function AlternativeCard({ stay, index }: { stay: Stay; index: number }) 
           opacity: 0.92,
         }}
       />
-      <div className="absolute top-2 right-2">
+      <div className="absolute top-2 right-2 flex items-center gap-1.5">
+        <ProvenanceBadge providerId={stay.providerId} />
         <PinButton stayId={stay.id} />
       </div>
       <div className="absolute right-3 bottom-3 left-3 flex items-end justify-between gap-2">

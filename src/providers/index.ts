@@ -16,6 +16,7 @@ import { MockItalyProvider } from './mock-italy';
 import { LLMSynthesizedProvider, LLMSynthesizedProviderStub } from './llm-synthesized';
 import { BookingComProvider } from './booking-com';
 import { ExpediaProvider } from './expedia';
+import { VrboProvider } from './vrbo';
 
 /**
  * Availability-aware registry.
@@ -56,7 +57,9 @@ export function buildProviderRegistry(modelClient?: ModelClient): Registry {
   if (bookingCom) real.push(bookingCom);
   const expedia = ExpediaProvider.fromEnv();
   if (expedia) real.push(expedia);
-  // Future providers slot in here (Vrbo, Hotelbeds, ...) — same pattern.
+  const vrbo = VrboProvider.fromEnv();
+  if (vrbo) real.push(vrbo);
+  // Future providers slot in here (Hotelbeds, Agoda, ...) — same pattern.
 
   const llmProvider = modelClient
     ? new LLMSynthesizedProvider(modelClient)
@@ -214,3 +217,4 @@ export { MockItalyProvider } from './mock-italy';
 export { LLMSynthesizedProvider, LLMSynthesizedProviderStub } from './llm-synthesized';
 export { BookingComProvider } from './booking-com';
 export { ExpediaProvider } from './expedia';
+export { VrboProvider } from './vrbo';

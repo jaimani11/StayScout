@@ -59,9 +59,23 @@ describe('mapLLMStayToStay', () => {
     expect(mapLLMStayToStay(sampleLLMStay).id).toBe('llm-synthesized:tokyo-quiet-house');
   });
 
-  it('attaches a category-resolved unsplash photo', () => {
+  it('attaches a slug-driven unsplash photo from the category pool', () => {
     const stay = mapLLMStayToStay(sampleLLMStay);
-    expect(stay.photos[0]?.url).toContain(resolvePhotoId('cityscape'));
+    // Slice E1: photo selection is `(category, slug)` → deterministic
+    // pool index. Same slug → same photo.
+    expect(stay.photos[0]?.url).toContain(resolvePhotoId('cityscape', sampleLLMStay.slug));
+  });
+
+  it('different slugs in the same category get different photos (diversification)', () => {
+    const a = mapLLMStayToStay({ ...sampleLLMStay, slug: 'tokyo-quiet-house' });
+    const b = mapLLMStayToStay({ ...sampleLLMStay, slug: 'kyoto-machiya' });
+    const c = mapLLMStayToStay({ ...sampleLLMStay, slug: 'shibuya-pod' });
+    // Pool size is 6 per category; three well-spaced slugs should
+    // produce at least two distinct photos (the diversification
+    // guarantee). Strict "all three differ" can fail by birthday-
+    // paradox; "≥2 distinct" is the meaningful bar.
+    const urls = new Set([a.photos[0]?.url, b.photos[0]?.url, c.photos[0]?.url]);
+    expect(urls.size).toBeGreaterThanOrEqual(2);
   });
 });
 

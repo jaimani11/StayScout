@@ -14,6 +14,7 @@ import {
   REDUCED_DURATION,
 } from './motion-tokens';
 import { PinButton } from './pin-button';
+import { ProvenanceBadge } from '@/features/shared/provenance-badge';
 
 /**
  * Hero stay card. Materialize choreography (spec §5.6):
@@ -121,7 +122,8 @@ export function HeroStayCard({ stay }: { stay: Stay }) {
         Top pick
       </motion.span>
 
-      <div className="absolute top-3 right-3">
+      <div className="absolute top-3 right-3 flex items-center gap-2">
+        <ProvenanceBadge providerId={stay.providerId} />
         <PinButton stayId={stay.id} />
       </div>
 

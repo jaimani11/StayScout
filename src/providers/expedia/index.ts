@@ -47,7 +47,9 @@ export class ExpediaProvider extends BaseAffiliateProvider {
     return res.properties.map((p) => mapExpediaProperty(p, this.creds.apiKey));
   }
 
-  protected buildBadges(_q: ProviderSearchQuery, _stays: Stay[]): ProviderBadge[] {
-    return [{ kind: 'preview', label: 'Live availability' }];
+  protected buildBadges(_q: ProviderSearchQuery, stays: Stay[]): ProviderBadge[] {
+    if (stays.length === 0) return [];
+    // 'live' kind so the ProvenanceBadge UI picks the live-tone styling.
+    return [{ kind: 'live', label: 'Expedia · Live availability' }];
   }
 }

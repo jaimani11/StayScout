@@ -134,7 +134,9 @@ export function coerceLlmStayBatch(raw: unknown): unknown {
  */
 export function mapLLMStayToStay(llm: LLMStay): Stay {
   const ns = `llm-synthesized:${llm.slug}`;
-  const photoId = resolvePhotoId(llm.photoCategory);
+  // Slug-driven photo selection so a four-up batch of cityscape stays
+  // doesn't render the same Unsplash url four times.
+  const photoId = resolvePhotoId(llm.photoCategory, llm.slug);
   return {
     id: stayId(ns),
     providerId: providerId('llm-synthesized'),

@@ -23,7 +23,12 @@ export const ProviderCapabilitiesSchema = z.object({
 export type ProviderCapabilities = z.infer<typeof ProviderCapabilitiesSchema>;
 
 export const ProviderBadgeSchema = z.object({
-  kind: z.enum(['preview', 'closest-match', 'curated', 'wholesaler']),
+  // - 'live'           — real-time partner availability (Expedia, Vrbo, Booking.com)
+  // - 'preview'        — AI-synthesized listing, no live availability
+  // - 'closest-match'  — supplied results don't exactly match query
+  // - 'curated'        — hand-picked dataset (mock-italy)
+  // - 'wholesaler'     — aggregator surface (Hotelbeds-class)
+  kind: z.enum(['live', 'preview', 'closest-match', 'curated', 'wholesaler']),
   label: z.string(),
 });
 export type ProviderBadge = z.infer<typeof ProviderBadgeSchema>;

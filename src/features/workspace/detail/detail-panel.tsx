@@ -9,6 +9,7 @@ import { selectStayById, selectTurnContainingStay } from '../store/derived';
 import { useReducedMotion } from '@/features/shared/motion/reduced-motion';
 import { useSavedTrips } from '../hooks/use-saved-trips';
 import { ConfirmRedirectModal } from './confirm-redirect-modal';
+import { ProvenanceBadge } from '@/features/shared/provenance-badge';
 
 /**
  * Side-panel detail view. Triggered by clicking a stay card. Slides in
@@ -69,17 +70,20 @@ export function DetailPanel() {
               }}
             >
               <div>
-                <p
-                  style={{
-                    fontFamily: 'var(--font-inter)',
-                    fontSize: 'var(--text-label)',
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase',
-                    color: 'var(--ink-tertiary)',
-                  }}
-                >
-                  {stay.location.region ?? stay.location.country}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p
+                    style={{
+                      fontFamily: 'var(--font-inter)',
+                      fontSize: 'var(--text-label)',
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                      color: 'var(--ink-tertiary)',
+                    }}
+                  >
+                    {stay.location.region ?? stay.location.country}
+                  </p>
+                  <ProvenanceBadge providerId={stay.providerId} variant="panel" />
+                </div>
                 <h2
                   className="mt-1 truncate"
                   style={{
