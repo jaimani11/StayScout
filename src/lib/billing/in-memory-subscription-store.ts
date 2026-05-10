@@ -1,4 +1,9 @@
-import { ownerStringKey, type OwnerKey, type Subscription, type SubscriptionStatus } from '@core/billing';
+import {
+  ownerStringKey,
+  type OwnerKey,
+  type Subscription,
+  type SubscriptionStatus,
+} from '@core/billing';
 import type { SubscriptionStore } from './subscription-store';
 
 /**
@@ -66,7 +71,6 @@ export class InMemorySubscriptionStore implements SubscriptionStore {
 }
 
 declare global {
-  // eslint-disable-next-line no-var
   var __stayscoutSubscriptionStore: InMemorySubscriptionStore | undefined;
 }
 

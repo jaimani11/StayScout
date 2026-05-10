@@ -20,7 +20,6 @@ export async function requirePremium(owner: OwnerKey): Promise<RequirePremiumRes
   if (entitlement.plan === 'premium') {
     return { entitled: true, entitlement };
   }
-  const reason: 'anonymous' | 'free' =
-    owner.ownerKind === 'session' ? 'anonymous' : 'free';
+  const reason: 'anonymous' | 'free' = owner.ownerKind === 'session' ? 'anonymous' : 'free';
   return { entitled: false, entitlement, reason };
 }

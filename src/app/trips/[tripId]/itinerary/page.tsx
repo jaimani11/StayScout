@@ -3,7 +3,9 @@ import { notFound } from 'next/navigation';
 import { getServerAuth, ownerOf } from '@lib/auth';
 import { getSessionStore } from '@lib/session/factory';
 import { getItinerarySubsystem } from '@lib/itinerary';
+import { requirePremium } from '@lib/billing';
 import { ItineraryView } from '@/features/itinerary/itinerary-view';
+import { UpgradeCard } from '@/features/billing/upgrade-card';
 
 interface PageProps {
   params: Promise<{ tripId: string }>;
@@ -57,6 +59,27 @@ export default async function ItineraryPage({ params }: PageProps) {
   if (!itinerary) {
     itinerary = await subsystem.generator.generate(trip);
     await subsystem.store.put(itinerary);
+  }
+
+  // Slice C4 soft-gate: synthesized fallback (non-curated destination)
+  // requires premium. Curated destinations (the 7 Italian regions) skip
+  // the gate entirely — the demo always renders for free.
+  if (itinerary.source === 'synthesized') {
+    const gate = await requirePremium({
+      ownerKind: owner.ownerKind,
+      ownerId: owner.ownerId,
+    });
+    if (!gate.entitled) {
+      const returnPath = `/trips/${tripId}/itinerary`;
+      return (
+        <UpgradeCard
+          destinationName={trip.proposalSummary.destinationName}
+          reason={gate.reason}
+          returnPath={returnPath}
+          cancelPath="/"
+        />
+      );
+    }
   }
 
   return (

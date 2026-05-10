@@ -183,11 +183,7 @@ export class StripeBillingProvider implements BillingProvider {
 
     let event: Stripe.Event;
     try {
-      event = this.stripe.webhooks.constructEvent(
-        args.rawBody,
-        args.signature,
-        this.webhookSecret,
-      );
+      event = this.stripe.webhooks.constructEvent(args.rawBody, args.signature, this.webhookSecret);
     } catch (err) {
       console.warn('[billing/webhook] signature verification failed:', errMsg(err));
       return { ok: false, reason: 'signature' };
@@ -294,9 +290,7 @@ export class StripeBillingProvider implements BillingProvider {
 
 // ============== Helpers ==============
 
-function readOwnerFromMetadata(
-  metadata: Stripe.Metadata | null | undefined,
-): OwnerKey | null {
+function readOwnerFromMetadata(metadata: Stripe.Metadata | null | undefined): OwnerKey | null {
   if (!metadata) return null;
   const kind = OwnerKindSchema.safeParse(metadata.ownerKind);
   const id = typeof metadata.ownerId === 'string' ? metadata.ownerId : '';

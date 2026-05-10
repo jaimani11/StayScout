@@ -11,6 +11,7 @@ export {
   ChevronDown,
   ChevronRight,
   ExternalLink,
+  Lock,
   Moon,
   Pin,
   Send,

@@ -1,8 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import {
-  _resetBillingSubsystemForTesting,
-  getBillingSubsystem,
-} from '@/lib/billing/factory';
+import { _resetBillingSubsystemForTesting, getBillingSubsystem } from '@/lib/billing/factory';
 import { requirePremium } from '@/lib/billing/gates';
 import { getInMemorySubscriptionStore } from '@/lib/billing/in-memory-subscription-store';
 import { getInMemoryWebhookEventStore } from '@/lib/billing/webhook-idempotency';

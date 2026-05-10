@@ -1,10 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { BillingError } from '@/core/billing';
 import { MockBillingProvider } from '@/lib/billing/mock-billing-provider';
-import {
-  _resetBillingSubsystemForTesting,
-  getBillingSubsystem,
-} from '@/lib/billing/factory';
+import { _resetBillingSubsystemForTesting, getBillingSubsystem } from '@/lib/billing/factory';
 import { getInMemorySubscriptionStore } from '@/lib/billing/in-memory-subscription-store';
 import { getInMemoryWebhookEventStore } from '@/lib/billing/webhook-idempotency';
 

@@ -3,6 +3,7 @@ import { BillingError } from '@core/billing';
 import type {
   BillingProvider,
   CreateCheckoutSessionArgs,
+  HandleWebhookArgs,
   HandleWebhookResult,
 } from './billing-provider';
 
@@ -40,7 +41,10 @@ export class MockBillingProvider implements BillingProvider {
     return { url: `/billing/mock-checkout?${params.toString()}` };
   }
 
-  async handleWebhook(): Promise<HandleWebhookResult> {
+  async handleWebhook(_args: HandleWebhookArgs): Promise<HandleWebhookResult> {
+    // No webhooks in mock mode. The /api/billing/webhook route surfaces
+    // a 503 when this is hit, so a misconfigured Stripe Dashboard
+    // pointed here while we're in mock mode fails loudly.
     return { ok: false, reason: 'mock-provider' };
   }
 }

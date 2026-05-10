@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { ArrowRight, Share2, X } from '@/features/shared/icons';
+import { ArrowRight, Lock, Share2, X } from '@/features/shared/icons';
+import { findDestinationBySlugOrAlias } from '@lib/curation/destinations';
 import type { SavedTripRow as SavedTripRowData } from '../hooks/use-saved-trips';
 import { ShareModal } from './share-modal';
 import { MonitoringBadge } from './monitoring-badge';
@@ -40,6 +41,12 @@ export function SavedTripRow({
     day: 'numeric',
   });
   const [shareOpen, setShareOpen] = useState(false);
+
+  // C4 hint: itineraries fall back to the synthesized generator (premium-
+  // gated for free users) for any destination outside the curated library.
+  // Show a small lock glyph next to the "Plan day-by-day" link so users
+  // see the gate at a glance. The page itself is the source of truth.
+  const isCurated = findDestinationBySlugOrAlias(summary.destinationName) !== null;
 
   function handleRowClick(e: React.MouseEvent) {
     // Don't resurface when clicking the action buttons.
@@ -158,7 +165,21 @@ export function SavedTripRow({
               fontWeight: 500,
             }}
             onClick={(e) => e.stopPropagation()}
+            aria-label={
+              isCurated
+                ? `Plan ${summary.destinationName} day-by-day`
+                : `Plan ${summary.destinationName} day-by-day (premium for non-curated destinations)`
+            }
+            title={isCurated ? undefined : 'Day-by-day for non-curated destinations is premium'}
           >
+            {!isCurated && (
+              <Lock
+                size={10}
+                strokeWidth={2.2}
+                style={{ color: 'var(--ink-tertiary)' }}
+                aria-hidden="true"
+              />
+            )}
             Plan day-by-day
             <ArrowRight size={11} strokeWidth={2.2} />
           </Link>

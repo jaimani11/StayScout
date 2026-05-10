@@ -40,7 +40,6 @@ export class InMemoryWebhookEventStore implements WebhookEventStore {
 }
 
 declare global {
-  // eslint-disable-next-line no-var
   var __stayscoutWebhookEventStore: InMemoryWebhookEventStore | undefined;
 }
 

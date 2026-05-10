@@ -26,11 +26,7 @@ const TEST_PRICE_ID = 'price_test_unit';
 /** Build a Stripe-shaped event payload. Fields we read are present;
  *  everything else is omitted (the SDK only validates the signature, not
  *  schema). */
-function eventPayload(args: {
-  id: string;
-  type: string;
-  object: Record<string, unknown>;
-}): string {
+function eventPayload(args: { id: string; type: string; object: Record<string, unknown> }): string {
   return JSON.stringify({
     id: args.id,
     object: 'event',
@@ -51,8 +47,7 @@ function subscriptionFixture(overrides: {
   customer?: string;
   currentPeriodEnd?: number;
 }): Record<string, unknown> {
-  const periodEnd =
-    overrides.currentPeriodEnd ?? Math.floor(Date.now() / 1000) + 30 * 24 * 3600;
+  const periodEnd = overrides.currentPeriodEnd ?? Math.floor(Date.now() / 1000) + 30 * 24 * 3600;
   return {
     id: overrides.id,
     object: 'subscription',
@@ -286,7 +281,7 @@ describe('StripeBillingProvider — event handlers update store', () => {
 });
 
 describe('StripeBillingProvider — idempotency', () => {
-  it("re-delivery of the same event.id returns idempotent: true and does not re-apply", async () => {
+  it('re-delivery of the same event.id returns idempotent: true and does not re-apply', async () => {
     let retrieveCount = 0;
     const env = buildProvider({
       subscriptionsRetrieve: async () => {

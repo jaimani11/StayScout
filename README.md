@@ -28,9 +28,11 @@
 
 **Slice C3 — ItineraryAgent (multi-day plans): complete.** Saved trips can be expanded into a 3-day plan at `/trips/[tripId]/itinerary`. Hand-curated 3-day itineraries for all 7 Italian destinations (~105 slots of authored editorial content); generic synthesized fallback for everywhere else. The saved-trips panel grows a "PLAN DAY-BY-DAY →" link per row. `ModelItineraryGenerator` (live model + Viator activity search) deferred to C3.x.
 
+**Slice C4 — Stripe (premium tier): complete.** Real Stripe integration alongside a mock fallback. `BillingProvider` interface with `MockBillingProvider` (keyless dev: every authed user premium, anon free) and `StripeBillingProvider` (test or live mode, hosted Checkout, signature-verified webhook, idempotent on `event.id`, owner state synced via `checkout.session.completed` + `customer.subscription.{created,updated,deleted}`). Soft-gate on the synthesized-itinerary path — curated Italy stays free for everyone. Setup walkthrough: [`docs/billing.md`](docs/billing.md) (Stripe CLI recipe + documented end-to-end test flow with card `4242 4242 4242 4242`).
+
 - Specs: [`docs/superpowers/specs/`](docs/superpowers/specs/)
 - Plans: [`docs/superpowers/plans/`](docs/superpowers/plans/)
-- Tags: `slice-a1` … `slice-a10`, `slice-b1` … `slice-b8`, `slice-c1` … `slice-c3`
+- Tags: `slice-a1` … `slice-a10`, `slice-b1` … `slice-b8`, `slice-c1` … `slice-c4`
 
 ## Quick start
 
@@ -153,8 +155,8 @@ The reverse fails CI (verified via `boundaries/dependencies` rule).
 | C1 | pgvector memory (mock-safe in-memory + scaffold for pgvector / Anthropic embeddings) | ✓ |
 | C2 | MonitoringAgent (saved-trip change watcher) | ✓ |
 | C3 | ItineraryAgent (multi-day plans) | ✓ |
-| C4 | Stripe (premium tier) | next |
-| C5 | Admin panel extensions | |
+| C4 | Stripe (premium tier) — real test-mode + mock fallback (`docs/billing.md`) | ✓ |
+| C5 | Admin panel extensions | next |
 | Slice D | BookingAgent (approval-gated → autonomous) | |
 
 ## Conventions

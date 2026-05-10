@@ -24,6 +24,11 @@ export interface ServerFeatures {
     /** 'bag-of-words' default; 'anthropic' opt-in via env flag. */
     embedding: 'bag-of-words' | 'anthropic';
   };
+  /** Slice C4 — billing provider backing. Surfaced on /admin. */
+  billing: {
+    /** 'mock' (everyone authed = premium) or 'stripe' (real Checkout + webhook). */
+    kind: 'mock' | 'stripe';
+  };
 }
 
 function isPresent(name: string): boolean {
@@ -57,6 +62,16 @@ export function getServerFeatures(): ServerFeatures {
         isPresent('ANTHROPIC_API_KEY') && process.env.STAYSCOUT_USE_ANTHROPIC_EMBEDDINGS === '1'
           ? 'anthropic'
           : 'bag-of-words',
+    },
+    billing: {
+      // Stripe mode requires all three vars. Partial config falls back
+      // to mock — see `getBillingSubsystem()` for the warning + reason.
+      kind:
+        isPresent('STRIPE_SECRET_KEY') &&
+        isPresent('STRIPE_WEBHOOK_SECRET') &&
+        isPresent('STRIPE_PRICE_ID')
+          ? 'stripe'
+          : 'mock',
     },
   };
 }

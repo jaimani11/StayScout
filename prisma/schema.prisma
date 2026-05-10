@@ -25,6 +25,7 @@ model User {
   trips         Trip[]
   conversations Conversation[]
   memories      MemoryRecord[]
+  subscription  Subscription?
 
   @@index([migratedFrom])
 }
@@ -98,6 +99,47 @@ model AffiliateClick {
   @@index([userId, createdAt])
   @@index([sessionId])
   @@index([providerId, converted])
+}
+
+// ============== Billing (Slice C4 — schema only) ==============
+//
+// C4 ships an in-memory `InMemorySubscriptionStore` + the
+// `StripeBillingProvider` that talks to Stripe. The Postgres-backed
+// `PostgresSubscriptionStore` lands in C4.x once we have a deployed
+// DB to integration-test against. Schema is in place now so the
+// migration is mechanical when it's time.
+
+model Subscription {
+  id                   String    @id @default(cuid())
+  // Owner is keyed via `userId` only — anonymous sessions can't
+  // subscribe (the route 401s before reaching here). Sign-in is
+  // required to check out, and B1's anonymous→user migration carries
+  // saved trips/memories with the new userId.
+  userId               String    @unique
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  priceId              String?
+  // Mirrors Stripe's subscription.status enum exactly so we can store
+  // webhook payloads verbatim. Helper `isPremiumStatus()` derives
+  // entitlement from this + currentPeriodEnd.
+  status               String
+  currentPeriodEnd     DateTime?
+  updatedAt            DateTime  @updatedAt
+
+  @@index([status])
+}
+
+// Webhook idempotency log. Stripe retries on any non-2xx and may
+// double-deliver — we dedupe on `event.id` (the primary key here).
+// In-memory impl is mock-safe; the Postgres impl uses INSERT ON
+// CONFLICT DO NOTHING for a true atomic check-and-set.
+model WebhookEvent {
+  id          String   @id // stripe event.id
+  type        String
+  processedAt DateTime @default(now())
+
+  @@index([type, processedAt])
 }
 
 // ============== Memory (Slice C populates) ==============
