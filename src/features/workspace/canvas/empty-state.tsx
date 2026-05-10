@@ -79,7 +79,7 @@ export function EmptyState() {
               color: 'var(--accent-primary)',
             }}
           >
-            {featured.pricing.pricePerNight.amount}{' '}
+            {featured.pricing.pricePerNight.amount.toLocaleString()}{' '}
             <span style={{ fontSize: 'var(--text-body-sm)' }}>
               {featured.pricing.pricePerNight.currency}
             </span>
