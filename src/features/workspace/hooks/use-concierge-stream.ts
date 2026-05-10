@@ -3,6 +3,7 @@
 import { useCallback, useRef } from 'react';
 import { OrchestratorEventSchema } from '@core/orchestrator-event';
 import type { ProposalRef } from '@core/partial';
+import { JsonlLineBuffer } from '@lib/streaming';
 import { useWorkspaceStore } from '../store/workspace-store';
 
 export interface SendArgs {
@@ -55,40 +56,65 @@ export function useConciergeStream(): UseConciergeStream {
         });
 
         if (!resp.ok || !resp.body) {
+          // Pull whatever the server gave us — even a one-line text body
+          // is more informative than "HTTP 500" alone.
+          let detail = `HTTP ${resp.status}`;
+          try {
+            const text = await resp.text();
+            const trimmed = text.trim();
+            if (trimmed.length > 0 && trimmed.length < 240) {
+              detail = `${detail}: ${trimmed}`;
+            }
+          } catch {
+            // Body unreadable — keep the status-only detail.
+          }
           dispatch({
             kind: 'turn.failed',
             turnId,
-            error: `HTTP ${resp.status}`,
+            error: detail,
             recoverable: false,
           });
           return;
         }
 
         const reader = resp.body.getReader();
-        const decoder = new TextDecoder();
-        let buf = '';
+        const buffer = new JsonlLineBuffer();
+
+        const dispatchLine = (line: string): void => {
+          let parsed: unknown;
+          try {
+            parsed = JSON.parse(line);
+          } catch (parseErr) {
+            console.warn(
+              '[useConciergeStream] dropped malformed JSON line',
+              parseErr instanceof Error ? parseErr.message : parseErr,
+              line.length > 200 ? `${line.slice(0, 200)}…` : line,
+            );
+            return;
+          }
+          const result = OrchestratorEventSchema.safeParse(parsed);
+          if (result.success) {
+            dispatch(result.data);
+          } else {
+            console.warn(
+              '[useConciergeStream] dropped invalid event',
+              result.error.issues.slice(0, 3),
+              parsed,
+            );
+          }
+        };
 
         while (true) {
           const { value, done } = await reader.read();
-          if (done) break;
-          buf += decoder.decode(value, { stream: true });
-          const lines = buf.split('\n');
-          buf = lines.pop() ?? '';
-          for (const line of lines) {
-            if (!line.trim()) continue;
-            let parsed: unknown;
-            try {
-              parsed = JSON.parse(line);
-            } catch {
-              continue;
-            }
-            const result = OrchestratorEventSchema.safeParse(parsed);
-            if (result.success) {
-              dispatch(result.data);
-            } else {
-              console.warn('[useConciergeStream] dropped invalid event', parsed);
-            }
+          if (done) {
+            // Drain the buffer + decoder. Without this, a stream ending
+            // mid-codepoint or without a final '\n' silently drops its
+            // last event — historically the source of "Stream interrupted"
+            // symptoms when the underlying turn had actually completed.
+            for (const line of buffer.flush()) dispatchLine(line);
+            break;
           }
+          for (const line of buffer.push(value)) dispatchLine(line);
         }
       } catch (err) {
         if (ctrl.signal.aborted) return;
