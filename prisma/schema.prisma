@@ -26,6 +26,8 @@ model User {
   conversations Conversation[]
   memories      MemoryRecord[]
   subscription  Subscription?
+  bookings      Booking[]
+  bookingDrafts BookingDraft[]
 
   @@index([migratedFrom])
 }
@@ -140,6 +142,51 @@ model WebhookEvent {
   processedAt DateTime @default(now())
 
   @@index([type, processedAt])
+}
+
+// ============== Bookings (Slice D — schema only) ==============
+//
+// Slice D ships in-memory `InMemoryBookingStore` + the
+// `MockBookingProvider`. The Postgres-backed `PostgresBookingStore`
+// + real provider integrations (`BookingComBookingProvider` etc.)
+// land in D.x. Schema is in place now so the migration is mechanical
+// when it's time.
+
+model BookingDraft {
+  id             String   @id // bkd_… from mintBookingDraftId()
+  idempotencyKey String   @unique // bk_… — provider booking is idempotent on this
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tripId         String
+  // Full BookingDraft payload as JSON — same shape as the on-the-wire
+  // type. Keeps the Postgres path simple while we iterate on the shape.
+  payload        Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model Booking {
+  id                 String    @id // bok_… from mintBookingId()
+  idempotencyKey     String    @unique
+  userId             String
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tripId             String?
+  stayId             String
+  providerId         String
+  // Provider-assigned reference (mock_… in dev; real-provider id in D.x).
+  // Null for `failed` bookings where the provider call errored before
+  // issuing a reference.
+  providerBookingRef String?
+  status             String // mirrors BookingStatus enum
+  payload            Json
+  confirmedAt        DateTime?
+  canceledAt         DateTime?
+  createdAt          DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@index([status])
+  @@index([providerBookingRef])
 }
 
 // ============== Memory (Slice C populates) ==============

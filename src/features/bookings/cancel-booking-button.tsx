@@ -1,0 +1,89 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+
+interface CancelBookingButtonProps {
+  bookingId: string;
+}
+
+/**
+ * Inline "Cancel booking" button on the confirmation page. Owner-gated
+ * server-side; this client wrapper just sends the POST + refreshes
+ * the page on success.
+ *
+ * Two-click confirmation pattern: first click flips the button to a
+ * "Confirm cancel" state, second click actually fires. Mirrors
+ * Slice B3's share/remove pattern for destructive actions.
+ */
+export function CancelBookingButton({ bookingId }: CancelBookingButtonProps) {
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function fire(): Promise<void> {
+    setPending(true);
+    setError(null);
+    try {
+      const resp = await fetch(`/api/bookings/${bookingId}/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}',
+      });
+      const data = (await resp.json()) as { booking?: unknown; error?: string; message?: string };
+      if (!resp.ok) {
+        setError(data.message ?? data.error ?? 'Could not cancel.');
+        setPending(false);
+        return;
+      }
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not cancel.');
+      setPending(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <button
+        type="button"
+        onClick={() => {
+          if (confirming) {
+            void fire();
+          } else {
+            setConfirming(true);
+            // Auto-revert after 4s if the user doesn't click again.
+            setTimeout(() => setConfirming(false), 4000);
+          }
+        }}
+        disabled={pending}
+        style={{
+          fontFamily: 'var(--font-inter)',
+          fontSize: 'var(--text-body-sm)',
+          letterSpacing: '0.04em',
+          padding: '0.6rem 1rem',
+          background: confirming ? 'var(--accent-warning, #ff8e6b)' : 'transparent',
+          color: confirming ? 'var(--surface-1)' : 'var(--ink-secondary)',
+          border: `1px solid ${confirming ? 'var(--accent-warning, #ff8e6b)' : 'var(--border-subtle)'}`,
+          borderRadius: '0.4rem',
+          cursor: pending ? 'wait' : 'pointer',
+          alignSelf: 'flex-start',
+        }}
+      >
+        {pending ? 'Canceling…' : confirming ? 'Click again to confirm cancel' : 'Cancel booking'}
+      </button>
+      {error && (
+        <p
+          style={{
+            fontFamily: 'var(--font-inter)',
+            fontSize: '0.72rem',
+            color: 'var(--accent-warning, #ff8e6b)',
+          }}
+        >
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}

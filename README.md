@@ -32,9 +32,11 @@
 
 **Slice C5 — Admin panel extensions: complete.** `/admin` grew from a telemetry summary into a real operator console. Four new pages: `/admin/turns/[turnId]` (per-trace drill-in with agent timeline + tokens + cost), `/admin/clicks` (affiliate click feed, owner-linked), `/admin/users/[userId]` (per-owner aggregate: trips, memories, billing entitlement, recent turns), `/admin/memories` (memory index browser with similarity search). Single auth gate via `requireAdmin()`; shared `<AdminShell>` + nav. Dashboard now surfaces a billing card alongside the existing turn/latency/cost/error stats. Only additive interface methods on the stores (`listClicks`, `listForOwner`, `listAllOwners`).
 
+**Slice D — BookingAgent (approval-gated): complete.** Mock-safe end-to-end booking flow. From a saved-trip row, "Book this →" opens a two-step modal: traveler form → draft review (dates, total, cancellation policy) → explicit "Confirm booking" → `/bookings/[bookingId]` with the confirmation. `BookingProvider` interface + `MockBookingProvider` (idempotent on user's confirm-click), `BookingStore` (in-memory, owner-scoped), `BookingAgent` (draft/confirm/cancel). Sibling admin page `/admin/bookings` shows the feed with owner links + status pills. Real provider booking + autonomous mode + card capture explicitly **deferred to D.x** (architecture seam in place via `STAYSCOUT_LIVE_BOOKING` flag + `autonomous` arg on the agent).
+
 - Specs: [`docs/superpowers/specs/`](docs/superpowers/specs/)
 - Plans: [`docs/superpowers/plans/`](docs/superpowers/plans/)
-- Tags: `slice-a1` … `slice-a10`, `slice-b1` … `slice-b8`, `slice-c1` … `slice-c5`
+- Tags: `slice-a1` … `slice-a10`, `slice-b1` … `slice-b8`, `slice-c1` … `slice-c5`, `slice-d`
 
 ## Quick start
 
@@ -159,7 +161,8 @@ The reverse fails CI (verified via `boundaries/dependencies` rule).
 | C3 | ItineraryAgent (multi-day plans) | ✓ |
 | C4 | Stripe (premium tier) — real test-mode + mock fallback (`docs/billing.md`) | ✓ |
 | C5 | Admin panel extensions — turns, clicks, users, memories | ✓ |
-| Slice D | BookingAgent (approval-gated → autonomous) | next |
+| D | BookingAgent (approval-gated; autonomous deferred to D.x) | ✓ |
+| D.x | Real provider booking + autonomous mode + card capture | next |
 
 ## Conventions
 

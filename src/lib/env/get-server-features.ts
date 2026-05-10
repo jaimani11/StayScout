@@ -29,6 +29,15 @@ export interface ServerFeatures {
     /** 'mock' (everyone authed = premium) or 'stripe' (real Checkout + webhook). */
     kind: 'mock' | 'stripe';
   };
+  /** Slice D — booking provider backing. Surfaced on /admin. */
+  bookings: {
+    /** 'mock' in Slice D. 'live' once D.x ships real provider booking. */
+    kind: 'mock' | 'live';
+    /** True iff `STAYSCOUT_LIVE_BOOKING=1`. The seam exists; the wiring
+     *  lands in D.x. Operators see "live is configured but inactive" via
+     *  this flag without surprises in the demo. */
+    liveEnabled: boolean;
+  };
 }
 
 function isPresent(name: string): boolean {
@@ -72,6 +81,12 @@ export function getServerFeatures(): ServerFeatures {
         isPresent('STRIPE_PRICE_ID')
           ? 'stripe'
           : 'mock',
+    },
+    bookings: {
+      // Slice D ships only the mock provider. D.x adds the env-driven
+      // switch behind STAYSCOUT_LIVE_BOOKING + per-provider keys.
+      kind: 'mock',
+      liveEnabled: process.env.STAYSCOUT_LIVE_BOOKING === '1',
     },
   };
 }

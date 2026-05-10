@@ -8,6 +8,7 @@ import { findDestinationBySlugOrAlias } from '@lib/curation/destinations';
 import type { SavedTripRow as SavedTripRowData } from '../hooks/use-saved-trips';
 import { ShareModal } from './share-modal';
 import { MonitoringBadge } from './monitoring-badge';
+import { BookThisButton } from '@/features/bookings/book-this-button';
 
 /**
  * Single row in the saved-trips panel. Affordances:
@@ -152,37 +153,40 @@ export function SavedTripRow({
           >
             Bookmarked {dateLabel}
           </p>
-          <Link
-            href={`/trips/${trip.id}/itinerary`}
-            data-row-action
-            className="inline-flex items-center gap-1 transition-colors hover:text-[color:var(--accent-primary)]"
-            style={{
-              fontFamily: 'var(--font-inter)',
-              fontSize: 'var(--text-label)',
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase',
-              color: 'var(--ink-secondary)',
-              fontWeight: 500,
-            }}
-            onClick={(e) => e.stopPropagation()}
-            aria-label={
-              isCurated
-                ? `Plan ${summary.destinationName} day-by-day`
-                : `Plan ${summary.destinationName} day-by-day (premium for non-curated destinations)`
-            }
-            title={isCurated ? undefined : 'Day-by-day for non-curated destinations is premium'}
-          >
-            {!isCurated && (
-              <Lock
-                size={10}
-                strokeWidth={2.2}
-                style={{ color: 'var(--ink-tertiary)' }}
-                aria-hidden="true"
-              />
-            )}
-            Plan day-by-day
-            <ArrowRight size={11} strokeWidth={2.2} />
-          </Link>
+          <div className="flex items-center gap-3">
+            <BookThisButton trip={trip} />
+            <Link
+              href={`/trips/${trip.id}/itinerary`}
+              data-row-action
+              className="inline-flex items-center gap-1 transition-colors hover:text-[color:var(--accent-primary)]"
+              style={{
+                fontFamily: 'var(--font-inter)',
+                fontSize: 'var(--text-label)',
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                color: 'var(--ink-secondary)',
+                fontWeight: 500,
+              }}
+              onClick={(e) => e.stopPropagation()}
+              aria-label={
+                isCurated
+                  ? `Plan ${summary.destinationName} day-by-day`
+                  : `Plan ${summary.destinationName} day-by-day (premium for non-curated destinations)`
+              }
+              title={isCurated ? undefined : 'Day-by-day for non-curated destinations is premium'}
+            >
+              {!isCurated && (
+                <Lock
+                  size={10}
+                  strokeWidth={2.2}
+                  style={{ color: 'var(--ink-tertiary)' }}
+                  aria-hidden="true"
+                />
+              )}
+              Plan day-by-day
+              <ArrowRight size={11} strokeWidth={2.2} />
+            </Link>
+          </div>
         </div>
       </motion.li>
 
