@@ -266,9 +266,19 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set,
         updateCurrentTurn(set, get, (turn) => ({ ...turn, moodSnapshot: event.snapshot }));
         break;
 
-      case 'turn.completed':
+      case 'turn.completed': {
         updateCurrentTurn(set, get, (turn) => ({ ...turn, status: 'settled' }));
+        // If the turn finished without producing a proposal or
+        // search-opportunity (e.g. the orchestrator's "tell me where"
+        // short-circuit), the phase was stuck at 'composing' / 'refining'
+        // and the InputBar's disabled state never lifted. Drop the phase
+        // back to a non-streaming state so the user can type again.
+        const phase = get().phase;
+        if (phase === 'composing' || phase === 'refining' || phase === 'shimmering') {
+          set({ phase: 'settled' });
+        }
         break;
+      }
 
       case 'turn.failed':
         set({ phase: 'error' });

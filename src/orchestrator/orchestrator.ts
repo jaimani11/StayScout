@@ -26,6 +26,7 @@ import { computeIntentDelta } from './intent-delta';
 import { computeProposalDiff } from './proposal-diff';
 import { buildProposal, buildProposalRef } from './proposal-builder';
 import { routeForIntent, type RouteDecision } from './route-search';
+import { extractDestinationFallback } from './extract-destination-fallback';
 import { synthesizeAdaptationNotes } from './synthesize-adaptation';
 
 export interface OrchestratorOptions {
@@ -220,6 +221,28 @@ export class Orchestrator {
     // Decide between real-inventory path (existing) and SearchOpportunity
     // path (new). Opportunity short-circuits the proposal flow: we emit
     // `search.opportunity.ready` + complete the turn. No fake hotels.
+
+    // Defensive: the IntentAgent occasionally returns an intent with an
+    // empty destinations array (e.g. for terse prompts like "Austria
+    // ski trip for 6 people" where the model can't pick a single city).
+    // Try a keyword-based fallback against our known cities + countries
+    // before we route - this saves the user a "tell me where" bounce.
+    if (intent.destinations.length === 0) {
+      const fallback = extractDestinationFallback(req.input.rawInput);
+      if (fallback) {
+        intent = {
+          ...intent,
+          destinations: [
+            {
+              kind: 'synthesized',
+              name: fallback.name,
+              country: fallback.country,
+            },
+          ],
+        };
+      }
+    }
+
     const route = this.routeDecider(intent);
     if (route.kind === 'opportunity') {
       yield* this.runOpportunityBranch(req, ctx.signal, intent, agentTrace, turnStartedAt);

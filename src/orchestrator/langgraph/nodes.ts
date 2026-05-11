@@ -22,6 +22,7 @@ import { computeIntentDelta } from '../intent-delta';
 import { computeProposalDiff } from '../proposal-diff';
 import { buildProposal, buildProposalRef } from '../proposal-builder';
 import type { RouteDecision } from '../route-search';
+import { extractDestinationFallback } from '../extract-destination-fallback';
 import { synthesizeAdaptationNotes } from '../synthesize-adaptation';
 import {
   RUNTIME_CONTEXT_KEY,
@@ -231,10 +232,32 @@ export function makeIntentNode(deps: GraphDeps) {
       emit({ kind: 'intent.extracted', turnId: req.turnId, intent });
     }
 
+    // Recover a destination by keyword-matching the raw input when
+    // the IntentAgent returned an empty destinations array (terse
+    // prompts like "Austria ski trip for 6 people" sometimes trip
+    // the model). Mirrors the same fallback in the hand-rolled
+    // orchestrator so both engines behave identically.
+    let resolvedIntent = intent;
+    if (resolvedIntent.destinations.length === 0) {
+      const fallback = extractDestinationFallback(req.input.rawInput);
+      if (fallback) {
+        resolvedIntent = {
+          ...resolvedIntent,
+          destinations: [
+            {
+              kind: 'synthesized',
+              name: fallback.name,
+              country: fallback.country,
+            },
+          ],
+        };
+      }
+    }
+
     // Slice F1 - compute the route decision here so `routeAfterIntent`
     // (a pure router function) can branch without re-running deciders.
-    const route = deps.routeDecider(intent);
-    return { intent, agentTrace, route };
+    const route = deps.routeDecider(resolvedIntent);
+    return { intent: resolvedIntent, agentTrace, route };
   };
 }
 
