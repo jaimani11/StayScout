@@ -1,7 +1,5 @@
 'use client';
 
-import Image from 'next/image';
-import { useState } from 'react';
 import type { SearchOpportunity } from '@core/search-opportunity';
 import { useWorkspaceStore } from '../../store/workspace-store';
 import { SearchOpportunityCard } from './search-opportunity-card';
@@ -71,11 +69,13 @@ export function SearchOpportunityBoard({ opportunity }: Props) {
 
 function HeroBand({ opportunity }: { opportunity: SearchOpportunity }) {
   const digest = describeDigest(opportunity);
-  // Resilience against Unsplash IDs that get repurposed and start
-  // serving non-travel imagery (or 404). When the hero image fails to
-  // load, we render a deterministic gradient derived from the
-  // destination name so the band still looks intentional.
-  const [imageOk, setImageOk] = useState(true);
+  // Hero is gradient-only for now. Unsplash photo IDs keep getting
+  // repurposed (we've lost three this slice alone: a Tuscan castle
+  // turned into a burger, a Tuscany ID started serving London, and
+  // two consecutive Lisbon IDs went dark). Until we self-host or
+  // adopt a stable image source, the hero relies on a deterministic
+  // destination-themed gradient + bold typography - which never
+  // breaks and reads as intentional editorial chrome.
   const gradient = destinationGradient(opportunity.destination.name);
 
   return (
@@ -86,38 +86,17 @@ function HeroBand({ opportunity }: { opportunity: SearchOpportunity }) {
         border: '1px solid var(--border-subtle)',
         boxShadow: 'var(--elev-card)',
         minHeight: '15rem',
+        background: `linear-gradient(140deg, ${gradient[0]} 0%, ${gradient[1]} 100%)`,
       }}
     >
-      {imageOk ? (
-        <Image
-          src={opportunity.photoUrl}
-          alt={opportunity.photoAlt}
-          fill
-          sizes="(max-width: 768px) 100vw, 70vw"
-          style={{ objectFit: 'cover' }}
-          // Photo lookup is hash-deterministic - same destination always
-          // gets the same image. Priority because this is above-the-fold
-          // for the opportunity flow.
-          priority
-          onError={() => setImageOk(false)}
-        />
-      ) : (
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background: `linear-gradient(140deg, ${gradient[0]} 0%, ${gradient[1]} 100%)`,
-          }}
-        />
-      )}
-      {/* Darkening gradient so the editorial copy stays legible across
-       *  varied photography. */}
+      {/* Subtle vignette so the editorial copy stays legible at the
+       *  top + bottom of the hero. */}
       <div
         aria-hidden
         className="absolute inset-0"
         style={{
           background:
-            'linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.18) 35%, rgba(0,0,0,0.62) 100%)',
+            'linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 35%, rgba(0,0,0,0.45) 100%)',
         }}
       />
 
@@ -140,20 +119,6 @@ function HeroBand({ opportunity }: { opportunity: SearchOpportunity }) {
           >
             {digest}
           </span>
-          {imageOk && (
-            <span
-              style={{
-                fontFamily: 'var(--font-inter)',
-                fontSize: '0.55rem',
-                letterSpacing: '0.05em',
-                color: 'rgba(237,230,219,0.8)',
-                textShadow: '0 1px 2px rgba(0,0,0,0.6)',
-              }}
-              aria-label={`Photo: ${opportunity.photoCredit}`}
-            >
-              {opportunity.photoCredit}
-            </span>
-          )}
         </div>
 
         <div className="flex flex-col gap-2">

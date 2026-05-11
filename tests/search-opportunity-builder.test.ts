@@ -61,15 +61,26 @@ describe('buildSearchOpportunity', () => {
       expect(p.url).toContain('2026-09-01');
       expect(p.url).toContain('2026-09-05');
     }
-    // Expedia: flat adults + comma-joined children ages; Vrbo:
-    // adults/children counts; Hotels.com: q-room-0-* params.
+    // Expedia: flat adults + comma-joined children ages.
+    // Vrbo: destination + adults + children, with from/to dates
+    // matching Vrbo's own search-box submission shape.
+    // Hotels.com: destination= (not q-destination=) + q-room-0-*
+    // params matching Hotels.com's own search-box shape.
     const expedia = opp.providers.find((p) => p.providerId === 'expedia')!.url;
     expect(expedia).toContain('adults=4');
     expect(expedia).toContain('children=8'); // ages comma-joined when set
+
     const vrbo = opp.providers.find((p) => p.providerId === 'vrbo')!.url;
+    expect(vrbo).toContain('destination=Vancouver');
+    expect(vrbo).toContain('from=2026-09-01');
+    expect(vrbo).toContain('to=2026-09-05');
     expect(vrbo).toContain('adults=4');
     expect(vrbo).toContain('children=2');
+
     const hotelsCom = opp.providers.find((p) => p.providerId === 'hotels-com')!.url;
+    expect(hotelsCom).toContain('destination=Vancouver');
+    expect(hotelsCom).not.toContain('q-destination=');
+    expect(hotelsCom).toContain('q-check-in=2026-09-01');
     expect(hotelsCom).toContain('q-room-0-adults=4');
     expect(hotelsCom).toContain('q-room-0-children=2');
   });

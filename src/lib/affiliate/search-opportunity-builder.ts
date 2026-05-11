@@ -131,19 +131,20 @@ function vrboSearchOpportunity(args: {
   children: number;
   config: ExpediaAffiliateConfig;
 }): SearchOpportunityProvider {
-  // Vrbo affiliate-search URL - uses the same Expedia Group affcid
-  // since they're one program. The path differs (Vrbo's search uses
-  // /search?q=… instead of Hotel-Search?destination=…).
+  // Vrbo affiliate-search URL. Vrbo's search box submits to
+  // `/search?destination=...&from=YYYY-MM-DD&to=YYYY-MM-DD&adults=N`
+  // (the same shape we capture when typing in their own UI). The
+  // previous `?q=` form did NOT trigger a search and dumped the user
+  // on the homepage.
   const params = new URLSearchParams();
-  params.set('q', args.destination);
-  params.set('checkin', args.checkIn);
-  params.set('checkout', args.checkOut);
+  params.set('destination', args.destination);
+  params.set('from', args.checkIn);
+  params.set('to', args.checkOut);
   params.set('adults', String(args.adults));
   if (args.children > 0) params.set('children', String(args.children));
   if (args.config.cid) {
-    // Vrbo expects `affiliateId` (Expedia Group's branded variant).
-    // The Expedia `affcid` works on vrbo.com URLs in the Creator
-    // Platform program.
+    // Vrbo uses `affiliateId` for Expedia Group's Creator Platform
+    // affcid (same id as Expedia.com, different param name).
     params.set('affiliateId', args.config.cid);
   }
   if (args.config.label) params.set('label', args.config.label);
@@ -152,7 +153,7 @@ function vrboSearchOpportunity(args: {
     providerId: 'vrbo',
     displayName: 'Vrbo',
     url: `https://www.vrbo.com/search?${params.toString()}`,
-    hint: 'Vacation rentals - cottages, villas, cabins, private homes.',
+    hint: 'Vacation rentals: cottages, villas, cabins, private homes.',
   };
 }
 
@@ -164,12 +165,13 @@ function hotelsComSearchOpportunity(args: {
   children: number;
   config: ExpediaAffiliateConfig;
 }): SearchOpportunityProvider {
-  // Hotels.com is an Expedia Group brand. The query string is
-  // similar to Expedia's. We reuse the Expedia affcid (same Creator
-  // Platform); partners with a distinct Hotels.com account can later
-  // add a HOTELS_COM_AFFCID env var without touching this code.
+  // Hotels.com is an Expedia Group brand. Their search box submits to
+  // /Hotel-Search?destination=<name>&q-check-in=...&q-check-out=...
+  // The previous form (q-destination=) was Expedia.com's pattern and
+  // dropped Hotels.com on the home page. The rest of the q- params
+  // mirror Hotels.com's own URL structure for occupancy.
   const params = new URLSearchParams();
-  params.set('q-destination', args.destination);
+  params.set('destination', args.destination);
   params.set('q-check-in', args.checkIn);
   params.set('q-check-out', args.checkOut);
   params.set('q-rooms', '1');
