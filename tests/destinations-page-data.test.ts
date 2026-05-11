@@ -12,7 +12,7 @@ import { STAYS_BY_DESTINATION } from '@/providers/mock-italy/data';
  *   - have a curated mood snapshot
  *   - have ≥3 stays in STAYS_BY_DESTINATION
  *
- * Adding a destination later means satisfying all of these — the test
+ * Adding a destination later means satisfying all of these - the test
  * is the contract.
  */
 
@@ -25,9 +25,9 @@ describe('destination page data', () => {
       });
 
       it('headline is short and oneLiner is single-sentence-ish', () => {
-        // Headlines are fragments — fewer than 10 words.
+        // Headlines are fragments - fewer than 10 words.
         expect(d.headline.split(/\s+/).length).toBeLessThanOrEqual(10);
-        // OneLiners are single sentences — ≤30 words to keep it tight.
+        // OneLiners are single sentences - ≤30 words to keep it tight.
         expect(d.oneLiner.split(/\s+/).length).toBeLessThanOrEqual(30);
       });
 

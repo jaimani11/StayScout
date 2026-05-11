@@ -1,12 +1,12 @@
-# StayScout Slice A7 — Workspace Shell + Chat Sidebar Implementation Plan
+# StayScout Slice A7 - Workspace Shell + Chat Sidebar Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Replace the A1 placeholder hero with a working split-pane workspace. Chat sidebar (greeting → suggestions → message thread → agent step list → input bar). Canvas (empty state with featured stay → shimmer during stream → basic Trip Board after `proposal.ready`). Zustand store fed by typed events from the JSONL stream. After A7, typing in the input and pressing send actually composes a trip end-to-end. The cinematic Trip Board materialization lands in A8 — A7 ships a structurally-correct but motion-light version so the workflow is visible.
+**Goal:** Replace the A1 placeholder hero with a working split-pane workspace. Chat sidebar (greeting → suggestions → message thread → agent step list → input bar). Canvas (empty state with featured stay → shimmer during stream → basic Trip Board after `proposal.ready`). Zustand store fed by typed events from the JSONL stream. After A7, typing in the input and pressing send actually composes a trip end-to-end. The cinematic Trip Board materialization lands in A8 - A7 ships a structurally-correct but motion-light version so the workflow is visible.
 
 **Architecture:** Single client component `<Workspace>` mounted at `/`. Zustand store at `src/features/workspace/store/` owns ALL UI state derived from the wire (events → state). `useConciergeStream()` hook handles fetch + JSONL parsing + dispatch. Chat sidebar and canvas are dumb-renderers reading from the store. Voice rules (Fraunces italic for concierge speech, Inter for UI) enforced via design-token usage from A1.
 
-**Tests:** Pure-function reducer tests on the store. Hook + components manually verified during the final smoke (no API key needed for the basic structural test — the orchestrator emits `turn.failed` cleanly when the Anthropic key is missing).
+**Tests:** Pure-function reducer tests on the store. Hook + components manually verified during the final smoke (no API key needed for the basic structural test - the orchestrator emits `turn.failed` cleanly when the Anthropic key is missing).
 
 **Tech additions:** `zustand`.
 
@@ -646,7 +646,7 @@ Total: ~14 new files, 2 modified, 1 deleted.
     );
   }
 
-  // "Reading your trip" → "Read your trip" — naive but works for our prompts.
+  // "Reading your trip" → "Read your trip" - naive but works for our prompts.
   function pastTense(label: string): string {
     return label
       .replace(/^Reading/i, 'Read')
@@ -751,7 +751,7 @@ Total: ~14 new files, 2 modified, 1 deleted.
                   fontStyle: 'italic',
                 }}
               >
-                Stream interrupted — try again?
+                Stream interrupted - try again?
               </div>
             ) : null}
           </div>
@@ -971,7 +971,7 @@ Total: ~14 new files, 2 modified, 1 deleted.
             lineHeight: 1.5,
           }}
         >
-          Tell me about your trip — or start with one of the suggestions.
+          Tell me about your trip - or start with one of the suggestions.
         </p>
       </div>
     );
@@ -1236,7 +1236,7 @@ Total: ~14 new files, 2 modified, 1 deleted.
 
 - [ ] Create `tests/featured-today.test.ts` covering daily-rotation determinism (2 tests).
 
-(Both written as pure-function tests — no React, no DOM.)
+(Both written as pure-function tests - no React, no DOM.)
 
 ## Task 9: Final pipeline + manual smoke + tag
 

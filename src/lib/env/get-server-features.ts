@@ -17,19 +17,19 @@ export interface ServerFeatures {
     bookingCom: boolean;
     expedia: boolean;
   };
-  /** Slice C1 — memory subsystem backing. Surfaced on /admin. */
+  /** Slice C1 - memory subsystem backing. Surfaced on /admin. */
   memory: {
     /** Always 'in-memory' in C1 mock-safe path; 'pgvector' when DB + flag set. */
     kind: 'in-memory' | 'pgvector';
     /** 'bag-of-words' default; 'anthropic' opt-in via env flag. */
     embedding: 'bag-of-words' | 'anthropic';
   };
-  /** Slice C4 — billing provider backing. Surfaced on /admin. */
+  /** Slice C4 - billing provider backing. Surfaced on /admin. */
   billing: {
     /** 'mock' (everyone authed = premium) or 'stripe' (real Checkout + webhook). */
     kind: 'mock' | 'stripe';
   };
-  /** Slice D — booking provider backing. Surfaced on /admin. */
+  /** Slice D - booking provider backing. Surfaced on /admin. */
   bookings: {
     /** 'mock' in Slice D. 'live' once D.x ships real provider booking. */
     kind: 'mock' | 'live';
@@ -38,7 +38,7 @@ export interface ServerFeatures {
      *  this flag without surprises in the demo. */
     liveEnabled: boolean;
   };
-  /** Slice E2 — Expedia affiliate creator platform. Surfaced on /admin. */
+  /** Slice E2 - Expedia affiliate creator platform. Surfaced on /admin. */
   affiliate: {
     /** True iff a non-empty Expedia affcid is configured. Affiliate
      *  links work without it (URL still resolves) but commission
@@ -50,7 +50,7 @@ export interface ServerFeatures {
 function isPresent(name: string): boolean {
   const v = process.env[name];
   // Treat empty AND the placeholder URL we use for `prisma generate` as
-  // "not configured" — placeholder lets codegen run without forcing every
+  // "not configured" - placeholder lets codegen run without forcing every
   // dev to set up Postgres locally.
   if (typeof v !== 'string' || v.length === 0) return false;
   if (v.includes('placeholder@localhost') || v === 'placeholder') return false;
@@ -81,7 +81,7 @@ export function getServerFeatures(): ServerFeatures {
     },
     billing: {
       // Stripe mode requires all three vars. Partial config falls back
-      // to mock — see `getBillingSubsystem()` for the warning + reason.
+      // to mock - see `getBillingSubsystem()` for the warning + reason.
       kind:
         isPresent('STRIPE_SECRET_KEY') &&
         isPresent('STRIPE_WEBHOOK_SECRET') &&

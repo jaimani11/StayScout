@@ -6,7 +6,7 @@ export const PartialnessReportSchema = z.object({
 });
 export type PartialnessReport = z.infer<typeof PartialnessReportSchema>;
 
-// ProposalRef — stable lookup token for a proposal. Same shape used in:
+// ProposalRef - stable lookup token for a proposal. Same shape used in:
 //   * proposal.refining.priorProposalRef
 //   * proposal.bookmarkable.ref
 //   * ConciergeRequest.input.priorProposalRef

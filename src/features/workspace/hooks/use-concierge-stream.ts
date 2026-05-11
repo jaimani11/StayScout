@@ -56,7 +56,7 @@ export function useConciergeStream(): UseConciergeStream {
         });
 
         if (!resp.ok || !resp.body) {
-          // Pull whatever the server gave us — even a one-line text body
+          // Pull whatever the server gave us - even a one-line text body
           // is more informative than "HTTP 500" alone.
           let detail = `HTTP ${resp.status}`;
           try {
@@ -66,7 +66,7 @@ export function useConciergeStream(): UseConciergeStream {
               detail = `${detail}: ${trimmed}`;
             }
           } catch {
-            // Body unreadable — keep the status-only detail.
+            // Body unreadable - keep the status-only detail.
           }
           dispatch({
             kind: 'turn.failed',
@@ -109,7 +109,7 @@ export function useConciergeStream(): UseConciergeStream {
           if (done) {
             // Drain the buffer + decoder. Without this, a stream ending
             // mid-codepoint or without a final '\n' silently drops its
-            // last event — historically the source of "Stream interrupted"
+            // last event - historically the source of "Stream interrupted"
             // symptoms when the underlying turn had actually completed.
             for (const line of buffer.flush()) dispatchLine(line);
             break;

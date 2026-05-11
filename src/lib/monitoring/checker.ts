@@ -2,7 +2,7 @@ import type { SavedTrip } from '@lib/session/session-store';
 import type { MonitoringEvent, MonitoringEventKind, MonitoringSnapshot } from './types';
 
 /**
- * MonitoringChecker — given a saved trip + last-snapshot, decide
+ * MonitoringChecker - given a saved trip + last-snapshot, decide
  * whether a material change has happened. Returns at most one event
  * per check (single-badge UX).
  *
@@ -54,7 +54,7 @@ const VARIANTS: readonly EventVariant[] = [
       const pct = 0.02 + roll * 0.04;
       return {
         delta: pct,
-        message: `${trip.proposalSummary.heroStayName} · ↑ ${Math.round(pct * 100)}% — book before it climbs further`,
+        message: `${trip.proposalSummary.heroStayName} · ↑ ${Math.round(pct * 100)}% - book before it climbs further`,
       };
     },
   },
@@ -131,7 +131,7 @@ function fnv1a(s: string): number {
   return h >>> 0;
 }
 
-/** Mulberry32 PRNG — small, deterministic, good enough for demo lottery. */
+/** Mulberry32 PRNG - small, deterministic, good enough for demo lottery. */
 function mulberry32(seed: number): () => number {
   let s = seed >>> 0;
   return () => {

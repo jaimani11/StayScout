@@ -19,7 +19,7 @@ interface HttpJsonOptions {
  *   - Combines the caller's AbortSignal with an internal timeout signal
  *     so the request bails fast on either condition.
  *   - Retries once on 5xx + transient network errors; never retries on
- *     4xx (those are permanent — caller's bug or auth issue).
+ *     4xx (those are permanent - caller's bug or auth issue).
  *   - Throws ProviderError subclasses so the orchestrator's
  *     degradation policy classifies failures correctly.
  *   - Returns `null` on 404 (deliberate: "no result" not "broken").
@@ -87,7 +87,7 @@ export async function httpJson<T>(url: string, opts: HttpJsonOptions): Promise<T
 }
 
 function maskUrl(url: string): string {
-  // Strip query string from logs — affiliate ids + api keys live there.
+  // Strip query string from logs - affiliate ids + api keys live there.
   const idx = url.indexOf('?');
   return idx >= 0 ? url.slice(0, idx) : url;
 }

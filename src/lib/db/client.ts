@@ -3,7 +3,7 @@ import { getServerFeatures } from '@lib/env';
 
 /**
  * Lazy Prisma client singleton. Returns null when DATABASE_URL is unset
- * (or set to the placeholder used for codegen) — code paths that touch
+ * (or set to the placeholder used for codegen) - code paths that touch
  * the DB must check for null first. The SessionStore factory handles
  * that branching at the boundary so orchestrator + route handlers don't.
  *
@@ -24,7 +24,7 @@ export function getDbClient(): PrismaClient | null {
         log: process.env.NODE_ENV === 'production' ? ['error'] : ['warn', 'error'],
       });
     } catch (err) {
-      console.warn('[db] Prisma client failed to initialise — continuing in mock mode:', err);
+      console.warn('[db] Prisma client failed to initialise - continuing in mock mode:', err);
       globalThis.__stayscoutPrisma = null;
     }
   }

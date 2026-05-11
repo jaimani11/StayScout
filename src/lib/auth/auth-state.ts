@@ -1,5 +1,5 @@
 /**
- * AuthState — a discriminated union surfaced everywhere the app asks
+ * AuthState - a discriminated union surfaced everywhere the app asks
  * "who is this." Anonymous always carries a sessionId (cookie-bound);
  * authenticated carries both userId and sessionId so anonymous→user
  * migration and click attribution have a single record to work with.

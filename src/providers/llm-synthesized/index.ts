@@ -78,7 +78,7 @@ export class LLMSynthesizedProvider implements Provider {
         throw err;
       }
       console.warn(
-        '[llm-synthesized] model call failed — returning empty result, orchestrator will surface a friendly empty-search message',
+        '[llm-synthesized] model call failed - returning empty result, orchestrator will surface a friendly empty-search message',
         { error: err instanceof Error ? err.message : String(err) },
       );
       return this.emptyResult();
@@ -137,7 +137,7 @@ function extractVibeTags(query: ProviderSearchQuery): readonly string[] {
 }
 
 // Stub kept for the default `routeProvider` consumed by tests/orchestrator
-// outside the production singleton — returns empty results without touching
+// outside the production singleton - returns empty results without touching
 // a model client.
 export const LLMSynthesizedProviderStub: Provider = {
   id: providerId('llm-synthesized'),

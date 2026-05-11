@@ -41,7 +41,7 @@ describe('computeCostUsd', () => {
       expect(p.inputPerMillion).toBeGreaterThan(0);
       expect(p.outputPerMillion).toBeGreaterThan(0);
       // Output is always at least as expensive as input (Anthropic
-      // pricing rule of thumb — flag if a future entry inverts).
+      // pricing rule of thumb - flag if a future entry inverts).
       expect(p.outputPerMillion).toBeGreaterThanOrEqual(p.inputPerMillion);
       expect(computeCostUsd(model, 1, 1)).toBeGreaterThan(0);
     }

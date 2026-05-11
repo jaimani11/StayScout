@@ -7,15 +7,15 @@ import { isAllowedAffiliateHost } from '@lib/affiliate/allowlist';
 export const runtime = 'nodejs';
 
 /**
- * GET /api/go — affiliate redirect router.
+ * GET /api/go - affiliate redirect router.
  *
  * Flow:
  *   1. Parse query: s (stayId), p (providerId), u (affiliateUrl), t (turnId?), c (conversationId?)
- *   2. Validate u against the host allowlist — no open-redirect (would
+ *   2. Validate u against the host allowlist - no open-redirect (would
  *      otherwise be usable for phishing with StayScout's domain).
  *   3. Resolve owner from auth (user) or session cookie (anonymous).
  *   4. Record an AffiliateClick row. Failures are logged but don't
- *      block the redirect — booking flow is sacred.
+ *      block the redirect - booking flow is sacred.
  *   5. 302 to u.
  *
  * The user lands on the provider with first-party cookies set on the
@@ -52,7 +52,7 @@ export async function GET(req: NextRequest): Promise<Response> {
       ...(conversationId ? { conversationId } : {}),
     });
   } catch (err) {
-    // DON'T block the booking — the user clicked Continue, they should
+    // DON'T block the booking - the user clicked Continue, they should
     // get to the provider regardless of our analytics health.
     console.error('[go] recordClick failed', err);
   }

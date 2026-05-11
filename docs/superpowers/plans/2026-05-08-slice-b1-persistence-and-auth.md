@@ -1,17 +1,17 @@
-# StayScout Slice B1 — Persistence + Auth Implementation Plan
+# StayScout Slice B1 - Persistence + Auth Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Land the foundation for everything Slice B–D needs — Postgres-ready Prisma schema, Clerk auth integration, a `SessionStore` interface that plugs into the orchestrator, "Save Trip" CTA + saved-trips view, and anonymous→authenticated migration on first sign-in. **Hard constraint:** every line of B1 ships with mock-safe defaults so the system runs end-to-end with zero external keys. The "no keys yet" path is a first-class development mode, not a degraded fallback.
+**Goal:** Land the foundation for everything Slice B–D needs - Postgres-ready Prisma schema, Clerk auth integration, a `SessionStore` interface that plugs into the orchestrator, "Save Trip" CTA + saved-trips view, and anonymous→authenticated migration on first sign-in. **Hard constraint:** every line of B1 ships with mock-safe defaults so the system runs end-to-end with zero external keys. The "no keys yet" path is a first-class development mode, not a degraded fallback.
 
 **Architectural tenets** (Opus-level reasoning calls):
 
 1. **One shape, two backends.** A `SessionStore` interface owns the persistence boundary. `InMemorySessionStore` (always available) and `PostgresSessionStore` (active when `DATABASE_URL` is set) both implement it. Orchestrator and route handlers depend only on the interface. Adding a Redis impl in Slice B+ is mechanical.
 2. **Feature flags as a runtime fact, not a build flag.** `src/lib/env/features.ts` exports `{database, auth, anthropic, langfuse, ...}` derived from process.env at import time. Code branches on these without crashing when keys are absent.
-3. **Auth as a thin wrapper.** `useAuth()` returns a discriminated `AuthState` regardless of whether Clerk is configured. In mock mode it surfaces the existing anonymous session id. Save Trip works in both modes — only the storage backend changes.
+3. **Auth as a thin wrapper.** `useAuth()` returns a discriminated `AuthState` regardless of whether Clerk is configured. In mock mode it surfaces the existing anonymous session id. Save Trip works in both modes - only the storage backend changes.
 4. **Migration is idempotent and explicit.** When a user signs up after using the workspace anonymously, a `migrateAnonymousToUser()` call copies session-scoped state to user-scoped state. Running it twice is a no-op. Anon record is marked migrated, not deleted (audit trail).
 5. **Schema avoids Postgres-specific features.** No pgvector, no Postgres array types, no JSON arrays. Slice C introduces them when it actually needs them (memory embeddings). B1's schema runs on Postgres today and could run on SQLite tomorrow with a one-line provider change.
-6. **State consistency**: the client Zustand store stays the source of truth for live UI state. The server-side `SessionStore` stays the source of truth for *persisted* state (saved trips, conversation history, completed turns). The two never write to each other directly — the orchestrator's event stream is the only bridge.
+6. **State consistency**: the client Zustand store stays the source of truth for live UI state. The server-side `SessionStore` stays the source of truth for *persisted* state (saved trips, conversation history, completed turns). The two never write to each other directly - the orchestrator's event stream is the only bridge.
 
 **Tech additions:** `@prisma/client`, `prisma`, `@clerk/nextjs`. Optional in build (mock mode works without DB or Clerk env vars).
 
@@ -61,10 +61,10 @@ src/app/
 ├── layout.tsx                          [modify] mount MaybeClerkProvider
 ├── api/trips/
 │   ├── save/route.ts                   [new] POST { proposalRef, intent, proposal }
-│   ├── list/route.ts                   [new] GET — list current user's saved trips
+│   ├── list/route.ts                   [new] GET - list current user's saved trips
 │   └── [tripId]/route.ts               [new] GET / DELETE
 └── api/auth/
-    └── migrate/route.ts                [new] POST — copy anon session to userId
+    └── migrate/route.ts                [new] POST - copy anon session to userId
 
 src/features/workspace/
 ├── header/
@@ -89,7 +89,7 @@ README.md                               [modify] add "modes" table + B1 quick-st
 package.json                            [modify] add db scripts
 ```
 
-Total: ~25 new files, ~7 modified. Mostly architecture, lighter on UI — by design.
+Total: ~25 new files, ~7 modified. Mostly architecture, lighter on UI - by design.
 
 ---
 
@@ -100,7 +100,7 @@ pnpm add @prisma/client @clerk/nextjs
 pnpm add -D prisma
 ```
 
-Note: we don't add `@tanstack/react-query` for B1 — the saved-trips panel uses native fetch + a small useEffect (no caching layer needed for a list-of-3-things). Slice B introduces TanStack Query when there's actual cache-invalidation pressure.
+Note: we don't add `@tanstack/react-query` for B1 - the saved-trips panel uses native fetch + a small useEffect (no caching layer needed for a list-of-3-things). Slice B introduces TanStack Query when there's actual cache-invalidation pressure.
 
 Commit: `chore: install Prisma + Clerk for B1`
 
@@ -137,7 +137,7 @@ The single source of truth for runtime feature availability.
 
   /**
    * Server-side runtime feature flags. Reads from process.env at the time
-   * of call (not at module load) — important for tests that set env vars
+   * of call (not at module load) - important for tests that set env vars
    * dynamically. Includes everything in clientFeatures plus server-only.
    */
   export interface ServerFeatures {
@@ -164,7 +164,7 @@ The single source of truth for runtime feature availability.
   export * from './get-server-features';
   ```
 
-- [ ] Test in `tests/features.test.ts` — verify flags read process.env at call time and toggle correctly.
+- [ ] Test in `tests/features.test.ts` - verify flags read process.env at call time and toggle correctly.
 
 ---
 
@@ -243,7 +243,7 @@ Schema sized for Slice B–D needs, with stub fields for C+ that don't impose ru
     notes          String?                   // user's personal notes (Slice C)
     bookmarkedAt   DateTime      @default(now())
     @@index([userId, bookmarkedAt])
-    @@unique([userId, proposalId])           // idempotent save — clicking "Save" twice is a no-op
+    @@unique([userId, proposalId])           // idempotent save - clicking "Save" twice is a no-op
   }
 
   // ============== Affiliate (Slice B6 populates) ==============
@@ -275,7 +275,7 @@ Schema sized for Slice B–D needs, with stub fields for C+ that don't impose ru
     content   String
     signalKey String?
     weight    Float?
-    // embedding pgvector — added in Slice C alongside the actual MemoryAgent
+    // embedding pgvector - added in Slice C alongside the actual MemoryAgent
     createdAt DateTime @default(now())
     @@index([userId, kind, createdAt])
     @@index([userId, signalKey])
@@ -291,7 +291,7 @@ Schema sized for Slice B–D needs, with stub fields for C+ that don't impose ru
   "db:reset": "prisma migrate reset --force"
   ```
 
-- [ ] Create `prisma/seed.ts` (minimal — just to verify schema):
+- [ ] Create `prisma/seed.ts` (minimal - just to verify schema):
   ```ts
   import { PrismaClient } from '@prisma/client';
   const prisma = new PrismaClient();
@@ -309,7 +309,7 @@ Schema sized for Slice B–D needs, with stub fields for C+ that don't impose ru
     });
   ```
 
-- [ ] **Don't run prisma generate or migrate now** — they need DATABASE_URL and we want to defer that. Set up the schema file; commit. Migrations get run by the developer when they choose to wire up Postgres.
+- [ ] **Don't run prisma generate or migrate now** - they need DATABASE_URL and we want to defer that. Set up the schema file; commit. Migrations get run by the developer when they choose to wire up Postgres.
 
 ---
 
@@ -324,7 +324,7 @@ Only construct PrismaClient when DATABASE_URL is present. Otherwise return `null
 
   /**
    * Lazy Prisma client singleton. Returns null when DATABASE_URL is unset
-   * — code paths that touch the DB must check for null first. The
+   * - code paths that touch the DB must check for null first. The
    * SessionStore factory handles that branching at the boundary so
    * orchestrator + route handlers don't need to.
    *
@@ -345,7 +345,7 @@ Only construct PrismaClient when DATABASE_URL is present. Otherwise return `null
           log: process.env.NODE_ENV === 'production' ? ['error'] : ['warn', 'error'],
         });
       } catch (err) {
-        console.warn('[db] Prisma client failed to initialise — continuing in mock mode:', err);
+        console.warn('[db] Prisma client failed to initialise - continuing in mock mode:', err);
         globalThis.__stayscoutPrisma = null;
       }
     }
@@ -405,7 +405,7 @@ The architectural keystone of B1. Both impls satisfy the same contract; the rest
   }
 
   /**
-   * SessionStore — the persistence boundary for everything Slice B–D
+   * SessionStore - the persistence boundary for everything Slice B–D
    * stores per-user or per-session. Two implementations:
    *
    *   - InMemorySessionStore: always available; backs the "no DB" dev mode.
@@ -450,7 +450,7 @@ The architectural keystone of B1. Both impls satisfy the same contract; the rest
 
 - [ ] Create `src/lib/session/in-memory-session-store.ts`:
   - All maps in process memory
-  - `saveTrip` is idempotent on `(ownerKind, ownerId, proposalId)` — second save returns the existing record
+  - `saveTrip` is idempotent on `(ownerKind, ownerId, proposalId)` - second save returns the existing record
   - `migrateAnonymousToUser` copies all session-keyed records to user-keyed records and marks anon's record as migrated (kept for audit)
 
 - [ ] Create `src/lib/session/postgres-session-store.ts`:
@@ -499,7 +499,7 @@ The orchestrator currently uses `private readonly turns = new Map<...>()`. Repla
   - Constructor takes optional `sessionStore?: SessionStore`. Default is `getSessionStore()` from factory.
   - Replace `this.turns.get(...)` with `await this.sessionStore.getTurn(...)`
   - Replace `this.turns.set(...)` with `await this.sessionStore.putTurn(...)`
-  - All async — already inside an async generator, so this is mechanical
+  - All async - already inside an async generator, so this is mechanical
 
 - [ ] Modify `src/orchestrator/singleton.ts`:
   ```ts
@@ -513,7 +513,7 @@ The orchestrator currently uses `private readonly turns = new Map<...>()`. Repla
   });
   ```
 
-- [ ] Existing orchestrator tests still pass — InMemorySessionStore is the default, behavior is unchanged from Slice A.
+- [ ] Existing orchestrator tests still pass - InMemorySessionStore is the default, behavior is unchanged from Slice A.
 
 ---
 
@@ -540,7 +540,7 @@ The orchestrator currently uses `private readonly turns = new Map<...>()`. Repla
   // otherwise children render directly (no auth context).
   export function MaybeClerkProvider({ children }: { children: ReactNode }) {
     if (!clientFeatures.auth) return <>{children}</>;
-    // ESM dynamic import alternative — but Clerk needs SSR support, so we
+    // ESM dynamic import alternative - but Clerk needs SSR support, so we
     // import statically at the top of a separate file that's only imported
     // when the flag is on. See `clerk-provider-real.tsx`.
     const Real = require('./clerk-provider-real').default as (
@@ -590,7 +590,7 @@ The orchestrator currently uses `private readonly turns = new Map<...>()`. Repla
       // Real Clerk path: dynamic import to avoid bundling when off
       let cancelled = false;
       void import('@clerk/nextjs').then(({ useUser }) => {
-        // useUser is itself a hook — we can't call it here. Instead, this
+        // useUser is itself a hook - we can't call it here. Instead, this
         // file exports a parallel `useAuthClerk` for the real path; the
         // calling site picks one or the other at module level. See note.
         if (cancelled) return;
@@ -666,7 +666,7 @@ The orchestrator currently uses `private readonly turns = new Map<...>()`. Repla
 
   // Slice B1: middleware is a passthrough by default. When Clerk is
   // configured, we delegate to clerkMiddleware; otherwise NextResponse.next().
-  // No routes are auth-gated in Slice A's UX surface — the workspace and
+  // No routes are auth-gated in Slice A's UX surface - the workspace and
   // marketing remain public. /api/trips/* enforces auth at the handler
   // level rather than at the middleware level so we can serve anonymous
   // session-scoped trips too.
@@ -763,7 +763,7 @@ All gated at the handler level on `getServerAuth()` + `getSessionStore()`. Anony
   }
   ```
 
-- [ ] Create `src/app/api/trips/[tripId]/route.ts` — GET + DELETE.
+- [ ] Create `src/app/api/trips/[tripId]/route.ts` - GET + DELETE.
 
 - [ ] Create `src/app/api/auth/migrate/route.ts`:
   ```ts
@@ -778,7 +778,7 @@ All gated at the handler level on `getServerAuth()` + `getSessionStore()`. Anony
    * Idempotent: copies all anonymous session-scoped state into the
    * authenticated user. Triggered by the client immediately after sign-in
    * (one-shot effect). If the cookie's session id is the same as the
-   * user's id (already migrated) — no-op.
+   * user's id (already migrated) - no-op.
    */
   export async function POST(req: NextRequest): Promise<Response> {
     const auth = await getServerAuth();
@@ -806,15 +806,15 @@ All gated at the handler level on `getServerAuth()` + `getSessionStore()`. Anony
 
 The user-facing payoff of B1.
 
-- [ ] Modify `src/features/workspace/detail/detail-panel.tsx` — add a secondary "Save trip" button next to "Continue to Booking". On click, POST `/api/trips/save` with the current proposal + intent. Show a small toast/inline success ("Saved").
+- [ ] Modify `src/features/workspace/detail/detail-panel.tsx` - add a secondary "Save trip" button next to "Continue to Booking". On click, POST `/api/trips/save` with the current proposal + intent. Show a small toast/inline success ("Saved").
 
-- [ ] Create `src/features/workspace/saved-trips/saved-trips-panel.tsx` — right slide-in panel listing saved trips. Mirror Detail Panel's styling.
+- [ ] Create `src/features/workspace/saved-trips/saved-trips-panel.tsx` - right slide-in panel listing saved trips. Mirror Detail Panel's styling.
 
-- [ ] Create `src/features/workspace/saved-trips/saved-trip-row.tsx` — one row.
+- [ ] Create `src/features/workspace/saved-trips/saved-trip-row.tsx` - one row.
 
-- [ ] Create `src/features/workspace/saved-trips/use-saved-trips.ts` — fetch hook.
+- [ ] Create `src/features/workspace/saved-trips/use-saved-trips.ts` - fetch hook.
 
-- [ ] Modify the Header — add "Saved (n)" link that opens the panel. On a saved trip click, the panel closes and the workspace store loads that proposal into the current turn (or starts a new turn that hydrates the proposal).
+- [ ] Modify the Header - add "Saved (n)" link that opens the panel. On a saved trip click, the panel closes and the workspace store loads that proposal into the current turn (or starts a new turn that hydrates the proposal).
 
 - [ ] Modify workspace-store with `openSavedPanel` / `closeSavedPanel` actions and a `savedPanelOpen` flag.
 
@@ -830,10 +830,10 @@ The user-facing payoff of B1.
 
 ## Task 12: Tests
 
-- [ ] `tests/features.test.ts` — clientFeatures + getServerFeatures behave correctly across env states
-- [ ] `tests/session-store.test.ts` — InMemorySessionStore contract: save idempotency, list ordering, get/delete, migration semantics
-- [ ] `tests/migrate-anonymous.test.ts` — migration preserves all records, marks source as migrated, second migration is a no-op
-- [ ] (Note: PostgresSessionStore has the same contract — we run its tests in CI only when `DATABASE_URL` is set, otherwise skip with `it.skipIf(!process.env.DATABASE_URL)`)
+- [ ] `tests/features.test.ts` - clientFeatures + getServerFeatures behave correctly across env states
+- [ ] `tests/session-store.test.ts` - InMemorySessionStore contract: save idempotency, list ordering, get/delete, migration semantics
+- [ ] `tests/migrate-anonymous.test.ts` - migration preserves all records, marks source as migrated, second migration is a no-op
+- [ ] (Note: PostgresSessionStore has the same contract - we run its tests in CI only when `DATABASE_URL` is set, otherwise skip with `it.skipIf(!process.env.DATABASE_URL)`)
 
 ---
 

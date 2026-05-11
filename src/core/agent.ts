@@ -40,7 +40,7 @@ export interface TraceLogger {
   ): void;
 }
 
-// Stable agent step descriptor — used by the orchestrator when emitting
+// Stable agent step descriptor - used by the orchestrator when emitting
 // agent.step.* events.
 export interface AgentStep {
   stepId: StepId;

@@ -6,12 +6,12 @@ import type { Itinerary, ItineraryDay, ItinerarySlot } from '@core/itinerary';
  * `lib/curation/voice.ts`). The itinerary-curation test enforces
  * the lint across every slot.
  *
- * The shape is editorial, not transactional — these are the kind of
+ * The shape is editorial, not transactional - these are the kind of
  * notes a friend who's lived in the region would write down for you.
  * C3.x layers Viator activity search on top to attach bookables to
  * specific slots.
  *
- * Each entry is a *template* — the generator stamps `tripId` +
+ * Each entry is a *template* - the generator stamps `tripId` +
  * `generatedAt` at runtime so two callers reusing the same curated
  * lookup don't share identity.
  */
@@ -95,7 +95,7 @@ const TUSCANY: CuratedItineraryTemplate = {
         'meal',
         'morning',
         'Slow breakfast on the terrace',
-        'Whatever the kitchen put out — bread, jam, ricotta. Do not rush.',
+        'Whatever the kitchen put out - bread, jam, ricotta. Do not rush.',
         { costTier: 'low' },
       ),
       slot(
@@ -331,7 +331,7 @@ const AMALFI: CuratedItineraryTemplate = {
         'activity',
         'morning',
         'Walk down to Marina Grande',
-        'The town only flows downhill. The Path of the Gods can wait — today is for the village itself.',
+        'The town only flows downhill. The Path of the Gods can wait - today is for the village itself.',
         { durationMinutes: 120, costTier: 'free', tags: ['walk'] },
       ),
       slot(

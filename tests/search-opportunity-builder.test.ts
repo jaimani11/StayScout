@@ -3,7 +3,7 @@ import type { TripIntent } from '@core/trip-intent';
 import { buildSearchOpportunity } from '@/lib/affiliate/search-opportunity-builder';
 
 /**
- * Slice F1 — buildSearchOpportunity output contracts. The shape is the
+ * Slice F1 - buildSearchOpportunity output contracts. The shape is the
  * wire format consumed by `<SearchOpportunityBoard>` and persisted in
  * the F1.x analytics path. Lock the public structure down.
  */

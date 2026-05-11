@@ -7,7 +7,7 @@ import { useReducedMotion } from '@/features/shared/motion/reduced-motion';
 
 interface DestinationHeroProps {
   destination: CuratedDestination;
-  /** First photo of any featured stay — used as the hero background. */
+  /** First photo of any featured stay - used as the hero background. */
   heroImageUrl?: string;
   heroImageAlt?: string;
 }

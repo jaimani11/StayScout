@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * Slice C4 — Billing core types.
+ * Slice C4 - Billing core types.
  *
  * The shape is shared between MockBillingProvider, StripeBillingProvider,
  * and the gates that read entitlement. Server-side is the source of truth
@@ -10,7 +10,7 @@ import { z } from 'zod';
  *
  * `OwnerKey` is the same shape returned by `ownerOf(authState)` in
  * `@lib/auth`. It's redefined here (not imported) so the core layer
- * doesn't depend on lib — the boundary rule. Structural typing means
+ * doesn't depend on lib - the boundary rule. Structural typing means
  * `ownerOf()` results are compatible without ceremony.
  */
 
@@ -31,7 +31,7 @@ export const PlanSchema = z.enum(['free', 'premium']);
 export type Plan = z.infer<typeof PlanSchema>;
 
 /**
- * Why entitlement is what it is — useful for /admin debugging and for
+ * Why entitlement is what it is - useful for /admin debugging and for
  * error UI ("you signed in but the webhook hasn't landed yet").
  */
 export const EntitlementSourceSchema = z.enum([
@@ -87,7 +87,7 @@ export type Subscription = z.infer<typeof SubscriptionSchema>;
 /**
  * A status counts as premium when it's `active`, `trialing`, OR `canceled`
  * but still inside the paid-through period (the "grace" window after a
- * user cancels — Stripe stops billing but the period the user already
+ * user cancels - Stripe stops billing but the period the user already
  * paid for is honored).
  */
 export function isPremiumStatus(

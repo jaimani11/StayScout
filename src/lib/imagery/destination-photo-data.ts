@@ -15,7 +15,7 @@ export interface DestinationPhotoEntry {
   id: string;
   /** Alt text. */
   alt: string;
-  /** Unsplash photographer name (display only — Unsplash license is
+  /** Unsplash photographer name (display only - Unsplash license is
    *  permissive but attribution is the polite default). */
   photographer: string;
 }
@@ -325,7 +325,7 @@ export const DESTINATION_PHOTOS: Readonly<Record<string, DestinationPhotoEntry>>
     photographer: 'Anastasia Polenova',
   },
   tuscany: {
-    // Original ID 1490642914619-7955a3fd483c dropped — Unsplash
+    // Original ID 1490642914619-7955a3fd483c dropped - Unsplash
     // repurposed it and the URL now serves a London Tower Bridge
     // photo. Falls back to Umbria's hills photo which is geographically
     // adjacent (Tuscan-Umbrian border) so the label still reads true.
@@ -348,7 +348,7 @@ export const DESTINATION_PHOTOS: Readonly<Record<string, DestinationPhotoEntry>>
   // Used when an unknown city in a known country comes in. e.g.
   // "Innsbruck, Austria" without an entry → __country:AT (Alps).
   '__country:AT': {
-    // Original ID 1568901346375-23c9450c58cd dropped — Unsplash
+    // Original ID 1568901346375-23c9450c58cd dropped - Unsplash
     // repurposed it and the URL now serves a non-travel image.
     id: '1486870591958-9b9d0d1dda99',
     alt: 'Alpine peaks panorama',

@@ -6,7 +6,7 @@ import type { MonitoringStore, OwnerArgs } from './monitoring-store';
  * keyed by `${ownerKind}:${ownerId}` so list-by-owner is O(events-of-
  * one-owner) without a global scan.
  *
- * HMR-safe via globalThis — same buffer across dev reloads so
+ * HMR-safe via globalThis - same buffer across dev reloads so
  * monitoring state isn't reset every time you touch a file.
  */
 export class InMemoryMonitoringStore implements MonitoringStore {
@@ -49,7 +49,7 @@ export class InMemoryMonitoringStore implements MonitoringStore {
     return flipped;
   }
 
-  /** Test-only — wipe all state. */
+  /** Test-only - wipe all state. */
   _reset(): void {
     this.snapshots.clear();
     this.eventsByOwner.clear();
@@ -60,7 +60,7 @@ function ownerKey(args: OwnerArgs): string {
   return `${args.ownerKind}:${args.ownerId}`;
 }
 
-// Process-singleton — same store across orchestrator + admin views +
+// Process-singleton - same store across orchestrator + admin views +
 // /api/trips/list. HMR-safe on globalThis.
 declare global {
   var __stayscoutMonitoringStore: InMemoryMonitoringStore | undefined;

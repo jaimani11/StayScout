@@ -11,7 +11,7 @@ export interface DataTableColumn<T> {
 interface DataTableProps<T> {
   columns: DataTableColumn<T>[];
   rows: T[];
-  /** Row key extractor — defaults to index, but most callers should
+  /** Row key extractor - defaults to index, but most callers should
    *  pass a stable id so React keys are intentional. */
   rowKey?: (row: T, idx: number) => string;
   /** Empty-state message shown when rows.length === 0. */
@@ -19,7 +19,7 @@ interface DataTableProps<T> {
 }
 
 /**
- * Lightweight table for admin lists. No deps, no virtualization —
+ * Lightweight table for admin lists. No deps, no virtualization -
  * lists are bounded (default limit 50–100) so a plain table is fine.
  */
 export function DataTable<T>({

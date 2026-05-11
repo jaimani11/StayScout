@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { ReasoningChipSchema } from './trip-proposal';
 import { TripIntentSchema } from './trip-intent';
 
-// IntentDelta — `changed` keeps before/after as `unknown` since values can
+// IntentDelta - `changed` keeps before/after as `unknown` since values can
 // be arbitrary slice types on either side; the structural fact is that key
 // "X" changed from BEFORE to AFTER.
 export const IntentDeltaSchema = z.object({

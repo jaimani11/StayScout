@@ -12,7 +12,7 @@ const sampleIntent: TripIntent = {
   budget: { kind: 'unspecified' },
   vibe: { tags: ['walkable', 'family-friendly', 'slow'] },
   preferences: { amenities: [], avoid: [] },
-  caveats: ['no kids this trip — just us'],
+  caveats: ['no kids this trip - just us'],
   rawInput: 'Tuscany 7 days, family of 4, walkable, slow',
 };
 
@@ -82,7 +82,7 @@ describe('MemoryRecorder', () => {
     expect(store.size()).toBe(3);
   });
 
-  it('does not throw if the store fails — failures only log', async () => {
+  it('does not throw if the store fails - failures only log', async () => {
     const brokenStore = {
       async record() {
         throw new Error('disk full');

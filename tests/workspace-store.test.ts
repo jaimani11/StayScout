@@ -127,10 +127,10 @@ describe('workspace store', () => {
       .getState()
       .beginTurn({ turnId: 't1', sessionId: 'anon_1', userMessage: 'a', type: 'compose' });
     dispatch([
-      { kind: 'concierge.message', turnId: 't1', message: 'Tuscany — slower.', tone: 'narrate' },
+      { kind: 'concierge.message', turnId: 't1', message: 'Tuscany - slower.', tone: 'narrate' },
     ]);
     const cm = useWorkspaceStore.getState().turns[0]?.conciergeMessage;
-    expect(cm?.text).toBe('Tuscany — slower.');
+    expect(cm?.text).toBe('Tuscany - slower.');
     expect(cm?.tone).toBe('narrate');
   });
 
@@ -220,7 +220,7 @@ describe('workspace store', () => {
     expect(useWorkspaceStore.getState().compareSet).toEqual(['b', 'd']);
   });
 
-  it('pinStay is idempotent — pinning the same id twice is a no-op', () => {
+  it('pinStay is idempotent - pinning the same id twice is a no-op', () => {
     const s = useWorkspaceStore.getState();
     s.pinStay('a');
     s.pinStay('a');

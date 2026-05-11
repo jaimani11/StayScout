@@ -6,7 +6,7 @@ import { ITALIAN_DESTINATIONS } from '@lib/curation/destinations';
  * call fails OR when the model's response can't be coerced into a
  * valid `TripIntent`. The demo never blocks on a model error.
  *
- * The output is intentionally conservative — heuristics over a regex
+ * The output is intentionally conservative - heuristics over a regex
  * pass on `rawInput`. Anything not extractable defaults to
  * `unspecified` / empty / `flexible: true` so downstream agents can
  * still proceed (provider search, mood snapshot, etc.).
@@ -40,7 +40,7 @@ function extractDestinations(lower: string): Destination[] {
       return [{ kind: 'curated', name: d.name, country: d.country }];
     }
   }
-  // No curated hit — leave destinations empty. The orchestrator's
+  // No curated hit - leave destinations empty. The orchestrator's
   // empty-search-result handler emits a friendly concierge message
   // instead of crashing.
   return [];
@@ -86,7 +86,7 @@ function extractTravelers(lower: string): TripIntent['travelers'] {
       groupKind: 'solo',
     };
   }
-  // Default: single adult, no kids — least-surprise default for a query
+  // Default: single adult, no kids - least-surprise default for a query
   // that didn't specify.
   return {
     adults: 1,
@@ -127,7 +127,7 @@ function extractVibeTags(lower: string): VibeTag[] {
  *
  * This helper normalizes (1) and (2) to (3) so Zod's strict
  * discriminated-union parse accepts the value. Targeted to known
- * fields only — we never blanket-walk the response, so user-provided
+ * fields only - we never blanket-walk the response, so user-provided
  * strings elsewhere stay untouched.
  */
 export function coerceTripIntentShortcuts(raw: unknown): unknown {

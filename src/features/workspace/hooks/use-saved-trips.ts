@@ -7,12 +7,12 @@ import type { ProposalRef } from '@core/partial';
 import type { MonitoringEvent } from '@lib/monitoring';
 
 /**
- * Saved trip — what /api/trips/list returns. Matches SessionStore's
+ * Saved trip - what /api/trips/list returns. Matches SessionStore's
  * SavedTrip shape (we keep it duplicated here to avoid the workspace
- * feature reaching across layers into @lib/session — that would
+ * feature reaching across layers into @lib/session - that would
  * violate the boundaries lint).
  *
- * Slice C2 — `monitoringEvents` is the unacknowledged event list for
+ * Slice C2 - `monitoringEvents` is the unacknowledged event list for
  * this trip. Empty = no badge; non-empty = badge with the most recent
  * event.
  */
@@ -53,7 +53,7 @@ interface UseSavedTripsResult {
   /**
    * Fire-and-forget resurface POST. Primes the SessionStore with a
    * synthetic turn record so refining the resurfaced trip works.
-   * Errors are logged but never thrown — the local resurface UX
+   * Errors are logged but never thrown - the local resurface UX
    * proceeds regardless of network state.
    */
   resurface: (tripId: string) => Promise<void>;
@@ -87,7 +87,7 @@ export function useSavedTrips(): UseSavedTripsResult {
   }, []);
 
   useEffect(() => {
-    // refresh() calls setLoading(true) before awaiting fetch — that's
+    // refresh() calls setLoading(true) before awaiting fetch - that's
     // the legitimate "sync external state into React" pattern the rule
     // is supposed to allow but flags anyway when the trigger is an
     // async function call.
@@ -111,7 +111,7 @@ export function useSavedTrips(): UseSavedTripsResult {
       });
       if (!res.ok) throw new Error(`save ${res.status}`);
       const data = (await res.json()) as { ok: true; trip: Omit<SavedTripRow, 'monitoringEvents'> };
-      // /api/trips/save doesn't run the monitoring runner — default to
+      // /api/trips/save doesn't run the monitoring runner - default to
       // empty until the next /api/trips/list fetch enriches the row.
       const tripRow: SavedTripRow = { ...data.trip, monitoringEvents: [] };
       setTrips((prev) => {
@@ -179,7 +179,7 @@ export function useSavedTrips(): UseSavedTripsResult {
   }, []);
 
   const acknowledgeMonitoring = useCallback(async (tripId: string): Promise<void> => {
-    // Optimistic — clear the local badge immediately so the row stops
+    // Optimistic - clear the local badge immediately so the row stops
     // pulsing the moment the user clicks. The server-side ack is a
     // background sync; failures only affect the next page load.
     setTrips((prev) => prev.map((t) => (t.id === tripId ? { ...t, monitoringEvents: [] } : t)));

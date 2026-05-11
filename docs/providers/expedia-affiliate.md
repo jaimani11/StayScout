@@ -15,7 +15,7 @@ different from the EPS Rapid API integration.
 - **EPS Rapid** is a separate product for real-time hotel **inventory**
   (search, availability, rates). Requires a separate partner approval
   through Expedia Partner Solutions, takes weeks. Independent of
-  affiliate links — they don't depend on each other.
+  affiliate links - they don't depend on each other.
 - The two complement each other but the app monetizes from day one
   with just affiliate access. With Rapid keys later, the listings the
   user reads on our page show real availability before the click; the
@@ -55,7 +55,7 @@ Where each parameter goes:
 | `rooms` / `adults` / `children` | Occupancy. Children encoded as comma-separated ages. |
 | `siteid` | Locale (1=US, 3=UK, 23=AU, etc.). Tied to your contract; usually 1. |
 | `affcid` | **Your affiliate campaign id.** Required for commission to track. |
-| `label` | Optional sub-channel tag — useful when one campaign sources from web + email + social. |
+| `label` | Optional sub-channel tag - useful when one campaign sources from web + email + social. |
 | `_src=stayscout` | App-level disambiguation tag for our own analytics. Not Expedia-tracked. |
 
 ---
@@ -65,7 +65,7 @@ Where each parameter goes:
 ### Apply
 
 1. Sign up at the Expedia Group **Creator Platform** (or your local
-   creator portal) — most builders go through:
+   creator portal) - most builders go through:
    - https://www.expedia.com/affiliates/ for the consumer-affiliate path
    - https://www.partner-solutions.expediagroup.com/ for the
      full partner solutions program
@@ -93,11 +93,11 @@ NEXT_PUBLIC_EXPEDIA_AFFILIATE_LABEL=stayscout-web
 ```
 
 Restart `pnpm dev`. Every CTA in the app starts attaching `affcid`.
-Open `/admin` — the **Affiliate** card flips to `Expedia · Live`.
+Open `/admin` - the **Affiliate** card flips to `Expedia · Live`.
 
 ### Why `NEXT_PUBLIC_*`?
 
-The affcid + label ship in every outbound URL — they aren't secret.
+The affcid + label ship in every outbound URL - they aren't secret.
 Next.js only bundles `NEXT_PUBLIC_*` env vars to the client; the
 naming makes it explicit that the value is publicly visible. The
 non-prefixed names (`EXPEDIA_AFFILIATE_CID`) are accepted as a
@@ -115,10 +115,10 @@ flow:
 1. The CTA renders as `<a href="/r/<encoded-id>" target="_blank">`.
 2. The `id` is a base64url-encoded JSON payload carrying the outbound
    URL + the originating context (providerId, stayId, turnId,
-   conversationId). Self-contained — no DB lookup needed.
+   conversationId). Self-contained - no DB lookup needed.
 3. The user clicks. Browser navigates to `/r/<id>`.
 4. The route decodes + validates the payload (rejects anything not
-   on the affiliate host allowlist — defense against a tampered id
+   on the affiliate host allowlist - defense against a tampered id
    becoming an open-redirect).
 5. Records an `AffiliateClick` row keyed on the current owner
    (cookie session for anon, userId for signed-in). Failures are
@@ -131,7 +131,7 @@ providerId, stayId, and turnId.
 
 ### Why a separate route from `/api/go`?
 
-`/api/go` is the older redirect handler from Slice B4 — it takes the
+`/api/go` is the older redirect handler from Slice B4 - it takes the
 URL as a query param, which is fine for inline use but makes the
 URL long + brittle. `/r/[id]` has shorter URLs, self-contained
 payload, and is the canonical entrypoint for new affiliate clicks.
@@ -150,7 +150,7 @@ This is Expedia's side, not ours. Standard creator-platform mechanics:
    by program.
 3. If the user books any hotel during the window, the booking is
    attributed to your campaign.
-4. Commission is paid out per Expedia's program terms — typically a
+4. Commission is paid out per Expedia's program terms - typically a
    percentage of the booking total, sometimes a flat fee per
    completed stay. Look up specifics in the Creator Platform
    dashboard for your contract.
@@ -170,7 +170,7 @@ What Expedia controls on their side:
 
 ---
 
-## 5. Affiliate vs Rapid API — the difference
+## 5. Affiliate vs Rapid API - the difference
 
 | | Affiliate Link | EPS Rapid API |
 |---|---|---|
@@ -178,7 +178,7 @@ What Expedia controls on their side:
 | **Approval time** | Days (creator platform) | Weeks (partner solutions) |
 | **Auth** | None (CID in URL) | HMAC-SHA512 signature header per request |
 | **Cost** | Free | Per-call rate limits + per-contract terms |
-| **Independent?** | Yes — affiliate works without Rapid | No — Rapid mandatory affiliate program too |
+| **Independent?** | Yes - affiliate works without Rapid | No - Rapid mandatory affiliate program too |
 | **In our app** | `<ExpediaCta>` builds URLs from intent | `ExpediaProvider.fetchStays` calls live |
 | **Mock-safe?** | Yes (URL still resolves without CID) | Yes (provider absent without keys) |
 
@@ -205,7 +205,7 @@ Every monetizable CTA carries:
 
 The disclosure copy is FTC-aligned (US affiliate-disclosure rules)
 and equivalents in EU/UK regulatory contexts. It's intentionally
-visible — a tiny line at the bottom of every primary CTA.
+visible - a tiny line at the bottom of every primary CTA.
 
 The compact CTA on hero/alternative cards uses just "View on Expedia"
 without disclosure copy because the listing-detail panel (where the
@@ -223,7 +223,7 @@ Mock-safe behavior:
 - No commission tracks (the click isn't attributed to anyone).
 
 This is intentional. The CTA shouldn't disappear because env wasn't
-set — that would make local development feel broken. Better: keep
+set - that would make local development feel broken. Better: keep
 the link working, lose only the monetization. The `/admin` Affiliate
 card shows `Untracked` so operators see the gap.
 
@@ -249,7 +249,7 @@ pnpm dev   # http://localhost:3000
 ```
 
 To verify the affcid is reaching Expedia, hover the CTA and inspect
-the URL Chrome shows in the bottom-left status bar — the `affcid=…`
+the URL Chrome shows in the bottom-left status bar - the `affcid=…`
 should be visible. Or open DevTools → Network → click the CTA →
 inspect the 302's Location header.
 
@@ -263,17 +263,17 @@ needed), document setup here.
 
 Networks worth adding when contracts land:
 
-- **Booking.com Affiliate Partner Network** — already wired via the
+- **Booking.com Affiliate Partner Network** - already wired via the
   existing `BookingComProvider` + `bookingLink.url` (uses
   affiliate-deeplinks). The `<ExpediaCta>` resolver falls back to
   destination Expedia search even for Booking.com listings, so users
   always have a Expedia option even if Booking.com declined.
-- **Hotels.com** — Expedia Group brand, same affcid often works on
+- **Hotels.com** - Expedia Group brand, same affcid often works on
   hotels.com URLs. Consider a sibling `<HotelsCta>` that builds the
   parallel pattern.
-- **Vrbo** — already wired via `VrboProvider` for vacation rentals;
+- **Vrbo** - already wired via `VrboProvider` for vacation rentals;
   the redirect URL is built in the Vrbo mapper.
-- **Skyscanner** for flights, **Viator** for activities — both have
+- **Skyscanner** for flights, **Viator** for activities - both have
   affiliate creator programs. Same redirect pattern.
 
 ---
@@ -282,7 +282,7 @@ Networks worth adding when contracts land:
 
 **Q: Can I use multiple Expedia campaigns (one for web, one for
 email)?**
-A: Yes — set `NEXT_PUBLIC_EXPEDIA_AFFILIATE_LABEL` to a
+A: Yes - set `NEXT_PUBLIC_EXPEDIA_AFFILIATE_LABEL` to a
 per-deployment value. The label flows through every URL and lets
 you separate channels in the Expedia reports.
 
@@ -299,7 +299,7 @@ Adding a new affiliate network = adding its host here.
 
 **Q: Why does the AI Preview chip stay on synthesized listings even
 when the CTA points to a real Expedia search?**
-A: The listing the user is reading on our page is AI-generated —
+A: The listing the user is reading on our page is AI-generated -
 that's an honest signal. The fact that we built a usable Expedia
 search URL from the same intent is a separate thing; it links to
 *real* Expedia, but the *listing copy* on our side is still
@@ -308,7 +308,7 @@ the synthesized origin.
 
 **Q: Will the link still earn if the user opens it in a different
 browser?**
-A: No — Expedia attribution requires the cookie set at click time.
+A: No - Expedia attribution requires the cookie set at click time.
 Cross-device flows are an Expedia program problem, not ours.
 
 **Q: How do I see which prompts/turns drove clicks?**

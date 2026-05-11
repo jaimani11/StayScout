@@ -6,7 +6,7 @@ import type { ProposalRef } from '@core/partial';
 /**
  * Stitch the ranked stays from the provider into a TripProposal. The hero
  * is the top-ranked stay; up to 3 alternatives follow. Reasoning highlights
- * are derived from the user's intent (source: 'intent') — Slice B's
+ * are derived from the user's intent (source: 'intent') - Slice B's
  * RankingAgent will add 'agent'-source chips on top.
  */
 export function buildProposal(args: {
@@ -50,7 +50,7 @@ export function buildProposal(args: {
 export function buildConciergeSummary(intent: TripIntent, hero: Stay, altCount: number): string {
   const dest = intent.destinations[0]?.name ?? hero.location.region ?? hero.location.country;
   const tags = intent.vibe.tags.slice(0, 2).map(humanizeTag);
-  const tagPart = tags.length > 0 ? ` — ${tags.join(', ')}` : '';
+  const tagPart = tags.length > 0 ? ` - ${tags.join(', ')}` : '';
   return `${dest}${tagPart}. Hero pick plus ${altCount} alternative${altCount === 1 ? '' : 's'}.`;
 }
 

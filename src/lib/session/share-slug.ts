@@ -1,9 +1,9 @@
 /**
  * Share slugs are unguessable, not authenticated. 16 chars from a 62-char
- * alphabet ≈ 95 bits of entropy — enough to defeat enumeration without
+ * alphabet ≈ 95 bits of entropy - enough to defeat enumeration without
  * pulling a dep. Output is URL-safe (no `/`, `+`, `=`, padding).
  *
- * Generation uses crypto.getRandomValues, which is uniform — we mod-mask
+ * Generation uses crypto.getRandomValues, which is uniform - we mod-mask
  * with rejection sampling to keep the distribution flat (the naive
  * `% 62` approach is biased because 256 % 62 ≠ 0).
  */

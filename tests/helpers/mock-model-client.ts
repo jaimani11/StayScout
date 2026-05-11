@@ -58,7 +58,7 @@ export class MockModelClient implements ModelClient {
     }
     const result = await Promise.resolve(this.generateHandler(req as GenerateRequest<unknown>));
     if (req.responseSchema) {
-      // Apply optional coercion just like the real client — keeps tests
+      // Apply optional coercion just like the real client - keeps tests
       // exercising the same code path.
       const candidate = req.coerce ? req.coerce(result) : result;
       const parsed = req.responseSchema.safeParse(candidate);
@@ -71,7 +71,7 @@ export class MockModelClient implements ModelClient {
   }
 
   /** Synthetic usage. Tests that care about exact tokens override this
-   *  via the handler returning a wrapped object — but for B8 the dashboard
+   *  via the handler returning a wrapped object - but for B8 the dashboard
    *  cost only needs non-zero, plausibly-shaped numbers. */
   private fakeMeta(model: string): ModelMeta {
     return { model, tokensIn: 100, tokensOut: 50 };

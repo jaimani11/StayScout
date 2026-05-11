@@ -13,7 +13,7 @@ import type {
 import { mintShareSlug as generateShareSlug } from './share-slug';
 
 /**
- * Postgres-backed SessionStore — active when DATABASE_URL is set. Uses
+ * Postgres-backed SessionStore - active when DATABASE_URL is set. Uses
  * Prisma client for type-safe queries.
  *
  * Owner model: User.id is the canonical owner key for both authenticated
@@ -27,7 +27,7 @@ export class PostgresSessionStore implements SessionStore {
 
   // ============== Turns ==============
   // Slice B1: turns are orchestrator-scoped + ephemeral. We don't persist
-  // every turn to the DB yet — that's a Slice B2 concern when LangGraph's
+  // every turn to the DB yet - that's a Slice B2 concern when LangGraph's
   // checkpointer wants graph-state replay. For now, turn lookup falls
   // back to an in-memory map shared across this process.
   private readonly turnCache = new Map<string, TurnRecord>();
@@ -104,7 +104,7 @@ export class PostgresSessionStore implements SessionStore {
         });
         return slug;
       } catch (err) {
-        // Prisma raises P2002 on unique constraint conflict — retry.
+        // Prisma raises P2002 on unique constraint conflict - retry.
         if (
           typeof err === 'object' &&
           err !== null &&
@@ -116,7 +116,7 @@ export class PostgresSessionStore implements SessionStore {
         throw err;
       }
     }
-    throw new Error('mintShareSlug: 3 collisions in a row — entropy source unhealthy?');
+    throw new Error('mintShareSlug: 3 collisions in a row - entropy source unhealthy?');
   }
 
   async getTripBySlug(slug: string): Promise<SharedTrip | null> {
@@ -226,9 +226,9 @@ export class PostgresSessionStore implements SessionStore {
       });
 
       // Move trips. Use updateMany rather than copy so the trip ids stay
-      // stable — any client cache (e.g. saved-trips panel) keeps working.
+      // stable - any client cache (e.g. saved-trips panel) keeps working.
       // The @@unique([userId, proposalId]) constraint prevents collisions
-      // — if the destination user already has the same proposalId, the
+      // - if the destination user already has the same proposalId, the
       // anon trip is dropped.
       const sourceTrips = await tx.trip.findMany({
         where: { userId: args.fromSessionId },

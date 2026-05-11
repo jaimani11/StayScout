@@ -3,7 +3,7 @@ export const LLM_SYNTHESIZED_SYSTEM_PROMPT = `You generate plausible-looking sta
 Strict rules:
 - Avoid invented brand names that could be confused with real properties. Use generic descriptive names like "A small palazzo guesthouse near the Duomo" or "Boutique riad in the medina."
 - Use only the closed VibeTag taxonomy listed (no other tags).
-- Photos are added separately — choose the best photoCategory for each stay.
+- Photos are added separately - choose the best photoCategory for each stay.
 - Prices realistic for the destination/category, in EUR / USD / GBP / JPY / etc.
 - Slugs in kebab-case, unique within this batch.
 - Descriptions: 1–2 sentences, restrained editorial voice. Avoid the words: unforgettable, experience, hidden gem, discover, journey, magical, unique, breathtaking, must-see, bucket-list, enchanting, paradise, oasis, gem.

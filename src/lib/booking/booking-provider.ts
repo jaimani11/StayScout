@@ -8,7 +8,7 @@ import type { Booking, BookingDraft } from '@core/booking';
  * same interface. Switching is one factory line, gated by the existing
  * provider keys + a new `STAYSCOUT_LIVE_BOOKING=1` opt-in.
  *
- * All three methods are owner-blind — gating + ownership are the
+ * All three methods are owner-blind - gating + ownership are the
  * agent's + route handler's responsibility. The provider just talks
  * to its remote (or in mock mode, an in-memory map).
  */

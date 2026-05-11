@@ -4,14 +4,14 @@ import { isAllowedAffiliateHost } from '@/lib/affiliate/allowlist';
 import { InMemorySessionStore } from '@lib/session';
 
 /**
- * Slice F1 — SearchOpportunityCard click pipeline.
+ * Slice F1 - SearchOpportunityCard click pipeline.
  *
  * Each opportunity card renders `/r/<encoded-id>` as its href. This
  * test pins the contract end-to-end so the F1 path can't silently
  * regress to "card looks fine, click goes nowhere":
  *
  *   1. The host allowlist accepts all three providers (Expedia, Vrbo,
- *      Hotels.com) — without this, `/r/[id]` would 404.
+ *      Hotels.com) - without this, `/r/[id]` would 404.
  *   2. The payload round-trips through encode + decode.
  *   3. `recordClick` writes a row keyed on the providerId we encoded,
  *      so `expedia` / `vrbo` / `hotels-com` show up in `/admin/clicks`

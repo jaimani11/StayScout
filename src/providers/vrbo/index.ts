@@ -9,7 +9,7 @@ import { mapVrboProperty } from './mapper';
 const PROVIDER_ID = providerId('vrbo');
 
 /**
- * Vrbo provider — Expedia Group's vacation-rental brand, served via
+ * Vrbo provider - Expedia Group's vacation-rental brand, served via
  * the same EPS Rapid surface as Expedia. The differences from
  * `ExpediaProvider`:
  *
@@ -32,7 +32,7 @@ const PROVIDER_ID = providerId('vrbo');
  *      products. Set `VRBO_API_KEY` = `EXPEDIA_API_KEY` (or just set
  *      both with the same value).
  *
- * `VRBO_AFFILIATE_ID` is optional — falls back to the api key when
+ * `VRBO_AFFILIATE_ID` is optional - falls back to the api key when
  * unset (matches the Expedia pattern).
  */
 export class VrboProvider extends BaseAffiliateProvider {

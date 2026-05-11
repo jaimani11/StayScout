@@ -18,7 +18,7 @@ const MODEL_ID = 'claude-haiku-4-5';
  * MoodSnapshotAgent. Curated path for known destinations (zero LLM cost,
  * zero latency). LLM path with anti-cliché lint and a single retry for
  * unknown destinations. Throws on persistent banned-word output so the
- * orchestrator suppresses the snapshot — "better silent than corny."
+ * orchestrator suppresses the snapshot - "better silent than corny."
  */
 export const MoodSnapshotAgent: Agent<MoodSnapshotAgentInput, MoodSnapshot> = {
   id: MOOD_AGENT_ID,
@@ -52,7 +52,7 @@ export const MoodSnapshotAgent: Agent<MoodSnapshotAgentInput, MoodSnapshot> = {
           system:
             MOOD_SYSTEM_PROMPT +
             (attempt > 1
-              ? '\n\nYour previous attempt used a banned word — try again with grounded sensory language.'
+              ? '\n\nYour previous attempt used a banned word - try again with grounded sensory language.'
               : ''),
           messages: [{ role: 'user', content: userPrompt }],
           responseSchema: ResponseSchema,

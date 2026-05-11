@@ -7,7 +7,7 @@ function siteUrl(): string {
 }
 
 /**
- * robots.txt — allow the marketing surface, disallow share-link slugs
+ * robots.txt - allow the marketing surface, disallow share-link slugs
  * (unguessable + meant for direct sharing, not crawling) and the API
  * routes (no SEO value, just noise).
  */

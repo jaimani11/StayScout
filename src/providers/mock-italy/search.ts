@@ -18,12 +18,12 @@ export function searchMockItaly(query: ProviderSearchQuery): {
   let candidates: readonly Stay[] = matched.length === 0 ? ALL_STAYS : matched;
   const closestMatch = matched.length === 0 && query.destinations.length > 0;
 
-  // Hard filter — capacity
+  // Hard filter - capacity
   const totalTravelers =
     query.travelers.adults + query.travelers.children.count + query.travelers.infants;
   candidates = candidates.filter((s) => s.capacity.sleeps >= totalTravelers);
 
-  // Hard filter — explicit per-night budget cap if specified (allow 40% headroom)
+  // Hard filter - explicit per-night budget cap if specified (allow 40% headroom)
   if (query.budget?.kind === 'per-night') {
     const cap = query.budget.amount;
     candidates = candidates.filter((s) => s.pricing.pricePerNight.amount <= cap * 1.4);
@@ -64,7 +64,7 @@ function matchDestinations(inputs: string[]): Stay[] {
   return stays;
 }
 
-// Synthetic intent for Slice A3 — Slice A5 wires the real IntentAgent
+// Synthetic intent for Slice A3 - Slice A5 wires the real IntentAgent
 // output through the orchestrator. We project the fields rankStays() reads.
 function syntheticIntent(query: ProviderSearchQuery): TripIntent {
   return {

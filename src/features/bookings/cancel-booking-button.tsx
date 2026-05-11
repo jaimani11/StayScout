@@ -84,7 +84,7 @@ export function CancelBookingButton({ bookingId }: CancelBookingButtonProps) {
       >
         {label}
       </button>
-      {/* Screen-reader announcement for the confirming state — sighted
+      {/* Screen-reader announcement for the confirming state - sighted
        *  users see the button text change; AT users get the same signal
        *  via aria-live. */}
       <span className="sr-only" aria-live="polite" aria-atomic="true">

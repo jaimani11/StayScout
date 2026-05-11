@@ -7,7 +7,7 @@ import { DESTINATION_PHOTOS } from './destination-photo-data';
  *   - lib must not depend on providers (boundary rule).
  *   - The providers pool exists for AI-synthesized stays (one per
  *     listing); this pool exists for destination heroes (one per
- *     search opportunity). Different surfaces, different curation —
+ *     search opportunity). Different surfaces, different curation -
  *     keeping them separate prevents a change to one inadvertently
  *     reshuffling the other.
  *
@@ -47,10 +47,10 @@ function pickFromPool(category: PhotoCategory, slug: string): string {
 }
 
 /**
- * Slice F1 — destination-aware imagery for search-opportunity cards.
+ * Slice F1 - destination-aware imagery for search-opportunity cards.
  *
  * The category pool (cityscape/beach/mountains/etc.) shipped in E1
- * was generic — every "cityscape" stay shared from one ~6-photo pool.
+ * was generic - every "cityscape" stay shared from one ~6-photo pool.
  * For search opportunities, the user is looking at a specific
  * destination, so "Vancouver" should look like Vancouver, not just
  * "a city."
@@ -61,11 +61,11 @@ function pickFromPool(category: PhotoCategory, slug: string): string {
  *      (`DESTINATION_PHOTOS`). ~80 high-recognition destinations.
  *   2. Country-level match (e.g. unknown Austrian town falls through
  *      to a canonical Austria photo).
- *   3. Category fallback by simple heuristic — known mountain
+ *   3. Category fallback by simple heuristic - known mountain
  *      regions → 'mountains', coastal regions → 'beach', cities →
  *      'cityscape', everything else → 'countryside'.
  *
- * Each level returns `{ url, alt, credit }` — same shape so the
+ * Each level returns `{ url, alt, credit }` - same shape so the
  * caller never has to switch on which level matched.
  *
  * Hand-curated entries cite Unsplash photographer names per
@@ -106,7 +106,7 @@ export function resolveDestinationPhoto(query: DestinationPhotoQuery): ResolvedD
     };
   }
 
-  // (2) Country-level — useful for unknown cities in known countries.
+  // (2) Country-level - useful for unknown cities in known countries.
   //     e.g. "Klosters, Austria" without an entry falls through to
   //     the canonical Austria photo (typically alpine).
   const country = `__country:${query.country.toUpperCase()}`;
@@ -124,7 +124,7 @@ export function resolveDestinationPhoto(query: DestinationPhotoQuery): ResolvedD
   const id = pickFromPool(category, normalizedName);
   return {
     url: makeUnsplashUrl(id),
-    alt: `${query.name} — ${category}`,
+    alt: `${query.name} - ${category}`,
     credit: 'Unsplash',
   };
 }

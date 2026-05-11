@@ -8,7 +8,7 @@ const REDIRECT_BASE = 'https://www.booking.com/hotel/redirect.html';
 /**
  * Convert a Booking.com hotel record to our Stay shape. Affiliate URL
  * is built here so the redirect handler in /api/go can hand off cleanly
- * — the URL bakes in the affiliate id required for commission tracking.
+ * - the URL bakes in the affiliate id required for commission tracking.
  */
 export function mapBookingHotel(raw: BookingComHotel, affiliateId: string): Stay {
   const nativeId = String(raw.hotel_id);
@@ -33,7 +33,7 @@ export function mapBookingHotel(raw: BookingComHotel, affiliateId: string): Stay
     ...(typeof raw.review_score === 'number'
       ? {
           rating: {
-            score: raw.review_score, // 0..10 — keep their scale; UI normalizes.
+            score: raw.review_score, // 0..10 - keep their scale; UI normalizes.
             reviewCount: raw.review_nr ?? 0,
             source: 'booking',
           },
@@ -54,7 +54,7 @@ export function mapBookingHotel(raw: BookingComHotel, affiliateId: string): Stay
 
 /**
  * Map Booking.com's free-form `accommodation_type_name` to our enum.
- * Anything we don't recognize falls back to "hotel" — the safe default.
+ * Anything we don't recognize falls back to "hotel" - the safe default.
  */
 function mapAccommodationType(label: string | undefined): Stay['type'] {
   if (!label) return 'hotel';

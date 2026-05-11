@@ -4,7 +4,7 @@ import { ALL_STAYS } from '@/providers/mock-italy/data';
 /**
  * Light-mode break section. Uses fixed --featured-* tokens (cream + olive
  * + clay) regardless of global theme. Pulls the first 6 curated stays in
- * ALL_STAYS order — deterministic, no client logic.
+ * ALL_STAYS order - deterministic, no client logic.
  */
 export function FeaturedStays() {
   const featured = ALL_STAYS.slice(0, 6);

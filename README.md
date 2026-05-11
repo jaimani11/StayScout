@@ -4,35 +4,35 @@
 
 ## Status
 
-**Slice A — Cinematic Foundation: complete.** Type a sentence, see a typed JSONL stream of agent steps, watch a Trip Board materialize. Pin to compare. Refine in plain English. Mood snapshots, memory hints, detail view, marketing scroll — all in.
+**Slice A - Cinematic Foundation: complete.** Type a sentence, see a typed JSONL stream of agent steps, watch a Trip Board materialize. Pin to compare. Refine in plain English. Mood snapshots, memory hints, detail view, marketing scroll - all in.
 
-**Slice B1 — Persistence + Auth: complete (mock-safe).** Saved trips persist via a `SessionStore` interface with two implementations: an in-memory store (default) and a Postgres-backed Prisma store (active when `DATABASE_URL` is set). Anonymous sessions own trips by sessionId; signing in (Clerk, when configured) migrates them to the user's id idempotently.
+**Slice B1 - Persistence + Auth: complete (mock-safe).** Saved trips persist via a `SessionStore` interface with two implementations: an in-memory store (default) and a Postgres-backed Prisma store (active when `DATABASE_URL` is set). Anonymous sessions own trips by sessionId; signing in (Clerk, when configured) migrates them to the user's id idempotently.
 
-**Slice B2 — Orchestrator → LangGraph: complete (opt-in).** The hand-rolled orchestrator now has a LangGraph-driven peer behind `STAYSCOUT_ORCHESTRATOR=langgraph`. Same `run()` contract, same event stream — verified by a parity test that deep-equals event sequences from both engines. Mock-safe: `MemorySaver` checkpoint default, `PostgresSaver` when `DATABASE_URL` is set.
+**Slice B2 - Orchestrator → LangGraph: complete (opt-in).** The hand-rolled orchestrator now has a LangGraph-driven peer behind `STAYSCOUT_ORCHESTRATOR=langgraph`. Same `run()` contract, same event stream - verified by a parity test that deep-equals event sequences from both engines. Mock-safe: `MemorySaver` checkpoint default, `PostgresSaver` when `DATABASE_URL` is set.
 
-**Slice B3 — Saved trip resurfacing + share links: complete.** Saved trips become first-class — clicking one resurfaces the proposal on the canvas; sharing produces an unguessable `/t/[slug]` URL with a "Save to my StayScout" CTA so recipients can fork into their own bucket. Slug is lazy-minted on first share (~95 bits of entropy). The public read sanitizes owner-identifying fields and the original raw prompt at the SessionStore boundary, not the route handler.
+**Slice B3 - Saved trip resurfacing + share links: complete.** Saved trips become first-class - clicking one resurfaces the proposal on the canvas; sharing produces an unguessable `/t/[slug]` URL with a "Save to my StayScout" CTA so recipients can fork into their own bucket. Slug is lazy-minted on first share (~95 bits of entropy). The public read sanitizes owner-identifying fields and the original raw prompt at the SessionStore boundary, not the route handler.
 
-**Slice B4 — Affiliate redirect + click attribution: complete.** "Continue to Booking" now hits `/api/go`, which validates the destination against a hostname allowlist (open-redirect prevention), records an `AffiliateClick` row, and 302s to the provider. Click writes never block the redirect — booking flow is sacred. Anonymous and authenticated owners both attribute correctly; new providers join by adding a hostname.
+**Slice B4 - Affiliate redirect + click attribution: complete.** "Continue to Booking" now hits `/api/go`, which validates the destination against a hostname allowlist (open-redirect prevention), records an `AffiliateClick` row, and 302s to the provider. Click writes never block the redirect - booking flow is sacred. Anonymous and authenticated owners both attribute correctly; new providers join by adding a hostname.
 
-**Slice B5 — Real provider integrations (mock-safe): complete.** A `BaseAffiliateProvider` abstract class encapsulates HTTP + retry + cache + mapper boilerplate. Booking.com ships as the reference implementation — self-registers when `BOOKING_COM_AFFILIATE_ID` + `BOOKING_COM_API_KEY` are set, invisible otherwise. Availability-aware registry + `searchWithFanout` helper let multiple providers run in parallel; one provider's outage never stalls the others. Adding Expedia / Vrbo / Hotelbeds is the same pattern: declare endpoint + auth, write a mapper, slot into the registry.
+**Slice B5 - Real provider integrations (mock-safe): complete.** A `BaseAffiliateProvider` abstract class encapsulates HTTP + retry + cache + mapper boilerplate. Booking.com ships as the reference implementation - self-registers when `BOOKING_COM_AFFILIATE_ID` + `BOOKING_COM_API_KEY` are set, invisible otherwise. Availability-aware registry + `searchWithFanout` helper let multiple providers run in parallel; one provider's outage never stalls the others. Adding Expedia / Vrbo / Hotelbeds is the same pattern: declare endpoint + auth, write a mapper, slot into the registry.
 
-**Slice B6 — Destination pages + mobile bottom-sheet: complete.** Static `/destinations` index + `/destinations/[slug]` pages with hero photo, mood, featured stays, Schema.org `TouristDestination` JSON-LD, Open Graph cards, and a sitemap. The mobile workspace now opens with a draggable bottom-sheet (peek/half/full snaps) instead of the stacked split layout — chat is always at hand without dominating the canvas.
+**Slice B6 - Destination pages + mobile bottom-sheet: complete.** Static `/destinations` index + `/destinations/[slug]` pages with hero photo, mood, featured stays, Schema.org `TouristDestination` JSON-LD, Open Graph cards, and a sitemap. The mobile workspace now opens with a draggable bottom-sheet (peek/half/full snaps) instead of the stacked split layout - chat is always at hand without dominating the canvas.
 
-**Slice B7 — Langfuse traces + cost/latency dashboard: complete.** The existing `TraceLogger` seam now feeds a stackable composite: an always-on in-memory ring buffer + a Langfuse exporter that activates when keys are set. A new `/admin` operator dashboard surfaces summary stats (turns, P50/P95, total cost, error rate), per-agent latency bars, and a recent-turns table. Mock-safe: no Langfuse keys = no Langfuse import.
+**Slice B7 - Langfuse traces + cost/latency dashboard: complete.** The existing `TraceLogger` seam now feeds a stackable composite: an always-on in-memory ring buffer + a Langfuse exporter that activates when keys are set. A new `/admin` operator dashboard surfaces summary stats (turns, P50/P95, total cost, error rate), per-agent latency bars, and a recent-turns table. Mock-safe: no Langfuse keys = no Langfuse import.
 
-**Slice B8 — Polish (B-series follow-ups): complete.** Four follow-ups paid down: `ModelClient.generateWithMeta` so IntentAgent reports cost; `/api/trips/[tripId]/resurface` primes the SessionStore so refining a resurfaced saved trip works; per-provider circuit breaker on `BaseAffiliateProvider` (3-state, configurable threshold + cooldown); Expedia reference provider mirroring Booking.com file-for-file — proves the B5 abstraction reuses cleanly.
+**Slice B8 - Polish (B-series follow-ups): complete.** Four follow-ups paid down: `ModelClient.generateWithMeta` so IntentAgent reports cost; `/api/trips/[tripId]/resurface` primes the SessionStore so refining a resurfaced saved trip works; per-provider circuit breaker on `BaseAffiliateProvider` (3-state, configurable threshold + cooldown); Expedia reference provider mirroring Booking.com file-for-file - proves the B5 abstraction reuses cleanly.
 
-**Slice C1 — pgvector memory (mock-safe in-memory + scaffold): complete.** Persistent semantic memory across sessions: `BagOfWordsEmbedding` + `InMemoryMemoryStore` + `MemoryRecorder` + `MemoryRetriever`. The IntentAgent's user prompt now carries a `<memory>` block when retrieval finds a relevant prior turn; the workspace's existing `concierge.memory.hint` event surfaces cross-session recall instead of just the in-session heuristic. Postgres+pgvector and Anthropic embeddings have schema + env-flag scaffolding; full impls land in C1.x.
+**Slice C1 - pgvector memory (mock-safe in-memory + scaffold): complete.** Persistent semantic memory across sessions: `BagOfWordsEmbedding` + `InMemoryMemoryStore` + `MemoryRecorder` + `MemoryRetriever`. The IntentAgent's user prompt now carries a `<memory>` block when retrieval finds a relevant prior turn; the workspace's existing `concierge.memory.hint` event surfaces cross-session recall instead of just the in-session heuristic. Postgres+pgvector and Anthropic embeddings have schema + env-flag scaffolding; full impls land in C1.x.
 
-**Slice C2 — MonitoringAgent (saved-trip watcher): complete.** Saved trips become living. The saved-trips panel surfaces a small badge per row when something material has changed ("↓ 7% since you saved it", "New top match"). On-demand pull model triggered from `/api/trips/list`; per-trip throttle (60s default); deterministic mock checker ships in C2 with `RealMonitoringChecker` deferred to C2.x.
+**Slice C2 - MonitoringAgent (saved-trip watcher): complete.** Saved trips become living. The saved-trips panel surfaces a small badge per row when something material has changed ("↓ 7% since you saved it", "New top match"). On-demand pull model triggered from `/api/trips/list`; per-trip throttle (60s default); deterministic mock checker ships in C2 with `RealMonitoringChecker` deferred to C2.x.
 
-**Slice C3 — ItineraryAgent (multi-day plans): complete.** Saved trips can be expanded into a 3-day plan at `/trips/[tripId]/itinerary`. Hand-curated 3-day itineraries for all 7 Italian destinations (~105 slots of authored editorial content); generic synthesized fallback for everywhere else. The saved-trips panel grows a "PLAN DAY-BY-DAY →" link per row. `ModelItineraryGenerator` (live model + Viator activity search) deferred to C3.x.
+**Slice C3 - ItineraryAgent (multi-day plans): complete.** Saved trips can be expanded into a 3-day plan at `/trips/[tripId]/itinerary`. Hand-curated 3-day itineraries for all 7 Italian destinations (~105 slots of authored editorial content); generic synthesized fallback for everywhere else. The saved-trips panel grows a "PLAN DAY-BY-DAY →" link per row. `ModelItineraryGenerator` (live model + Viator activity search) deferred to C3.x.
 
-**Slice C4 — Stripe (premium tier): complete.** Real Stripe integration alongside a mock fallback. `BillingProvider` interface with `MockBillingProvider` (keyless dev: every authed user premium, anon free) and `StripeBillingProvider` (test or live mode, hosted Checkout, signature-verified webhook, idempotent on `event.id`, owner state synced via `checkout.session.completed` + `customer.subscription.{created,updated,deleted}`). Soft-gate on the synthesized-itinerary path — curated Italy stays free for everyone. Setup walkthrough: [`docs/billing.md`](docs/billing.md) (Stripe CLI recipe + documented end-to-end test flow with card `4242 4242 4242 4242`).
+**Slice C4 - Stripe (premium tier): complete.** Real Stripe integration alongside a mock fallback. `BillingProvider` interface with `MockBillingProvider` (keyless dev: every authed user premium, anon free) and `StripeBillingProvider` (test or live mode, hosted Checkout, signature-verified webhook, idempotent on `event.id`, owner state synced via `checkout.session.completed` + `customer.subscription.{created,updated,deleted}`). Soft-gate on the synthesized-itinerary path - curated Italy stays free for everyone. Setup walkthrough: [`docs/billing.md`](docs/billing.md) (Stripe CLI recipe + documented end-to-end test flow with card `4242 4242 4242 4242`).
 
-**Slice C5 — Admin panel extensions: complete.** `/admin` grew from a telemetry summary into a real operator console. Four new pages: `/admin/turns/[turnId]` (per-trace drill-in with agent timeline + tokens + cost), `/admin/clicks` (affiliate click feed, owner-linked), `/admin/users/[userId]` (per-owner aggregate: trips, memories, billing entitlement, recent turns), `/admin/memories` (memory index browser with similarity search). Single auth gate via `requireAdmin()`; shared `<AdminShell>` + nav. Dashboard now surfaces a billing card alongside the existing turn/latency/cost/error stats. Only additive interface methods on the stores (`listClicks`, `listForOwner`, `listAllOwners`).
+**Slice C5 - Admin panel extensions: complete.** `/admin` grew from a telemetry summary into a real operator console. Four new pages: `/admin/turns/[turnId]` (per-trace drill-in with agent timeline + tokens + cost), `/admin/clicks` (affiliate click feed, owner-linked), `/admin/users/[userId]` (per-owner aggregate: trips, memories, billing entitlement, recent turns), `/admin/memories` (memory index browser with similarity search). Single auth gate via `requireAdmin()`; shared `<AdminShell>` + nav. Dashboard now surfaces a billing card alongside the existing turn/latency/cost/error stats. Only additive interface methods on the stores (`listClicks`, `listForOwner`, `listAllOwners`).
 
-**Slice D — BookingAgent (approval-gated): complete.** Mock-safe end-to-end booking flow. From a saved-trip row, "Book this →" opens a two-step modal: traveler form → draft review (dates, total, cancellation policy) → explicit "Confirm booking" → `/bookings/[bookingId]` with the confirmation. `BookingProvider` interface + `MockBookingProvider` (idempotent on user's confirm-click), `BookingStore` (in-memory, owner-scoped), `BookingAgent` (draft/confirm/cancel). Sibling admin page `/admin/bookings` shows the feed with owner links + status pills. Real provider booking + autonomous mode + card capture explicitly **deferred to D.x** (architecture seam in place via `STAYSCOUT_LIVE_BOOKING` flag + `autonomous` arg on the agent).
+**Slice D - BookingAgent (approval-gated): complete.** Mock-safe end-to-end booking flow. From a saved-trip row, "Book this →" opens a two-step modal: traveler form → draft review (dates, total, cancellation policy) → explicit "Confirm booking" → `/bookings/[bookingId]` with the confirmation. `BookingProvider` interface + `MockBookingProvider` (idempotent on user's confirm-click), `BookingStore` (in-memory, owner-scoped), `BookingAgent` (draft/confirm/cancel). Sibling admin page `/admin/bookings` shows the feed with owner links + status pills. Real provider booking + autonomous mode + card capture explicitly **deferred to D.x** (architecture seam in place via `STAYSCOUT_LIVE_BOOKING` flag + `autonomous` arg on the agent).
 
 - Specs: [`docs/superpowers/specs/`](docs/superpowers/specs/)
 - Plans: [`docs/superpowers/plans/`](docs/superpowers/plans/)
@@ -57,8 +57,8 @@ Every variable is optional. The matrix shows what each one turns on:
 |---|---|---|
 | **Models** | Mock IntentAgent fixtures, deterministic mood snapshots | `ANTHROPIC_API_KEY` → live Claude calls |
 | **Providers** | `MockItalyProvider` (30 curated stays) + `LLMSynthesizedProvider` (mock) | `BOOKING_COM_AFFILIATE_ID` + `BOOKING_COM_API_KEY` → Booking.com on. `EXPEDIA_API_KEY` + `EXPEDIA_SHARED_SECRET` → Expedia on. Both register together; circuit breaker isolates per-provider failures. |
-| **Database** | In-memory `SessionStore` — process-local, lost on restart | `DATABASE_URL` → Postgres via Prisma. Run `pnpm db:migrate` once. |
-| **Auth** | Anonymous (cookie-bound `sessionId`) — saved trips work | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY` → sign-in + auto-migration of anonymous trips |
+| **Database** | In-memory `SessionStore` - process-local, lost on restart | `DATABASE_URL` → Postgres via Prisma. Run `pnpm db:migrate` once. |
+| **Auth** | Anonymous (cookie-bound `sessionId`) - saved trips work | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY` → sign-in + auto-migration of anonymous trips |
 | **Orchestrator** | Hand-rolled engine | `STAYSCOUT_ORCHESTRATOR=langgraph` → LangGraph engine (same event stream; checkpointer is `MemorySaver` unless `DATABASE_URL` is set, then `PostgresSaver`) |
 | **Observability** | In-memory telemetry buffer (read at `/admin`) | `LANGFUSE_PUBLIC_KEY` + `LANGFUSE_SECRET_KEY` → durable trace export. `LANGFUSE_HOST` for self-hosted instances. |
 
@@ -113,7 +113,7 @@ The `src` tree is split into layers with strict ESLint-enforced boundaries. Addi
 
 ```
 src/
-  core/           types & contracts only — no runtime, no React, no Next imports
+  core/           types & contracts only - no runtime, no React, no Next imports
   agents/         IntentAgent + MoodSnapshotAgent     ← deps: core, lib
   providers/      MockItalyProvider + LLMSynthesizedProvider ← deps: core, lib
   orchestrator/   Orchestrator class + diff utilities + event stream
@@ -127,7 +127,7 @@ src/
                   memory-hinter, theme, photos      ← deps: core
   features/       UI features (workspace, marketing, landing, shared)
                                                        ← deps: anything except app
-  app/            Next.js routes — thin glue       ← deps: anything
+  app/            Next.js routes - thin glue       ← deps: anything
   styles/         design tokens, globals.css
 ```
 
@@ -148,7 +148,7 @@ The reverse fails CI (verified via `boundaries/dependencies` rule).
 | A8 | Trip Board cinematic materialization | ✓ |
 | A9 | Refine + Compare + Memory + Detail | ✓ |
 | A10 | Marketing + Mobile + Deploy | ✓ |
-| B1 | Persistence (`SessionStore` interface + Postgres impl) + Auth (Clerk + anon-to-user migration) — mock-safe | ✓ |
+| B1 | Persistence (`SessionStore` interface + Postgres impl) + Auth (Clerk + anon-to-user migration) - mock-safe | ✓ |
 | B2 | Orchestrator → LangGraph + Postgres checkpointer (opt-in via STAYSCOUT_ORCHESTRATOR) | ✓ |
 | B3 | Saved trips resurfacing + share links | ✓ |
 | B4 | Affiliate redirect router + click attribution | ✓ |
@@ -159,8 +159,8 @@ The reverse fails CI (verified via `boundaries/dependencies` rule).
 | C1 | pgvector memory (mock-safe in-memory + scaffold for pgvector / Anthropic embeddings) | ✓ |
 | C2 | MonitoringAgent (saved-trip change watcher) | ✓ |
 | C3 | ItineraryAgent (multi-day plans) | ✓ |
-| C4 | Stripe (premium tier) — real test-mode + mock fallback (`docs/billing.md`) | ✓ |
-| C5 | Admin panel extensions — turns, clicks, users, memories | ✓ |
+| C4 | Stripe (premium tier) - real test-mode + mock fallback (`docs/billing.md`) | ✓ |
+| C5 | Admin panel extensions - turns, clicks, users, memories | ✓ |
 | D | BookingAgent (approval-gated; autonomous deferred to D.x) | ✓ |
 | D.x | Real provider booking + autonomous mode + card capture | next |
 
@@ -168,10 +168,10 @@ The reverse fails CI (verified via `boundaries/dependencies` rule).
 
 - TDD where it makes sense (logic, parsers, agents, providers). Visual components get manual verification + the existing pipeline gates.
 - Single source of truth for UI state lives in Zustand. No component-local state for non-ephemeral data.
-- The Provider interface is sacred — every real-world inventory source must fit through it.
+- The Provider interface is sacred - every real-world inventory source must fit through it.
 - Optional polish (mood snapshots, memory hints) must never block the critical path.
 - Editorial voice: fragments and italics, never paragraphs and exclamations. No "discover", "unforgettable", "hidden gem", "journey". Enforced by `src/lib/quality/taste-lint.ts` in CI.
 
 ## License
 
-Proprietary — all rights reserved (placeholder until license decision).
+Proprietary - all rights reserved (placeholder until license decision).

@@ -2,7 +2,7 @@ import { BookingError, mintBookingId, type Booking, type BookingDraft } from '@c
 import type { BookingProvider } from './booking-provider';
 
 /**
- * Slice D default — every authed user can complete the full booking
+ * Slice D default - every authed user can complete the full booking
  * flow without keys. Real provider booking integrations land in D.x
  * behind the same interface.
  *
@@ -23,13 +23,13 @@ export class MockBookingProvider implements BookingProvider {
   private readonly bookingsByRef = new Map<string, Booking>();
 
   async book(draft: BookingDraft): Promise<Booking> {
-    // Idempotency check FIRST — so a retry of a successful book never
+    // Idempotency check FIRST - so a retry of a successful book never
     // double-creates, even if the env failure flag is set.
     const existing = this.bookingsByKey.get(draft.idempotencyKey);
     if (existing) return existing;
 
     if (process.env.STAYSCOUT_BOOKING_FAIL === '1') {
-      // Self-clear so the next call succeeds — convenient for manual
+      // Self-clear so the next call succeeds - convenient for manual
       // testing of the "first try fails, retry works" path.
       delete process.env.STAYSCOUT_BOOKING_FAIL;
       throw new BookingError('provider-error', 'mock provider was instructed to fail on this call');
@@ -85,7 +85,7 @@ export class MockBookingProvider implements BookingProvider {
     return this.bookingsByRef.get(bookingId) ?? null;
   }
 
-  /** Test-only — wipe state. */
+  /** Test-only - wipe state. */
   _reset(): void {
     this.bookingsByKey.clear();
     this.bookingsByRef.clear();

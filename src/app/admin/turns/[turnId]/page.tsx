@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic';
  * Drill-in for a single turn. Reads from the in-process telemetry
  * store (the same buffer the dashboard renders summaries from).
  *
- * `notFound()` when the turn has scrolled out of the ring buffer —
+ * `notFound()` when the turn has scrolled out of the ring buffer -
  * dev-only data is meant to be ephemeral. Langfuse holds the durable
  * copy when wired.
  */
@@ -55,14 +55,14 @@ export default async function TurnDetailPage({ params }: PageProps) {
     {
       key: 'model',
       label: 'Model',
-      render: (r) => r.model ?? '—',
+      render: (r) => r.model ?? '-',
     },
     {
       key: 'tokens',
       label: 'Tokens',
       render: (r) =>
         r.tokensIn === undefined && r.tokensOut === undefined
-          ? '—'
+          ? '-'
           : `${r.tokensIn ?? 0} → ${r.tokensOut ?? 0}`,
     },
   ];
@@ -71,21 +71,21 @@ export default async function TurnDetailPage({ params }: PageProps) {
       key: 'cost',
       label: 'Cost',
       render: (r) =>
-        r.costUsd === undefined || r.costUsd === 0 ? '—' : `$${r.costUsd.toFixed(4)}`,
+        r.costUsd === undefined || r.costUsd === 0 ? '-' : `$${r.costUsd.toFixed(4)}`,
     });
   }
   if (someCache) {
     columns.push({
       key: 'cache',
       label: 'Cache',
-      render: (r) => (r.cacheHit ? 'hit' : '—'),
+      render: (r) => (r.cacheHit ? 'hit' : '-'),
     });
   }
   columns.push({
     key: 'error',
     label: 'Error',
     render: (r) =>
-      r.error ? <span style={{ color: 'var(--accent-warning)' }}>{r.error}</span> : '—',
+      r.error ? <span style={{ color: 'var(--accent-warning)' }}>{r.error}</span> : '-',
   });
 
   const statusColor =
@@ -133,10 +133,10 @@ export default async function TurnDetailPage({ params }: PageProps) {
           </div>
           <div className="flex flex-wrap items-center gap-4">
             <Field label="Status" value={turn.status} valueColor={statusColor} />
-            <Field label="Type" value={turn.type ?? '—'} valueColor="var(--ink-primary)" />
+            <Field label="Type" value={turn.type ?? '-'} valueColor="var(--ink-primary)" />
             <Field
               label="Duration"
-              value={turn.durationMs ? `${turn.durationMs}ms` : '—'}
+              value={turn.durationMs ? `${turn.durationMs}ms` : '-'}
               valueColor="var(--ink-primary)"
             />
             {someCost ? (

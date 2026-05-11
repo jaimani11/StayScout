@@ -6,7 +6,7 @@ import { jsonResponse } from '../../_lib/route-context';
 export const runtime = 'nodejs';
 
 /**
- * POST /api/auth/migrate — copies trips owned by the caller's anonymous
+ * POST /api/auth/migrate - copies trips owned by the caller's anonymous
  * session id to their newly-authenticated userId. Idempotent: a second
  * call (or a duplicate from the post-sign-in client effect) returns
  * { alreadyMigrated: true } and does nothing.
@@ -14,7 +14,7 @@ export const runtime = 'nodejs';
  * Trigger: client calls this after Clerk reports isSignedIn flips to
  * true. Server-side trust: we read userId from auth() (Clerk-signed)
  * and sessionId from the cookie (untrusted but bound to the user that
- * just signed in — anyone calling with a different cookie would only
+ * just signed in - anyone calling with a different cookie would only
  * be migrating their own anonymous bucket).
  */
 export async function POST(_req: NextRequest): Promise<Response> {

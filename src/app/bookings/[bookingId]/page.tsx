@@ -23,7 +23,7 @@ export const dynamic = 'force-dynamic';
  * Owner-gated booking confirmation page. Reads from the booking
  * subsystem store + cross-references the underlying saved trip for
  * the destination + hero stay name (which the booking carries by id
- * but not by display name — the trip is the source of truth for
+ * but not by display name - the trip is the source of truth for
  * naming).
  *
  * 404 when the booking doesn't belong to the caller.
@@ -42,7 +42,7 @@ export default async function BookingConfirmationPage({ params }: PageProps) {
   if (!booking) notFound();
 
   // Cross-ref the saved trip for human-readable names. If the trip
-  // was deleted post-booking, fall back to placeholder strings — the
+  // was deleted post-booking, fall back to placeholder strings - the
   // booking is still the source of truth for what was reserved.
   const trip = await getSessionStore().getTrip({
     ownerKind: owner.ownerKind,

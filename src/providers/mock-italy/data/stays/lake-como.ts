@@ -21,7 +21,7 @@ const villaDEste: Stay = {
     'A Renaissance villa built in 1568 with 25 acres of gardens running down to the lake. The floating pool sits in the lake itself; the breakfast hall fits a chamber orchestra.',
   photos: [
     unsplashPhoto({
-      // Replaced — original Unsplash ID 1568901346375-23c9450c58cd
+      // Replaced - original Unsplash ID 1568901346375-23c9450c58cd
       // was repurposed and now serves a non-travel image (burger).
       id: '1464822759023-fed622ff2c3b',
       alt: 'Lake Como villa with terraced gardens',
@@ -65,7 +65,7 @@ const grandHotelTremezzo: Stay = {
     coordinates: { lat: 45.987, lng: 9.234 },
   },
   description:
-    'A belle-epoque hotel from 1910 with three pools — one floating in the lake, one in the garden, one indoors. The view of Bellagio is the famous one.',
+    'A belle-epoque hotel from 1910 with three pools - one floating in the lake, one in the garden, one indoors. The view of Bellagio is the famous one.',
   photos: [
     unsplashPhoto({
       id: '1546412414-e1885259563a',

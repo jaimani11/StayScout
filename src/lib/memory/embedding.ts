@@ -1,5 +1,5 @@
 /**
- * EmbeddingProvider — turns a string into a unit vector for similarity
+ * EmbeddingProvider - turns a string into a unit vector for similarity
  * search. Two implementations exist:
  *
  *   - BagOfWordsEmbedding (this file): deterministic, local, free.
@@ -10,7 +10,7 @@
  *
  *   - AnthropicEmbedding (anthropic-embedding.ts): real semantic
  *     embeddings from the Anthropic API. Opt-in via
- *     STAYSCOUT_USE_ANTHROPIC_EMBEDDINGS=1 — unconditional usage isn't
+ *     STAYSCOUT_USE_ANTHROPIC_EMBEDDINGS=1 - unconditional usage isn't
  *     free (per-call cost) so we make it explicit.
  */
 

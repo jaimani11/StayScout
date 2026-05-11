@@ -5,7 +5,7 @@ import { useWorkspaceStore } from '../store/workspace-store';
 import { useSavedTrips } from '../hooks/use-saved-trips';
 
 /**
- * Header affordance for opening the saved-trips panel. Always visible —
+ * Header affordance for opening the saved-trips panel. Always visible -
  * shows a count badge once there is at least one saved trip. Anonymous
  * sessions can save trips without signing in (B1 default), so the count
  * is meaningful even pre-auth.

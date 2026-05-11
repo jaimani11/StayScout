@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { AnimatePresence, motion, useMotionValue } from 'framer-motion';
+import type { CSSProperties } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronRight } from '@/features/shared/icons';
 import {
@@ -11,7 +12,7 @@ import {
 import { encodeAffiliateLink } from '@lib/affiliate/link-encoder';
 
 /**
- * Empty-state pane — Apple-style destination slider.
+ * Empty-state pane - Apple-style destination slider.
  *
  *   - Full-bleed photo crossfade across hand-picked destinations.
  *   - Auto-advances every 6s; pauses when the user is hovering or
@@ -21,7 +22,7 @@ import { encodeAffiliateLink } from '@lib/affiliate/link-encoder';
  *   - Pagination dots at the bottom.
  *   - The whole slide is a clickable affiliate link that routes
  *     through `/r/[id]` to Expedia search, prefilled with the
- *     destination and a default 5-night window — so a curious
+ *     destination and a default 5-night window - so a curious
  *     visitor who hasn't typed anything yet can still click through
  *     and convert.
  *
@@ -36,7 +37,7 @@ import { encodeAffiliateLink } from '@lib/affiliate/link-encoder';
 interface CarouselSlide {
   name: string;
   region: string;
-  /** ISO-3166 alpha-2 — used to build a working Expedia search URL. */
+  /** ISO-3166 alpha-2 - used to build a working Expedia search URL. */
   country: string;
   /** Unsplash photo id (the part after `photo-` in the URL). */
   id: string;
@@ -173,7 +174,7 @@ export function EmptyState() {
   const goPrev = useCallback(() => goTo(index - 1), [goTo, index]);
   const goNext = useCallback(() => goTo(index + 1), [goTo, index]);
 
-  // Auto-advance — pauses while hovered or dragging so the user can
+  // Auto-advance - pauses while hovered or dragging so the user can
   // study a slide without it slipping away.
   useEffect(() => {
     if (isHovered) return;
@@ -183,7 +184,7 @@ export function EmptyState() {
     return () => clearInterval(t);
   }, [isHovered, goNext]);
 
-  // Keyboard nav — arrows move slides, Enter opens the link.
+  // Keyboard nav - arrows move slides, Enter opens the link.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
@@ -199,7 +200,7 @@ export function EmptyState() {
 
   // The carousel root is `absolute inset-0` over its parent <section>.
   // That guarantees full-height regardless of how the grid measures the
-  // cell — `h-full` was collapsing in some viewport / Turbopack-HMR
+  // cell - `h-full` was collapsing in some viewport / Turbopack-HMR
   // states. With inset-0 the overlay always fills its positioned
   // ancestor, which `workspace.tsx` already declares with
   // `relative min-h-0` on the canvas section.
@@ -209,7 +210,7 @@ export function EmptyState() {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Photo layer — Apple-style drag-to-swipe over a crossfading
+      {/* Photo layer - Apple-style drag-to-swipe over a crossfading
        *  background. The motion.div is dragged on the X axis; the
        *  AnimatePresence inside swaps the underlying Image. */}
       <motion.div
@@ -222,7 +223,7 @@ export function EmptyState() {
           isDraggingRef.current = true;
         }}
         onDragEnd={(_, info) => {
-          // Defer click suppression — onClick fires after onDragEnd.
+          // Defer click suppression - onClick fires after onDragEnd.
           setTimeout(() => {
             isDraggingRef.current = false;
           }, 50);
@@ -262,7 +263,7 @@ export function EmptyState() {
         </AnimatePresence>
       </motion.div>
 
-      {/* Legibility gradient — dark top + dark bottom, transparent middle. */}
+      {/* Legibility gradient - dark top + dark bottom, transparent middle. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
@@ -287,7 +288,7 @@ export function EmptyState() {
         draggable={false}
       />
 
-      {/* Editorial overlay — a single flex column so the top and bottom
+      {/* Editorial overlay - a single flex column so the top and bottom
        *  rows are physically separated by `flex-1` spacer. They can't
        *  overlap regardless of viewport height. */}
       <div
@@ -329,7 +330,7 @@ export function EmptyState() {
           </span>
         </div>
 
-        {/* Spacer — guarantees the top and bottom rows can never crash
+        {/* Spacer - guarantees the top and bottom rows can never crash
          *  into each other, no matter how short the viewport gets. */}
         <div className="flex-1" />
 
@@ -394,81 +395,72 @@ export function EmptyState() {
           </span>
         </div>
 
-        {/* Pagination dots — clickable shortcuts. Pointer-events restored
-         *  on the wrapper so the buttons remain clickable through the
-         *  pointer-events-none parent. */}
+        {/* Pagination row - prev arrow, dots, next arrow. All bottom-
+         *  centered together so the photo area itself stays clean. */}
         <div
-          className="pointer-events-auto flex items-center justify-center gap-1.5"
-          aria-label="Carousel pagination"
+          className="pointer-events-auto flex items-center justify-center gap-3"
+          aria-label="Carousel navigation"
         >
-          {SLIDES.map((s, i) => (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => goTo(i)}
-              aria-label={`Go to ${s.name}`}
-              aria-current={i === index}
-              style={{
-                width: i === index ? '1.4rem' : '0.4rem',
-                height: '0.2rem',
-                borderRadius: '0.2rem',
-                background: i === index ? 'rgba(237,230,219,0.95)' : 'rgba(237,230,219,0.4)',
-                border: 'none',
-                padding: 0,
-                cursor: 'pointer',
-                transition: 'width 600ms ease, background 600ms ease',
-              }}
+          <button
+            type="button"
+            onClick={goPrev}
+            aria-label="Previous destination"
+            style={chevronButtonStyle}
+          >
+            <ChevronRight
+              size={14}
+              strokeWidth={2.4}
+              style={{ transform: 'rotate(180deg)' }}
             />
-          ))}
+          </button>
+
+          <div className="flex items-center gap-1.5">
+            {SLIDES.map((s, i) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => goTo(i)}
+                aria-label={`Go to ${s.name}`}
+                aria-current={i === index}
+                style={{
+                  width: i === index ? '1.4rem' : '0.4rem',
+                  height: '0.2rem',
+                  borderRadius: '0.2rem',
+                  background: i === index ? 'rgba(237,230,219,0.95)' : 'rgba(237,230,219,0.4)',
+                  border: 'none',
+                  padding: 0,
+                  cursor: 'pointer',
+                  transition: 'width 600ms ease, background 600ms ease',
+                }}
+              />
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={goNext}
+            aria-label="Next destination"
+            style={chevronButtonStyle}
+          >
+            <ChevronRight size={14} strokeWidth={2.4} />
+          </button>
         </div>
       </div>
-
-      {/* Prev / next buttons — z-indexed above the click overlay so the
-       *  user can navigate without triggering the affiliate redirect. */}
-      <button
-        type="button"
-        onClick={goPrev}
-        aria-label="Previous destination"
-        className="absolute top-1/2 left-3 -translate-y-1/2 transition-opacity hover:opacity-100"
-        style={{
-          opacity: 0.7,
-          width: '2.3rem',
-          height: '2.3rem',
-          borderRadius: '999px',
-          background: 'rgba(0,0,0,0.45)',
-          border: '1px solid rgba(237,230,219,0.4)',
-          color: '#EDE6DB',
-          backdropFilter: 'blur(6px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 10,
-        }}
-      >
-        <ChevronRight size={16} strokeWidth={2.4} style={{ transform: 'rotate(180deg)' }} />
-      </button>
-      <button
-        type="button"
-        onClick={goNext}
-        aria-label="Next destination"
-        className="absolute top-1/2 right-3 -translate-y-1/2 transition-opacity hover:opacity-100"
-        style={{
-          opacity: 0.7,
-          width: '2.3rem',
-          height: '2.3rem',
-          borderRadius: '999px',
-          background: 'rgba(0,0,0,0.45)',
-          border: '1px solid rgba(237,230,219,0.4)',
-          color: '#EDE6DB',
-          backdropFilter: 'blur(6px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 10,
-        }}
-      >
-        <ChevronRight size={16} strokeWidth={2.4} />
-      </button>
     </div>
   );
 }
+
+const chevronButtonStyle: CSSProperties = {
+  width: '1.9rem',
+  height: '1.9rem',
+  borderRadius: '999px',
+  background: 'rgba(0,0,0,0.45)',
+  border: '1px solid rgba(237,230,219,0.4)',
+  color: '#EDE6DB',
+  backdropFilter: 'blur(6px)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  cursor: 'pointer',
+  padding: 0,
+};

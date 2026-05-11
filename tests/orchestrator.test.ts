@@ -54,7 +54,7 @@ describe('Orchestrator', () => {
     expect(kinds).toContain('proposal.ready');
     expect(kinds).toContain('proposal.bookmarkable');
     expect(kinds).toContain('concierge.message');
-    // Mood snapshot fires post-proposal (curated path for Tuscany — no LLM call)
+    // Mood snapshot fires post-proposal (curated path for Tuscany - no LLM call)
     expect(kinds).toContain('mood.snapshot.ready');
     expect(kinds[kinds.length - 1]).toBe('turn.completed');
   });

@@ -15,7 +15,7 @@ import type {
  * - createCheckoutSession returns a URL into our in-app
  *   `/billing/mock-checkout` page, which simulates the Stripe Checkout
  *   flow + flips the subscription state via a server action.
- * - handleWebhook is a no-op — there are no webhooks in mock mode.
+ * - handleWebhook is a no-op - there are no webhooks in mock mode.
  *
  * Keyless dev experience never breaks. The synthesized-itinerary
  * upgrade path is exercisable end-to-end from the UI.

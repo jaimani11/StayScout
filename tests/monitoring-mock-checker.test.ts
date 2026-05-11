@@ -53,9 +53,9 @@ const baseTrip: SavedTrip = {
 
 describe('MockMonitoringChecker', () => {
   const checker = new MockMonitoringChecker();
-  const FIXED_NOW = 1_700_000_000_000; // arbitrary — keeps minute bucket stable
+  const FIXED_NOW = 1_700_000_000_000; // arbitrary - keeps minute bucket stable
 
-  it('returns the same result for the same (tripId, minute) — deterministic', async () => {
+  it('returns the same result for the same (tripId, minute) - deterministic', async () => {
     const a = await checker.check({ trip: baseTrip, prevSnapshot: null, now: FIXED_NOW });
     const b = await checker.check({ trip: baseTrip, prevSnapshot: null, now: FIXED_NOW + 5_000 });
     expect(a?.id).toBe(b?.id);
@@ -96,7 +96,7 @@ describe('MockMonitoringChecker', () => {
       else counts[event.kind] += 1;
     }
     // No-event ~20%, price-drop ~45%, price-rise ~15%, better-match ~10%,
-    // new-alt ~5%, unavailable ~5%. Generous tolerance — randomness.
+    // new-alt ~5%, unavailable ~5%. Generous tolerance - randomness.
     expect(counts.null / trials).toBeGreaterThan(0.1);
     expect(counts.null / trials).toBeLessThan(0.3);
     expect(counts['price-drop'] / trials).toBeGreaterThan(0.35);

@@ -11,7 +11,7 @@ import { resolveSession } from '@/lib/session/anonymous';
 import '@/styles/globals.css';
 
 export const metadata: Metadata = {
-  title: 'StayScout — Travel concierge software',
+  title: 'StayScout - Travel concierge software',
   description:
     'AI-native travel orchestration. Describe your trip in a sentence; specialized agents handle the rest.',
   metadataBase: new URL(
@@ -24,7 +24,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   // Middleware mints the anonymous session cookie on first request, so
   // by the time we get here it's present. resolveSession() also handles
   // the rare case where middleware hasn't run yet (RSC dev hot path) by
-  // generating a value — the next request will overwrite it consistently.
+  // generating a value - the next request will overwrite it consistently.
   const cookieStore = await cookies();
   const cookieHeader = cookieStore
     .getAll()

@@ -13,10 +13,10 @@ import {
  * so the cost is one microtask in the no-key path.
  *
  * The engine kind is captured at construction time. Flipping
- * STAYSCOUT_ORCHESTRATOR mid-process requires a server restart — by
+ * STAYSCOUT_ORCHESTRATOR mid-process requires a server restart - by
  * design; we don't want a hot-swap mid-conversation.
  *
- * `globalThis`-anchored — see comment in src/lib/session/factory.ts.
+ * `globalThis`-anchored - see comment in src/lib/session/factory.ts.
  */
 type OrchKind = ReturnType<typeof getOrchestratorEngineKind>;
 declare global {

@@ -32,7 +32,7 @@ function fakeItinerary(tripId: string): Itinerary {
             kind: 'meal',
             startHint: 'midday',
             title: 'Lunch',
-            detail: 'Eat where the locals eat — cheap, busy, no English menu.',
+            detail: 'Eat where the locals eat - cheap, busy, no English menu.',
           },
           {
             id: 'd',

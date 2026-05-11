@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * Itinerary types — Slice C3. The day-by-day plan for a saved trip.
+ * Itinerary types - Slice C3. The day-by-day plan for a saved trip.
  *
  * Editorial, not transactional: slots are descriptive ("a slow walk
  * from the Boboli Garden") rather than rigid bookings. C3.x layers

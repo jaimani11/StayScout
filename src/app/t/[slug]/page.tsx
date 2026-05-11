@@ -6,7 +6,7 @@ import { SharedTripView } from '@/features/shared-trip/shared-trip-view';
 
 /**
  * Public read-only view of a shared trip. The slug is unguessable
- * (95-bit entropy) — anyone with the URL can read; nobody can guess.
+ * (95-bit entropy) - anyone with the URL can read; nobody can guess.
  */
 
 interface PageProps {

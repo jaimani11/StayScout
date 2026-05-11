@@ -38,7 +38,7 @@ export function UrlInit() {
       // Strip query + hash so refreshing or going back doesn't re-apply.
       router.replace('/');
     }
-    // Run once on mount only — params/router are stable enough that we
+    // Run once on mount only - params/router are stable enough that we
     // don't want to re-apply when they change (e.g. user typing).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

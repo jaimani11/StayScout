@@ -4,7 +4,7 @@ export const MOOD_SYSTEM_PROMPT = `You write a single-sentence editorial mood sn
 
 Strict rules:
 - One sentence.
-- Sensory and grounded — never abstract sales copy.
+- Sensory and grounded - never abstract sales copy.
 - Avoid these words: unforgettable, experience, hidden gem, discover, journey, magical, unique, breathtaking, must-see, bucket-list, enchanting, paradise, oasis, gem.
 - Never editorialize ("amazing", "stunning", "wonderful").
 - Output the field { text: string }. No prose around it.`;

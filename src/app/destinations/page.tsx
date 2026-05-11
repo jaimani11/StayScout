@@ -4,7 +4,7 @@ import { STAYS_BY_DESTINATION } from '@/providers/mock-italy/data';
 import { DestinationCard } from '@/features/destinations/destination-card';
 
 /**
- * Index of curated destinations. Static — no runtime cost.
+ * Index of curated destinations. Static - no runtime cost.
  */
 
 export const metadata: Metadata = {
@@ -51,7 +51,7 @@ export default function DestinationsIndex() {
             lineHeight: 1.55,
           }}
         >
-          Seven places we know well — the kind of working knowledge that comes from staying, not
+          Seven places we know well - the kind of working knowledge that comes from staying, not
           visiting.
         </p>
       </header>

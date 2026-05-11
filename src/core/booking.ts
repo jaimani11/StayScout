@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * Slice D — Booking core types.
+ * Slice D - Booking core types.
  *
  * Bookings produce real, irreversible side effects. The shapes here
  * are designed for that:
@@ -20,7 +20,7 @@ import { z } from 'zod';
  *     module convert when comparing.
  *
  *   - `OwnerKey` shape (re-defined here, not imported from auth) keeps
- *     the core layer free of lib dependencies — same approach as
+ *     the core layer free of lib dependencies - same approach as
  *     `@core/billing`. Structural typing means `ownerOf()` results
  *     drop in without ceremony.
  */
@@ -45,12 +45,12 @@ export type BookingStatus = z.infer<typeof BookingStatusSchema>;
 
 /**
  * Three shapes a real provider's cancellation policy maps onto:
- *   - `free-until`  — full refund if canceled before `freeUntil` (most common).
- *   - `partial-refund` — flat percentage refund regardless of timing.
- *   - `non-refundable` — no refund possible. (Admin still allows mark-as-canceled
+ *   - `free-until`  - full refund if canceled before `freeUntil` (most common).
+ *   - `partial-refund` - flat percentage refund regardless of timing.
+ *   - `non-refundable` - no refund possible. (Admin still allows mark-as-canceled
  *     for record-keeping; the user's money is gone.)
  *
- * `description` is the human-readable line shown in the modal — providers
+ * `description` is the human-readable line shown in the modal - providers
  * give this verbatim; the kind + numeric fields are the structured form
  * we evaluate `isCancelable()` against.
  */
@@ -106,7 +106,7 @@ export const BookingDraftSchema = z.object({
   savedTripId: z.string().min(1),
   stayId: z.string().min(1),
   providerId: z.string().min(1),
-  /** ISO date — `YYYY-MM-DD` granularity is fine, but full ISO strings
+  /** ISO date - `YYYY-MM-DD` granularity is fine, but full ISO strings
    *  are the shape we receive from the saved trip. */
   checkIn: z.string().min(1),
   checkOut: z.string().min(1),
@@ -187,7 +187,7 @@ export function isCancelable(booking: Booking, now: Date = new Date()): boolean 
   if (policy.kind === 'free-until') {
     return new Date(policy.freeUntil) > now;
   }
-  // partial-refund — always allowed; refund amount is communicated in description.
+  // partial-refund - always allowed; refund amount is communicated in description.
   return true;
 }
 

@@ -81,15 +81,15 @@ const PRICE_PER_NIGHT_MAX = 25000;
  * rather than dropping the whole batch:
  *
  *   1. Vibe tags outside our closed taxonomy ("countryside",
- *      "lakeside") — filter them out per-stay; preserve at least one
+ *      "lakeside") - filter them out per-stay; preserve at least one
  *      tag so the `min(1)` constraint still holds.
  *
- *   2. Prices below the floor — clamp up to the floor rather than
+ *   2. Prices below the floor - clamp up to the floor rather than
  *      drop. Edge cases like ultra-budget hostels still surface as
  *      something the user can see; a $20 number that's just a model
  *      slip becomes a $40 floor.
  *
- *   3. Prices above the ceiling — clamp down to the ceiling rather
+ *   3. Prices above the ceiling - clamp down to the ceiling rather
  *      than drop. Hallucinated $999,999 values become a sane $25K
  *      luxury cap. Real luxury markets (Tokyo, Singapore, NYC) can
  *      legitimately produce $5K–$15K stays which are now allowed.
@@ -147,7 +147,7 @@ export function mapLLMStayToStay(llm: LLMStay): Stay {
     photos: [
       unsplashPhoto({
         id: photoId,
-        alt: `${llm.name} — ${llm.photoCategory}`,
+        alt: `${llm.name} - ${llm.photoCategory}`,
         credit: 'Unsplash',
       }),
     ],

@@ -16,7 +16,7 @@ import { useEffect, useRef } from 'react';
  *   const ref = useModalA11y(onClose);
  *   return <div ref={ref} role="dialog" aria-modal="true">…</div>;
  *
- * The element the ref points to is the modal's outermost container —
+ * The element the ref points to is the modal's outermost container -
  * focus trap operates over its descendant focusable elements.
  *
  * Implementation notes:
@@ -45,7 +45,7 @@ export function useModalA11y(onClose: () => void): React.RefObject<HTMLDivElemen
     const previouslyFocused =
       typeof document !== 'undefined' ? (document.activeElement as HTMLElement | null) : null;
 
-    // Body scroll lock — store the prior overflow so we play nicely
+    // Body scroll lock - store the prior overflow so we play nicely
     // with other overlays that might be present.
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';

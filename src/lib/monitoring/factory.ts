@@ -24,7 +24,7 @@ export interface MonitoringSubsystem {
   kind: 'mock' | 'real';
 }
 
-// Process-global anchor — see comment in src/lib/session/factory.ts.
+// Process-global anchor - see comment in src/lib/session/factory.ts.
 declare global {
   var __stayscoutMonitoringSubsystem: MonitoringSubsystem | undefined;
 }

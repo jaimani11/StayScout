@@ -1,12 +1,12 @@
-# StayScout Slice A6 — LLM-Synthesized Provider + MoodSnapshotAgent Implementation Plan
+# StayScout Slice A6 - LLM-Synthesized Provider + MoodSnapshotAgent Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Replace the empty `LLMSynthesizedProvider` stub with a real Claude-driven generator (4–5 plausible stays for any destination, photo-category mapped to Unsplash, 24h in-memory cache, trademark-safe prompting), and ship the `MoodSnapshotAgent` (curated for known destinations, LLM-generated for unknown — both passing the banned-word lint). Wire the orchestrator to run MoodSnapshot **after** `proposal.ready` so it's pure post-proposal polish — never blocks the materialization moment. After A6, the AI core is feature-complete; A7 builds the UI on top.
+**Goal:** Replace the empty `LLMSynthesizedProvider` stub with a real Claude-driven generator (4–5 plausible stays for any destination, photo-category mapped to Unsplash, 24h in-memory cache, trademark-safe prompting), and ship the `MoodSnapshotAgent` (curated for known destinations, LLM-generated for unknown - both passing the banned-word lint). Wire the orchestrator to run MoodSnapshot **after** `proposal.ready` so it's pure post-proposal polish - never blocks the materialization moment. After A6, the AI core is feature-complete; A7 builds the UI on top.
 
-**Architecture:** LLM provider becomes a class taking `ModelClient` at construction (instead of a const stub). A new factory `createDefaultProviderRouter(modelClient)` wires the live provider into the orchestrator singleton; tests continue using the existing `routeProvider` const which keeps the stub. `MoodSnapshotAgent` lives in `src/agents/`, conforms to `Agent<{destination}, MoodSnapshot>`, and is invoked by the orchestrator after the proposal step. Mood failures are *always* recoverable — the proposal already shipped.
+**Architecture:** LLM provider becomes a class taking `ModelClient` at construction (instead of a const stub). A new factory `createDefaultProviderRouter(modelClient)` wires the live provider into the orchestrator singleton; tests continue using the existing `routeProvider` const which keeps the stub. `MoodSnapshotAgent` lives in `src/agents/`, conforms to `Agent<{destination}, MoodSnapshot>`, and is invoked by the orchestrator after the proposal step. Mood failures are *always* recoverable - the proposal already shipped.
 
-**Tech additions:** none — Anthropic SDK + Zod + Vitest already in.
+**Tech additions:** none - Anthropic SDK + Zod + Vitest already in.
 
 **Spec reference:** [docs/superpowers/specs/2026-05-08-stayscout-slice-a-design.md](../specs/2026-05-08-stayscout-slice-a-design.md) §6.2, §7.3, §7.4
 
@@ -129,7 +129,7 @@ The model only generates a slim shape; the mapper fills in `id`, `providerId`, `
       photos: [
         unsplashPhoto({
           id: photoId,
-          alt: `${llm.name} — ${llm.photoCategory}`,
+          alt: `${llm.name} - ${llm.photoCategory}`,
           credit: 'Unsplash',
         }),
       ],
@@ -230,7 +230,7 @@ A small deterministic map from category → known-good Unsplash photo IDs. Real-
 Strict rules:
 - Avoid invented brand names that could be confused with real properties. Use generic descriptive names like "A small palazzo guesthouse near the Duomo" or "Boutique riad in the medina."
 - Use only the closed VibeTag taxonomy listed (no other tags).
-- Photos are added separately — choose the best photoCategory for each stay.
+- Photos are added separately - choose the best photoCategory for each stay.
 - Prices realistic for the destination/category, in EUR / USD / GBP / JPY / etc.
 - Slugs in kebab-case, unique within this batch.
 - Descriptions: 1–2 sentences, restrained editorial voice. Avoid the words: unforgettable, experience, hidden gem, discover, journey, magical, unique, breathtaking, must-see, bucket-list, enchanting, paradise, oasis, gem.
@@ -263,7 +263,7 @@ Produce 4–5 stays as a {stays: LLMStay[]} object.`;
 
 ## Task 5: `LLMSynthesizedProvider` class
 
-- [ ] Replace `src/providers/llm-synthesized/index.ts` (rewrite — was a stub):
+- [ ] Replace `src/providers/llm-synthesized/index.ts` (rewrite - was a stub):
   ```ts
   import type { ModelClient } from '@core/model-client';
   import type {
@@ -390,7 +390,7 @@ Produce 4–5 stays as a {stays: LLMStay[]} object.`;
   }
 
   // Stub kept for the default `routeProvider` consumed by tests/orchestrator
-  // outside the production singleton — returns empty results without
+  // outside the production singleton - returns empty results without
   // touching a model client.
   export const LLMSynthesizedProviderStub: Provider = {
     id: providerId('llm-synthesized'),
@@ -415,7 +415,7 @@ Produce 4–5 stays as a {stays: LLMStay[]} object.`;
   };
   ```
 
-## Task 6: Provider registry — production factory
+## Task 6: Provider registry - production factory
 
 The orchestrator's default `routeProvider` (which tests use) keeps the stub. The production singleton creates a real LLM provider with the actual model client.
 
@@ -440,7 +440,7 @@ The orchestrator's default `routeProvider` (which tests use) keeps the stub. The
   };
 
   /**
-   * Default route — used by tests and any caller that doesn't have a
+   * Default route - used by tests and any caller that doesn't have a
    * model client. Italy queries hit the curated MockItalyProvider; others
    * hit the empty stub.
    */
@@ -453,7 +453,7 @@ The orchestrator's default `routeProvider` (which tests use) keeps the stub. The
   }
 
   /**
-   * Production factory — builds a router that uses a real LLM provider.
+   * Production factory - builds a router that uses a real LLM provider.
    * Called from the orchestrator singleton at construction time.
    */
   export function createDefaultProviderRouter(
@@ -490,7 +490,7 @@ The orchestrator's default `routeProvider` (which tests use) keeps the stub. The
 
 Strict rules:
 - One sentence.
-- Sensory and grounded — never abstract sales copy.
+- Sensory and grounded - never abstract sales copy.
 - Avoid these words: unforgettable, experience, hidden gem, discover, journey, magical, unique, breathtaking, must-see, bucket-list, enchanting, paradise, oasis, gem.
 - Never editorialize ("amazing", "stunning", "wonderful").
 - Output the field { text: string }. No prose around it.`;
@@ -519,7 +519,7 @@ Strict rules:
    * MoodSnapshotAgent. Curated path for known destinations (zero LLM cost,
    * zero latency). LLM path with anti-cliché lint and a single retry for
    * unknown destinations. Throws on persistent banned-word output so the
-   * orchestrator suppresses the snapshot — "better silent than corny."
+   * orchestrator suppresses the snapshot - "better silent than corny."
    */
   export const MoodSnapshotAgent: Agent<MoodSnapshotAgentInput, MoodSnapshot> = {
     id: MOOD_AGENT_ID,
@@ -552,7 +552,7 @@ Strict rules:
         try {
           const resp = await ctx.modelClient.generate({
             model: MODEL_ID,
-            system: MOOD_SYSTEM_PROMPT + (attempt > 1 ? '\n\nYour previous attempt used a banned word — try again with grounded sensory language.' : ''),
+            system: MOOD_SYSTEM_PROMPT + (attempt > 1 ? '\n\nYour previous attempt used a banned word - try again with grounded sensory language.' : ''),
             messages: [{ role: 'user', content: userPrompt }],
             responseSchema: ResponseSchema,
             cacheKey: 'mood-snapshot-v1',
@@ -604,7 +604,7 @@ Strict rules:
   export * from './mood-snapshot-agent';
   ```
 
-## Task 8: Orchestrator — post-proposal mood snapshot
+## Task 8: Orchestrator - post-proposal mood snapshot
 
 - [ ] Modify `src/orchestrator/orchestrator.ts`:
   - Add `MoodSnapshotAgent` import + constructor option
@@ -628,7 +628,7 @@ Strict rules:
   await this.runMoodSnapshot(req, intent, ctx.signal, agentTrace, (event) => {
     queueMicrotask(() => {});  // (no-op; placeholder)
   });
-  // Actually we'll use a generator helper — see below.
+  // Actually we'll use a generator helper - see below.
   ```
 
   Implement using a private `async *runMoodSnapshotEvents()` generator that yields the events for the mood step:
@@ -680,7 +680,7 @@ Strict rules:
         error: errorMessage(err),
         recoverable: true,
       };
-      // Proposal already shipped — continue to turn.completed.
+      // Proposal already shipped - continue to turn.completed.
     }
   }
   ```
@@ -786,7 +786,7 @@ Strict rules:
       expect(result.freshness.source).toBe('synthesized');
     });
 
-    it('caches by (destination, vibe, budget) — second call hits cache', async () => {
+    it('caches by (destination, vibe, budget) - second call hits cache', async () => {
       let calls = 0;
       const client = new MockModelClient().respondGenerate(() => {
         calls += 1;
@@ -827,7 +827,7 @@ Strict rules:
 
   describe('MoodSnapshotAgent', () => {
     it('returns curated mood for a known Italian destination (no LLM call)', async () => {
-      const client = new MockModelClient(); // no .respondGenerate — would throw if called
+      const client = new MockModelClient(); // no .respondGenerate - would throw if called
       const result = await MoodSnapshotAgent.run(
         { destination: { kind: 'curated', name: 'Tuscany', country: 'IT' } },
         fakeContext(client),
@@ -912,4 +912,4 @@ Strict rules:
   ```bash
   git tag -a slice-a6 -m "Slice A6 complete: LLMSynthesizedProvider + MoodSnapshotAgent"
   ```
-- [ ] After A6 ships, write the Slice A7 plan (Workspace Shell + Chat Sidebar — first UI of the live workspace).
+- [ ] After A6 ships, write the Slice A7 plan (Workspace Shell + Chat Sidebar - first UI of the live workspace).

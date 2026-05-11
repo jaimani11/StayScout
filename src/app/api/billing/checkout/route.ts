@@ -10,7 +10,7 @@ export const runtime = 'nodejs';
  * POST /api/billing/checkout
  *
  * Starts a checkout flow for the current owner. Anonymous owners get
- * 401 — sign-in is required to subscribe (the existing B1 anonymous→
+ * 401 - sign-in is required to subscribe (the existing B1 anonymous→
  * user migration carries any saved trips and memories over). Returns a
  * URL the client redirects to:
  *

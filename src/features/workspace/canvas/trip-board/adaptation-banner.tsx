@@ -10,7 +10,7 @@ import { ADAPTATION_BANNER_LIFETIME_MS, EASE_EMPHASIZED, REDUCED_DURATION } from
  * "Why this changed" banner. Renders when proposal.adaptation events
  * arrive (Slice B+ via RankingAgent). Auto-dismisses after 5s. Slice A's
  * orchestrator never emits these so this component is silently inactive
- * in the current demo — but the wire is ready.
+ * in the current demo - but the wire is ready.
  *
  * Implementation: outer component is a stateless gate, inner BannerCore
  * owns the auto-hide timer. Using a stable `key` on BannerCore (derived

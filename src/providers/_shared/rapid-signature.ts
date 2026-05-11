@@ -15,7 +15,7 @@ import { createHmac } from 'node:crypto';
  * (not per-batch) so a long-running call doesn't expire mid-flight.
  *
  * This signing module is shared between the Expedia and Vrbo
- * providers — both partners route through Expedia Group's Rapid API.
+ * providers - both partners route through Expedia Group's Rapid API.
  *
  * Reference: https://developers.expediagroup.com/docs/rapid/getting-started/api-overview
  *

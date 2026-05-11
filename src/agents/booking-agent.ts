@@ -14,30 +14,30 @@ import type { BookingProvider } from '@lib/booking/booking-provider';
 import type { BookingStore } from '@lib/booking/booking-store';
 
 /**
- * Slice D — BookingAgent.
+ * Slice D - BookingAgent.
  *
  * The first agent that produces real, irreversible side effects. The
  * three operations here form the entire booking lifecycle:
  *
- *   1. `draftBooking(input)` — derives a structured draft from the
+ *   1. `draftBooking(input)` - derives a structured draft from the
  *      saved trip + user-provided traveler info. Stamps an
  *      idempotencyKey + persists. NO provider call yet.
  *
- *   2. `confirmBooking({ ownerKey, idempotencyKey })` — pulls the
+ *   2. `confirmBooking({ ownerKey, idempotencyKey })` - pulls the
  *      draft, verifies ownership, calls the provider's idempotent
  *      `book(draft)`. Persists the resulting Booking. Re-calling
- *      with the same idempotencyKey is safe — provider returns the
+ *      with the same idempotencyKey is safe - provider returns the
  *      same Booking, store overwrites with identical content.
  *
- *   3. `cancelBooking({ ownerKey, bookingId })` — verifies ownership
+ *   3. `cancelBooking({ ownerKey, bookingId })` - verifies ownership
  *      + cancellation policy, calls the provider's idempotent
  *      `cancel`. Persists the canceled status.
  *
- * Slice D is approval-gated for every booking, every tier — the
+ * Slice D is approval-gated for every booking, every tier - the
  * `autonomous` flag is reserved for D.x. The API in Slice D never
  * passes it; the agent ignores it.
  *
- * No LLM calls in Slice D — drafts are deterministic transformations
+ * No LLM calls in Slice D - drafts are deterministic transformations
  * of the saved trip + form input. LLM enrichment (parsing free-text
  * traveler details, resolving date conflicts) lands in D.x.
  */
@@ -48,7 +48,7 @@ export interface DraftBookingInput {
   /**
    * Reserved for D.x. When true, the agent would proceed straight
    * through to `confirmBooking` after `draftBooking` (premium
-   * autonomous mode). Slice D ignores this for safety — the API
+   * autonomous mode). Slice D ignores this for safety - the API
    * never passes it; the architectural seam exists for D.x to flip.
    */
   autonomous?: boolean;
@@ -237,7 +237,7 @@ function computeTotal(trip: SavedTrip, nights: number): { amount: number; curren
 }
 
 function defaultCancellationPolicy(checkInIso: string): CancellationPolicy {
-  // Free until 7 days before check-in — a friendly default that
+  // Free until 7 days before check-in - a friendly default that
   // matches the dominant industry shape. Real providers will
   // return their own policies in D.x.
   const checkIn = new Date(checkInIso);

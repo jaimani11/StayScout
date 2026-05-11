@@ -3,11 +3,10 @@ import type { NextConfig } from 'next';
 const config: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  // Move Next's dev indicator out of the bottom-left so it doesn't sit
-  // on top of the chat-sidebar input bar.
-  devIndicators: {
-    position: 'bottom-right',
-  },
+  // Hide Next.js's dev indicator entirely - the small "N" badge that
+  // floats in a corner is distracting during demos and overlaps with
+  // app chrome at certain viewport widths.
+  devIndicators: false,
   images: {
     // Slice A photos come from Unsplash. Real-provider domains added in Slice B.
     remotePatterns: [{ protocol: 'https', hostname: 'images.unsplash.com' }],

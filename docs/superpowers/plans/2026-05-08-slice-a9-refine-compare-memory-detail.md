@@ -1,10 +1,10 @@
-# StayScout Slice A9 — Refine Polish + Compare + Memory + Detail Implementation Plan
+# StayScout Slice A9 - Refine Polish + Compare + Memory + Detail Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Surface the four remaining seam-only features as visible UI, completing the workspace experience. Refine flow gets a synthesized adaptation note pass (banner actually fires in Slice A — Slice B's RankingAgent replaces with real notes). Compare mode lands as pin/unpin actions on cards + bottom tray + side-by-side modal. Memory hints render as a subtle italic tile in the chat sidebar when `MemoryHinter` detects a session pattern. Detail panel slides in from the right on stay-card click. After A9, the workspace is feature-complete; A10 is the marketing surface and mobile + deploy.
+**Goal:** Surface the four remaining seam-only features as visible UI, completing the workspace experience. Refine flow gets a synthesized adaptation note pass (banner actually fires in Slice A - Slice B's RankingAgent replaces with real notes). Compare mode lands as pin/unpin actions on cards + bottom tray + side-by-side modal. Memory hints render as a subtle italic tile in the chat sidebar when `MemoryHinter` detects a session pattern. Detail panel slides in from the right on stay-card click. After A9, the workspace is feature-complete; A10 is the marketing surface and mobile + deploy.
 
-**Architecture:** Workspace store gains `compareSet`, `detailViewStayId`, `memoryHint`. New `src/lib/memory-hinter/` library — pure heuristic over completed turns, no LLM. Orchestrator wires the hinter post-turn and emits `concierge.memory.hint` when triggered. Synthesized adaptation lives in `src/orchestrator/synthesize-adaptation.ts` — derives notes from `IntentDelta`. UI: pin button on hero + alt cards, `<CompareTray>` floating at bottom of canvas, `<CompareView>` modal, `<DetailPanel>` slide-in, `<MemoryHintTile>` in chat sidebar.
+**Architecture:** Workspace store gains `compareSet`, `detailViewStayId`, `memoryHint`. New `src/lib/memory-hinter/` library - pure heuristic over completed turns, no LLM. Orchestrator wires the hinter post-turn and emits `concierge.memory.hint` when triggered. Synthesized adaptation lives in `src/orchestrator/synthesize-adaptation.ts` - derives notes from `IntentDelta`. UI: pin button on hero + alt cards, `<CompareTray>` floating at bottom of canvas, `<CompareView>` modal, `<DetailPanel>` slide-in, `<MemoryHintTile>` in chat sidebar.
 
 **Spec reference:** [docs/superpowers/specs/2026-05-08-stayscout-slice-a-design.md](../specs/2026-05-08-stayscout-slice-a-design.md) §5.7–5.10, §6.2
 
@@ -68,7 +68,7 @@ Total: ~12 new files, ~6 modified.
   /**
    * Session-scoped heuristic detector. Slice A pattern: 3+ turns sharing a
    * vibe tag → fire a hint about that preference. Fires at most once per
-   * session — once the orchestrator emits the hint, it should call
+   * session - once the orchestrator emits the hint, it should call
    * markFired() so we don't repeat.
    *
    * Slice C replaces this with the real Memory Agent reading from pgvector
@@ -140,7 +140,7 @@ Total: ~12 new files, ~6 modified.
     return best;
   }
 
-  // Phrasings keyed by vibe tag. Restrained — never anthropomorphic, never
+  // Phrasings keyed by vibe tag. Restrained - never anthropomorphic, never
   // editorialising. If a tag isn't here, we don't fire (better silent than corny).
   const PHRASINGS: Partial<Record<VibeTag, string>> = {
     walkable: 'You seem to prefer walkable destinations.',
@@ -148,7 +148,7 @@ Total: ~12 new files, ~6 modified.
     slow: 'You seem to gravitate toward slower-paced trips.',
     luxury: 'You consistently lean toward higher-end stays.',
     'family-friendly': 'Family-friendly seems to be a constant for you.',
-    foodie: "Food keeps coming up — you're a foodie traveler.",
+    foodie: "Food keeps coming up - you're a foodie traveler.",
     cultural: 'You consistently include cultural depth in your trips.',
     nature: 'Nature settings recur in your trips.',
     beach: 'Beach destinations seem to be a draw.',
@@ -181,7 +181,7 @@ Total: ~12 new files, ~6 modified.
   import type { IntentDelta } from '@core/intent-delta';
 
   /**
-   * Slice A synthesizer — derives AdaptationNotes from a structural
+   * Slice A synthesizer - derives AdaptationNotes from a structural
    * IntentDelta. Slice B's RankingAgent replaces with real reasoning. The
    * note `description` is restrained-editorial, not chatty.
    */
@@ -247,21 +247,21 @@ Total: ~12 new files, ~6 modified.
   - Add `MemoryHinter` import + private instance
   - Add `import { synthesizeAdaptationNotes }`
   - On refine turns, after `intent.refined`, compute notes from delta and emit `proposal.adaptation` *before* `proposal.evolved`
-  - On `turn.completed`, call `memoryHinter.observeTurn({intent})`, then `evaluate()` — if a hint emerges, emit `concierge.memory.hint` and call `markFired()`
+  - On `turn.completed`, call `memoryHinter.observeTurn({intent})`, then `evaluate()` - if a hint emerges, emit `concierge.memory.hint` and call `markFired()`
 
-  (Implement carefully — the memory hint emission must come *before* `turn.completed` per the wire format.)
+  (Implement carefully - the memory hint emission must come *before* `turn.completed` per the wire format.)
 
 ## Task 4: Workspace store extensions
 
 - [ ] Modify `src/features/workspace/store/workspace-store.ts`:
   - State: `compareSet: string[]`, `detailViewStayId: string | null`, `memoryHint: MemoryHint | null`
   - Actions: `pinStay(id)`, `unpinStay(id)`, `openDetail(id)`, `closeDetail()`
-  - Pin enforces `max 3` — adding a 4th rotates oldest out
+  - Pin enforces `max 3` - adding a 4th rotates oldest out
   - Dispatch handler for `concierge.memory.hint` → `set({memoryHint: {…}})`
 
 ## Task 5: Icon barrel additions
 
-- [ ] Modify `src/features/shared/icons/index.ts` — re-export `Bookmark`, `BookmarkCheck`, `ExternalLink`, `Pin` from lucide.
+- [ ] Modify `src/features/shared/icons/index.ts` - re-export `Bookmark`, `BookmarkCheck`, `ExternalLink`, `Pin` from lucide.
 
 ## Task 6: Pin button + card hookups
 
@@ -330,7 +330,7 @@ Total: ~12 new files, ~6 modified.
   - Click CTA → opens `<ConfirmRedirectModal>`
 
 - [ ] Create `src/features/workspace/detail/confirm-redirect-modal.tsx`:
-  - Small modal: "Slice A demo — booking redirect lives in Slice B." + Close
+  - Small modal: "Slice A demo - booking redirect lives in Slice B." + Close
 
 ## Task 9: Memory hint tile
 
@@ -346,9 +346,9 @@ Total: ~12 new files, ~6 modified.
 
 ## Task 11: Tests
 
-- [ ] `tests/memory-hinter.test.ts` — threshold not met, threshold met, fires once, reset
-- [ ] `tests/synthesize-adaptation.test.ts` — vibe added/removed, budget changed, no changes
-- [ ] `tests/workspace-store.test.ts` — +pin/unpin (max 3, oldest rotates), open/close detail, memory hint dispatch
+- [ ] `tests/memory-hinter.test.ts` - threshold not met, threshold met, fires once, reset
+- [ ] `tests/synthesize-adaptation.test.ts` - vibe added/removed, budget changed, no changes
+- [ ] `tests/workspace-store.test.ts` - +pin/unpin (max 3, oldest rotates), open/close detail, memory hint dispatch
 
 ## Task 12: Final pipeline + tag
 

@@ -12,7 +12,7 @@ import { useIsMobile } from '@/features/shared/use-media-query';
 /**
  * Single-screen workspace shell.
  *
- *   Desktop (≥768px): split chat (38%) + canvas (62%) — Slice A layout.
+ *   Desktop (≥768px): split chat (38%) + canvas (62%) - Slice A layout.
  *   Mobile  (<768px): canvas full-screen background; chat lives in a
  *                     draggable bottom sheet with peek/half/full snaps.
  *

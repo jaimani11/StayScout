@@ -35,7 +35,7 @@ describe('requirePremium gate (mock provider)', () => {
     }
   });
 
-  it('does not cache between calls — each call re-reads provider state', async () => {
+  it('does not cache between calls - each call re-reads provider state', async () => {
     const r1 = await requirePremium({ ownerKind: 'user', ownerId: 'user_carol' });
     const r2 = await requirePremium({ ownerKind: 'user', ownerId: 'user_carol' });
     expect(r1.entitled).toBe(true);

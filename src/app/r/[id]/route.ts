@@ -8,7 +8,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
- * GET /r/[id] — short affiliate redirect with self-contained payload.
+ * GET /r/[id] - short affiliate redirect with self-contained payload.
  *
  * The `[id]` segment is a base64url-encoded JSON payload (see
  * `lib/affiliate/link-encoder.ts`) carrying:
@@ -21,7 +21,7 @@ export const dynamic = 'force-dynamic';
  *      tamper guard).
  *   2. Resolve the owner from cookie/auth.
  *   3. Record an AffiliateClick row keyed on the current owner.
- *      Failures are logged but never block the 302 — the user
+ *      Failures are logged but never block the 302 - the user
  *      clicked, they should land on the provider regardless of our
  *      analytics health.
  *   4. 302 to the decoded URL.
@@ -74,7 +74,7 @@ export async function GET(_req: NextRequest, { params }: RouteParams): Promise<R
     url: truncated,
   });
 
-  // 302, not 301 — affiliate URLs may change campaign params; we don't
+  // 302, not 301 - affiliate URLs may change campaign params; we don't
   // want browsers caching the redirect.
   return NextResponse.redirect(payload.url, 302);
 }

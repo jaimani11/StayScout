@@ -1,6 +1,6 @@
 /**
  * Per-model token pricing. USD per 1M tokens. Updated ad-hoc as
- * Anthropic's pricing pages change — keep this aligned with the
+ * Anthropic's pricing pages change - keep this aligned with the
  * `claude-` model identifiers we actually pass to the model client.
  *
  * Source: https://docs.anthropic.com/en/docs/about-claude/models
@@ -35,7 +35,7 @@ const _warnedModels = new Set<string>();
 
 /**
  * Compute USD cost for a model invocation. Returns null when the model
- * isn't in the price table (logged once per unknown model — repeated
+ * isn't in the price table (logged once per unknown model - repeated
  * calls don't spam logs).
  */
 export function computeCostUsd(model: string, tokensIn: number, tokensOut: number): number | null {
@@ -43,7 +43,7 @@ export function computeCostUsd(model: string, tokensIn: number, tokensOut: numbe
   if (!pricing) {
     if (!_warnedModels.has(model)) {
       _warnedModels.add(model);
-      console.warn(`[costs] unknown model "${model}" — cost will not be reported`);
+      console.warn(`[costs] unknown model "${model}" - cost will not be reported`);
     }
     return null;
   }
@@ -52,7 +52,7 @@ export function computeCostUsd(model: string, tokensIn: number, tokensOut: numbe
   return inputCost + outputCost;
 }
 
-/** Test-only — clear the unknown-model warning set so tests are isolated. */
+/** Test-only - clear the unknown-model warning set so tests are isolated. */
 export function _resetCostWarningsForTesting(): void {
   _warnedModels.clear();
 }

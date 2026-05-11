@@ -8,11 +8,11 @@ import { mapExpediaProperty } from './mapper';
 const PROVIDER_ID = providerId('expedia');
 
 /**
- * Expedia provider. Self-registers via `ExpediaProvider.fromEnv()` —
+ * Expedia provider. Self-registers via `ExpediaProvider.fromEnv()` -
  * returns null when both required env vars are missing, so the
  * registry never sees a half-configured provider.
  *
- * Mirrors BookingComProvider file-for-file by design — proves the B5
+ * Mirrors BookingComProvider file-for-file by design - proves the B5
  * pattern reuses cleanly. Adding Vrbo / Hotelbeds is the same shape.
  */
 export class ExpediaProvider extends BaseAffiliateProvider {

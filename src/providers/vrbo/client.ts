@@ -4,7 +4,7 @@ import { searchExpedia } from '../expedia/client';
 import { VRBO_RAPID_CATEGORY_IDS, type VrboSearchResponse } from './types';
 
 /**
- * Vrbo Rapid client — same Rapid surface as Expedia, with a category
+ * Vrbo Rapid client - same Rapid surface as Expedia, with a category
  * filter so only vacation-rental inventory comes back.
  *
  * If the partner contract grants Vrbo-only access, set `VRBO_API_KEY`

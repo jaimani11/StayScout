@@ -1,9 +1,9 @@
 /**
  * Per-provider circuit breaker. Three states + standard transitions:
  *
- *   closed     — calls pass through; consecutive failures count up
- *   open       — calls reject fast (no API hit); cooldown timer ticks
- *   half-open  — first call after cooldown is a trial; success → closed,
+ *   closed     - calls pass through; consecutive failures count up
+ *   open       - calls reject fast (no API hit); cooldown timer ticks
+ *   half-open  - first call after cooldown is a trial; success → closed,
  *                failure → open with renewed cooldown
  *
  * Why per-instance (not global): a failing Booking.com mustn't suppress
@@ -70,7 +70,7 @@ export class CircuitBreaker {
     }
   }
 
-  /** Diagnostic — current state. */
+  /** Diagnostic - current state. */
   getState(): CircuitState {
     this.maybeTransitionToHalfOpen();
     return this.state;
@@ -90,7 +90,7 @@ export class CircuitBreaker {
 
   private onFailure(): void {
     if (this.state === 'half-open') {
-      // Trial failed — reopen with renewed cooldown.
+      // Trial failed - reopen with renewed cooldown.
       this.state = 'open';
       this.openedAt = this.now();
       return;

@@ -2,8 +2,8 @@
  * Persistence + retrieval boundary for the memory subsystem.
  *
  * Two implementations live behind this interface:
- *   - `InMemoryMemoryStore` — process-local, always available.
- *   - `PgvectorMemoryStore` — Postgres + pgvector when DATABASE_URL is
+ *   - `InMemoryMemoryStore` - process-local, always available.
+ *   - `PgvectorMemoryStore` - Postgres + pgvector when DATABASE_URL is
  *     set + the `vector` extension is enabled.
  *
  * Owner model mirrors trips: `userId` for authenticated users,
@@ -27,11 +27,11 @@ export interface MemoryRecord {
   ownerKind: 'user' | 'session';
   ownerId: string;
   kind: MemoryKind;
-  /** Free-text payload — the model sees this. Keep ≤ 280 chars. */
+  /** Free-text payload - the model sees this. Keep ≤ 280 chars. */
   content: string;
   /** Optional stable tag for grouping / dedup (e.g. 'family-of-4'). */
   signalKey?: string;
-  /** 0..1 — recorder's own confidence in the memory. Search uses it as
+  /** 0..1 - recorder's own confidence in the memory. Search uses it as
    *  a tiebreaker when similarity scores are close. */
   weight?: number;
   /** ISO timestamp. */
@@ -58,7 +58,7 @@ export interface RecordMemoryArgs extends OwnerArgs {
   content: string;
   signalKey?: string;
   weight?: number;
-  /** Optional intent snapshot — recorder uses it to enrich the
+  /** Optional intent snapshot - recorder uses it to enrich the
    *  content; not stored as a separate field. */
   intent?: TripIntent;
 }
@@ -86,18 +86,18 @@ export interface MemoryStore {
   record(args: RecordMemoryArgs): Promise<MemoryRecord>;
   search(args: SearchMemoryArgs): Promise<MemorySearchResult[]>;
   /**
-   * Slice C5 admin — list an owner's memories (most-recent-first), with
+   * Slice C5 admin - list an owner's memories (most-recent-first), with
    * optional kind filter. Returns all matching records up to `limit`.
    * No similarity ranking; use `search` for that.
    */
   listForOwner(args: ListForOwnerArgs): Promise<MemoryRecord[]>;
   /**
-   * Slice C5 admin — distinct owners that have at least one record.
+   * Slice C5 admin - distinct owners that have at least one record.
    * Used to render the global "/admin/memories" overview. The Postgres
    * impl (lands in C1.x) returns this from `prisma.memoryRecord.findMany({ distinct: ['userId'] })`
-   * — until then, the in-memory impl owns this.
+   * - until then, the in-memory impl owns this.
    */
   listAllOwners(): Promise<OwnerArgs[]>;
-  /** Test-only — wipe an owner's memories so contract tests stay isolated. */
+  /** Test-only - wipe an owner's memories so contract tests stay isolated. */
   clearOwner?(args: OwnerArgs): Promise<void>;
 }

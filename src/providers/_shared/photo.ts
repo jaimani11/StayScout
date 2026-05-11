@@ -38,7 +38,7 @@ export function unsplashPhoto(args: {
 
 // Deterministic gradient color pair for the bloom-fallback when a photo
 // URL fails to load. Hashes the stay slug so each stay gets its own
-// consistent placeholder palette. Spec §4.7 — loading state is a bloom
+// consistent placeholder palette. Spec §4.7 - loading state is a bloom
 // gradient, never a gray box.
 const PALETTES: { from: string; to: string }[] = [
   { from: '#6F8170', to: '#2C3A30' }, // tuscan green

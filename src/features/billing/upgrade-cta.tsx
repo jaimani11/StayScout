@@ -17,7 +17,7 @@ interface UpgradeCtaProps {
  * /billing/mock-checkout in mock mode).
  *
  * For anonymous owners (signInRequired=true), redirects to /sign-in
- * with a return-to query — Clerk will land them back here after sign-
+ * with a return-to query - Clerk will land them back here after sign-
  * in, then they can click again to actually start checkout.
  */
 export function UpgradeCta({ signInRequired, returnPath, cancelPath }: UpgradeCtaProps) {
@@ -72,7 +72,7 @@ export function UpgradeCta({ signInRequired, returnPath, cancelPath }: UpgradeCt
         aria-label={
           signInRequired
             ? 'Sign in to upgrade to premium'
-            : 'Upgrade to premium — opens Stripe Checkout in a new step'
+            : 'Upgrade to premium - opens Stripe Checkout in a new step'
         }
         style={{
           fontFamily: 'var(--font-inter)',

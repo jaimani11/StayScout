@@ -17,7 +17,7 @@ interface PageProps {
  * Flow:
  *   1. Resolve owner from auth.
  *   2. Load the SavedTrip by tripId for the current owner. 404 if
- *      missing — same path used for share/save/delete (B1 invariants).
+ *      missing - same path used for share/save/delete (B1 invariants).
  *   3. Cache lookup. Generate via the subsystem if missing; cache the
  *      result so a refresh is fast.
  *   4. Render ItineraryView.
@@ -63,7 +63,7 @@ export default async function ItineraryPage({ params }: PageProps) {
 
   // Slice C4 soft-gate: synthesized fallback (non-curated destination)
   // requires premium. Curated destinations (the 7 Italian regions) skip
-  // the gate entirely — the demo always renders for free.
+  // the gate entirely - the demo always renders for free.
   if (itinerary.source === 'synthesized') {
     const gate = await requirePremium({
       ownerKind: owner.ownerKind,

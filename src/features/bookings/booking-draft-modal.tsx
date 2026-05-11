@@ -21,7 +21,7 @@ type ModalPhase = 'form' | 'review' | 'confirming' | 'done';
  *
  *   Step 2 (review): show the full draft (dates, total, cancellation
  *           policy, placeholder-dates warning if applicable). The user
- *           explicitly clicks "Confirm booking" — this is the gate
+ *           explicitly clicks "Confirm booking" - this is the gate
  *           Slice D enforces for every tier. POST /api/bookings/confirm
  *           with the draft's idempotencyKey.
  *
@@ -29,7 +29,7 @@ type ModalPhase = 'form' | 'review' | 'confirming' | 'done';
  * state means a double-click of "Confirm booking" coalesces to one
  * booking at the provider.
  *
- * Mount/unmount drives state reset — the parent conditionally renders
+ * Mount/unmount drives state reset - the parent conditionally renders
  * this component, so each open is a fresh instance with form fields
  * cleared. No reset-effect needed.
  */
@@ -42,7 +42,7 @@ export function BookingDraftModal({ trip, onClose }: BookingDraftModalProps) {
   const [children, setChildren] = useState(0);
   const [draft, setDraft] = useState<BookingDraft | null>(null);
   const [error, setError] = useState<string | null>(null);
-  // ESC, focus trap, autofocus, body scroll lock — all wrapped behind
+  // ESC, focus trap, autofocus, body scroll lock - all wrapped behind
   // a single hook so future modals (share, cancel-confirm) can adopt
   // the same primitives without re-deriving them.
   const modalRef = useModalA11y(onClose);
@@ -273,7 +273,7 @@ export function BookingDraftModal({ trip, onClose }: BookingDraftModalProps) {
                     lineHeight: 1.5,
                   }}
                 >
-                  Heads up — these dates are a stand-in because the saved trip didn&apos;t include
+                  Heads up - these dates are a stand-in because the saved trip didn&apos;t include
                   specifics. Cancel this draft, edit the trip with exact dates, then come back to
                   book.
                 </p>

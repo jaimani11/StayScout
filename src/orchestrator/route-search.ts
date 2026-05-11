@@ -3,12 +3,12 @@ import type { Destination, TripIntent } from '@core/trip-intent';
 import { MockItalyProvider } from '@/providers/mock-italy';
 
 /**
- * Slice F1 — Route decision: real inventory vs search opportunity.
+ * Slice F1 - Route decision: real inventory vs search opportunity.
  *
  * StayScout's promise: we do not synthesize fake hotel cards. Either we
  * have inventory worth showing (a real provider that serves the region,
  * or a curated dataset for the destination) or we surface the next-best
- * thing — a `SearchOpportunity` with prefilled affiliate-search URLs to
+ * thing - a `SearchOpportunity` with prefilled affiliate-search URLs to
  * Expedia/Vrbo/Hotels.com.
  *
  * This module owns that decision. It looks at:
@@ -19,14 +19,14 @@ import { MockItalyProvider } from '@/providers/mock-italy';
  *
  * and returns one of two shapes:
  *
- *   - `{ kind: 'inventory', providers }` — go down the existing
+ *   - `{ kind: 'inventory', providers }` - go down the existing
  *     `proposal.ready` path with these providers (in order). Caller
  *     fanouts them as before.
- *   - `{ kind: 'opportunity', destination }` — go down the new
+ *   - `{ kind: 'opportunity', destination }` - go down the new
  *     `search.opportunity.ready` path. No provider search runs.
  *
  * `LLMSynthesizedProvider` is intentionally excluded from the inventory
- * path here — it produces fake stays, which is the exact thing F1 is
+ * path here - it produces fake stays, which is the exact thing F1 is
  * killing. The class stays in the codebase (dormant) so we can revive
  * it if/when we want LLM-only preview mode.
  */
@@ -46,7 +46,7 @@ export interface RouteRegistry {
  *
  * The decision is deliberately conservative: we only take the inventory
  * path when we can name a provider whose footprint covers the
- * destination. Anything else routes to opportunity — including the
+ * destination. Anything else routes to opportunity - including the
  * "no destination at all" case (the UI shows a gentle empty state via
  * the existing concierge.message flow downstream, not here).
  */

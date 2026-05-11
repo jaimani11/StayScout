@@ -122,7 +122,7 @@ describe('IntentAgent resilience integration', () => {
   it('uses coerce hook so {dates: "unspecified"} no longer kills the parse', async () => {
     const client = new MockModelClient().respondGenerate(() => ({
       destinations: [{ kind: 'curated', name: 'Tuscany', country: 'IT' }],
-      // Intentionally bare-string — what the model occasionally emits
+      // Intentionally bare-string - what the model occasionally emits
       dates: 'unspecified',
       duration: { nights: 0, flexible: true },
       travelers: { adults: 1, children: { count: 0 }, infants: 0 },
@@ -160,7 +160,7 @@ describe('IntentAgent resilience integration', () => {
     } as never as Parameters<typeof IntentAgent.run>[1];
 
     const result = await IntentAgent.run({ rawInput: 'Tuscany, slow and walkable' }, ctx);
-    // Heuristic intent — exact same shape, populated from rawInput.
+    // Heuristic intent - exact same shape, populated from rawInput.
     expect(result.destinations[0]?.name).toBe('Tuscany');
     expect(result.vibe.tags).toContain('slow');
     expect(result.dates.kind).toBe('unspecified');

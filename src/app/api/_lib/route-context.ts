@@ -10,7 +10,7 @@ import type { OwnerKind, SessionStore } from '@lib/session/session-store';
  * session was minted on this request).
  *
  * Routes that read or mutate trips shouldn't reach for cookies/auth
- * directly — they call resolveRouteContext() and use what comes back.
+ * directly - they call resolveRouteContext() and use what comes back.
  */
 export interface RouteContext {
   auth: AuthState;
@@ -21,7 +21,7 @@ export interface RouteContext {
 
 export async function resolveRouteContext(_req?: NextRequest): Promise<RouteContext> {
   const auth = await getServerAuth();
-  // Mint anonymous session cookie if missing — first request a new
+  // Mint anonymous session cookie if missing - first request a new
   // user makes after a cold cookie jar shouldn't hit "no session".
   const { setCookieHeader } = await getOrMintSessionCookie();
   return {

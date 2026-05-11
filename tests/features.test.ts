@@ -29,7 +29,7 @@ describe('getServerFeatures', () => {
   });
 
   it('returns all-false when nothing is set', async () => {
-    // clientFeatures is captured at module load — re-import after env nuke.
+    // clientFeatures is captured at module load - re-import after env nuke.
     const f = getServerFeatures();
     expect(f.database).toBe(false);
     expect(f.anthropic).toBe(false);

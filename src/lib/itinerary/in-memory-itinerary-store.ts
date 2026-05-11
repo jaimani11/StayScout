@@ -20,7 +20,7 @@ export class InMemoryItineraryStore implements ItineraryStore {
     this.cache.delete(tripId);
   }
 
-  /** Test-only — wipe everything. */
+  /** Test-only - wipe everything. */
   _reset(): void {
     this.cache.clear();
   }

@@ -1,4 +1,4 @@
-# Slice C1 Implementation Plan — pgvector Memory
+# Slice C1 Implementation Plan - pgvector Memory
 
 > Executed inline, batched, only pausing for real blockers.
 
@@ -14,15 +14,15 @@
 
 **1. Memory is owned, not global.** Same owner key as trips: `userId` for authenticated, `sessionId` for anonymous. Migration on sign-in promotes session memory into the user's bucket via the existing migration path (`User.migratedFrom`). Anonymous memory dies with the cookie; authenticated memory survives forever (until the user deletes it).
 
-**2. Retrieval enriches, never replaces, intent inference.** Memories are appended to the system prompt as additional context (a single `<memory>` block); they don't pre-fill any TripIntent fields. The model still does extraction. Reason: memories are signals, not facts — the user can override them anytime ("not this trip — just me, no kids").
+**2. Retrieval enriches, never replaces, intent inference.** Memories are appended to the system prompt as additional context (a single `<memory>` block); they don't pre-fill any TripIntent fields. The model still does extraction. Reason: memories are signals, not facts - the user can override them anytime ("not this trip - just me, no kids").
 
-**3. The InMemory implementation is real, not stub.** Bag-of-words tokenization + cosine similarity over a bounded ring buffer. Demo gets useful retrieval without DB or embeddings — a freshly-cloned repo plus a single `pnpm dev` should produce visible memory behavior on the second turn.
+**3. The InMemory implementation is real, not stub.** Bag-of-words tokenization + cosine similarity over a bounded ring buffer. Demo gets useful retrieval without DB or embeddings - a freshly-cloned repo plus a single `pnpm dev` should produce visible memory behavior on the second turn.
 
-**4. Embeddings are pluggable + explicit.** `AnthropicEmbedding` only mounts when both `ANTHROPIC_API_KEY` is set AND the explicit opt-in `STAYSCOUT_USE_ANTHROPIC_EMBEDDINGS=1` is set. The default — even with an Anthropic key — stays bag-of-words. Reason: embedding API costs add up; opting in makes it explicit. (Bag-of-words is good enough for the demo prompt sizes.)
+**4. Embeddings are pluggable + explicit.** `AnthropicEmbedding` only mounts when both `ANTHROPIC_API_KEY` is set AND the explicit opt-in `STAYSCOUT_USE_ANTHROPIC_EMBEDDINGS=1` is set. The default - even with an Anthropic key - stays bag-of-words. Reason: embedding API costs add up; opting in makes it explicit. (Bag-of-words is good enough for the demo prompt sizes.)
 
 **5. Recording is post-completion, idempotent, bounded.** Memories are written from the orchestrator's complete-turn node (after `turn.completed`). Each turn produces at most 3 memory records (rawInput as episodic, structural snapshot of vibe + travelers, optional explicit caveat). Recording failures are logged but never block the turn (same B4/B7 pattern: telemetry never blocks the user).
 
-**6. Retrieval is conservative.** Top-K = 3 by default, with a similarity-score floor (0.45 cosine for embeddings, 0.20 token-overlap for BOW). Below the floor, we skip — don't pollute the prompt with junk. The K + floor live in env-overridable constants for tuning.
+**6. Retrieval is conservative.** Top-K = 3 by default, with a similarity-score floor (0.45 cosine for embeddings, 0.20 token-overlap for BOW). Below the floor, we skip - don't pollute the prompt with junk. The K + floor live in env-overridable constants for tuning.
 
 **7. The UI surface already exists.** Slice A9 shipped `concierge.memory.hint` as an event. C1 fires it whenever retrieval contributed at least one memory above the floor. The frontend MemoryHintTile renders the hint text. No new UI components.
 
@@ -31,32 +31,32 @@
 ## File Structure
 
 **Create:**
-- `src/lib/memory/embedding.ts` — `EmbeddingProvider` interface + `BagOfWordsEmbedding`
-- `src/lib/memory/anthropic-embedding.ts` — `AnthropicEmbedding` (lazy-loaded SDK wrapper)
-- `src/lib/memory/memory-store.ts` — `MemoryStore` interface + types
-- `src/lib/memory/in-memory-memory-store.ts` — process-local impl
-- `src/lib/memory/pgvector-memory-store.ts` — Prisma + pgvector impl (gated by feature flag)
-- `src/lib/memory/factory.ts` — `getMemoryStore()`, `getEmbeddingProvider()`
-- `src/lib/memory/recorder.ts` — `MemoryRecorder.observeTurn()` lifecycle
-- `src/lib/memory/retriever.ts` — `MemoryRetriever.searchForTurn()` — wraps the search call, filters by score floor, formats for prompt insertion
-- `src/lib/memory/index.ts` — barrel
-- `prisma/migrations/<timestamp>_pgvector_memory/migration.sql` — manual SQL migration adding `CREATE EXTENSION IF NOT EXISTS vector` + an embedding column
-- `tests/memory-store.test.ts` — contract tests against `InMemoryMemoryStore`
-- `tests/memory-recorder.test.ts` — observe-turn → record behavior
-- `tests/memory-retriever.test.ts` — score floor, top-K, prompt formatting
+- `src/lib/memory/embedding.ts` - `EmbeddingProvider` interface + `BagOfWordsEmbedding`
+- `src/lib/memory/anthropic-embedding.ts` - `AnthropicEmbedding` (lazy-loaded SDK wrapper)
+- `src/lib/memory/memory-store.ts` - `MemoryStore` interface + types
+- `src/lib/memory/in-memory-memory-store.ts` - process-local impl
+- `src/lib/memory/pgvector-memory-store.ts` - Prisma + pgvector impl (gated by feature flag)
+- `src/lib/memory/factory.ts` - `getMemoryStore()`, `getEmbeddingProvider()`
+- `src/lib/memory/recorder.ts` - `MemoryRecorder.observeTurn()` lifecycle
+- `src/lib/memory/retriever.ts` - `MemoryRetriever.searchForTurn()` - wraps the search call, filters by score floor, formats for prompt insertion
+- `src/lib/memory/index.ts` - barrel
+- `prisma/migrations/<timestamp>_pgvector_memory/migration.sql` - manual SQL migration adding `CREATE EXTENSION IF NOT EXISTS vector` + an embedding column
+- `tests/memory-store.test.ts` - contract tests against `InMemoryMemoryStore`
+- `tests/memory-recorder.test.ts` - observe-turn → record behavior
+- `tests/memory-retriever.test.ts` - score floor, top-K, prompt formatting
 - `tests/bag-of-words-embedding.test.ts`
 
 **Modify:**
-- `prisma/schema.prisma` — add `embedding` field to `MemoryRecord` (Postgres-only, `Unsupported("vector(1024)")`)
-- `src/agents/intent-agent.ts` — accept an optional `memoryRetriever` in the agent context; thread retrieved memories into the user prompt
-- `src/core/agent.ts` — extend `AgentContext` with `memoryRetriever?` (optional — keeps existing tests unchanged)
-- `src/orchestrator/orchestrator.ts` — wire `MemoryRecorder.observeTurn` into the complete path
-- `src/orchestrator/langgraph/nodes.ts` — same wiring in the LangGraph engine's complete node
-- `src/orchestrator/engine.ts` — construct + pass memory store/retriever
-- `src/lib/env/get-server-features.ts` — surface `memory.kind` ('in-memory' | 'pgvector') and `memory.embedding` ('bag-of-words' | 'anthropic')
-- `.env.example` — document the new flags
+- `prisma/schema.prisma` - add `embedding` field to `MemoryRecord` (Postgres-only, `Unsupported("vector(1024)")`)
+- `src/agents/intent-agent.ts` - accept an optional `memoryRetriever` in the agent context; thread retrieved memories into the user prompt
+- `src/core/agent.ts` - extend `AgentContext` with `memoryRetriever?` (optional - keeps existing tests unchanged)
+- `src/orchestrator/orchestrator.ts` - wire `MemoryRecorder.observeTurn` into the complete path
+- `src/orchestrator/langgraph/nodes.ts` - same wiring in the LangGraph engine's complete node
+- `src/orchestrator/engine.ts` - construct + pass memory store/retriever
+- `src/lib/env/get-server-features.ts` - surface `memory.kind` ('in-memory' | 'pgvector') and `memory.embedding` ('bag-of-words' | 'anthropic')
+- `.env.example` - document the new flags
 
-**Untouched:** the existing `MemoryHinter` (Slice A9 heuristic) — it stays as a fallback when even retrieval is empty. The `concierge.memory.hint` event format is unchanged.
+**Untouched:** the existing `MemoryHinter` (Slice A9 heuristic) - it stays as a fallback when even retrieval is empty. The `concierge.memory.hint` event format is unchanged.
 
 ---
 
@@ -77,15 +77,15 @@
 
 ### Task 3: MemoryRecorder
 
-- [ ] `recorder.ts`: `MemoryRecorder.observeTurn({turnId, owner, intent, rawInput})` — produces up to 3 memory records (episodic rawInput, structural intent snapshot, vibe-tag list) and persists via `MemoryStore.record`. Try/catch internally — failures log but don't propagate.
+- [ ] `recorder.ts`: `MemoryRecorder.observeTurn({turnId, owner, intent, rawInput})` - produces up to 3 memory records (episodic rawInput, structural intent snapshot, vibe-tag list) and persists via `MemoryStore.record`. Try/catch internally - failures log but don't propagate.
 - [ ] Tests (`memory-recorder.test.ts`): observes a turn → expected memory records; idempotent on the same turnId; failure path doesn't throw.
 - [ ] Verify: typecheck + tests.
 
 ### Task 4: MemoryRetriever + IntentAgent wiring
 
-- [ ] `retriever.ts`: `MemoryRetriever.searchForTurn({rawInput, owner})` — calls `MemoryStore.search`, filters by score floor, returns `RetrievedMemories` (top-K + a single formatted prompt block).
+- [ ] `retriever.ts`: `MemoryRetriever.searchForTurn({rawInput, owner})` - calls `MemoryStore.search`, filters by score floor, returns `RetrievedMemories` (top-K + a single formatted prompt block).
 - [ ] Extend `AgentContext` with `memoryRetriever?: MemoryRetriever`.
-- [ ] `intent-agent.ts`: when `ctx.memoryRetriever` is present, await the search before the model call. Append the formatted memory block to the user prompt (NOT the system prompt — keeps caching effective). Emit `concierge.memory.hint` via a passthrough callback when retrieval returned memories.
+- [ ] `intent-agent.ts`: when `ctx.memoryRetriever` is present, await the search before the model call. Append the formatted memory block to the user prompt (NOT the system prompt - keeps caching effective). Emit `concierge.memory.hint` via a passthrough callback when retrieval returned memories.
 - [ ] Tests (`memory-retriever.test.ts`): floor filtering, top-K, prompt formatting, empty result returns no hint.
 
 ### Task 5: Orchestrator wiring (both engines)
@@ -100,7 +100,7 @@
 - [ ] `prisma/schema.prisma`: add `embedding Unsupported("vector(1024)")?` to `MemoryRecord`. Indexes for owner + similarity search added in raw SQL migration.
 - [ ] Migration SQL: `CREATE EXTENSION IF NOT EXISTS vector;`, alter table, create ivfflat index on embedding.
 - [ ] `pgvector-memory-store.ts`: `MemoryStore` impl. Uses `prisma.$queryRaw` for similarity search (Prisma's typed query builder doesn't support pgvector ops yet).
-- [ ] Factory routes to pgvector impl when `getServerFeatures().database` is true AND env var `STAYSCOUT_PGVECTOR=1` (opt-in — pgvector requires the extension to be installed).
+- [ ] Factory routes to pgvector impl when `getServerFeatures().database` is true AND env var `STAYSCOUT_PGVECTOR=1` (opt-in - pgvector requires the extension to be installed).
 - [ ] No automated tests against Postgres in this slice (would need a Docker DB); mark contract tests as gated integration tests for B7-style "RUN_INTEGRATION_TESTS=1" pattern.
 - [ ] Verify: typecheck + lint + build (ensures the schema generates).
 
@@ -120,10 +120,10 @@
 
 ## What stays unchanged
 
-- `OrchestratorEvent` shape — no new event kinds; the existing `concierge.memory.hint` carries the new richer content.
-- LangGraph engine architecture — same nodes, with the recorder hook spliced into `complete_turn`.
+- `OrchestratorEvent` shape - no new event kinds; the existing `concierge.memory.hint` carries the new richer content.
+- LangGraph engine architecture - same nodes, with the recorder hook spliced into `complete_turn`.
 - Existing `MemoryHinter` (A9) stays as the heuristic fallback; the new `MemoryRecorder` runs alongside it.
-- All Slice A + B tests — none should break.
+- All Slice A + B tests - none should break.
 
 ## Out of C1 scope (deferred)
 
@@ -131,4 +131,4 @@
 - Memory editing UI (delete a memory, mark a memory as wrong).
 - Cross-user memory (collaborative trips).
 - Privacy controls beyond the existing trip ownership model.
-- Real Anthropic embeddings cost analysis on `/admin` — Slice C5 admin extensions.
+- Real Anthropic embeddings cost analysis on `/admin` - Slice C5 admin extensions.

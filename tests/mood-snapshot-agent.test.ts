@@ -16,7 +16,7 @@ function fakeContext(client: MockModelClient): AgentContext {
 
 describe('MoodSnapshotAgent', () => {
   it('returns curated mood for a known Italian destination (no LLM call)', async () => {
-    const client = new MockModelClient(); // no .respondGenerate — would throw if called
+    const client = new MockModelClient(); // no .respondGenerate - would throw if called
     const result = await MoodSnapshotAgent.run(
       { destination: { kind: 'curated', name: 'Tuscany', country: 'IT' } },
       fakeContext(client),

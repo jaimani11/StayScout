@@ -11,7 +11,7 @@ import { useAuth } from './auth-context';
  * The route is idempotent (User.migratedFrom guard), so a duplicate
  * call from React Strict Mode is harmless.
  *
- * Mounted alongside the AuthProvider — runs whether the user signed in
+ * Mounted alongside the AuthProvider - runs whether the user signed in
  * via Clerk or not (in keyless mode, kind never flips off 'anonymous'
  * so the effect never fires).
  */
@@ -24,7 +24,7 @@ export function MigrateOnSignIn() {
     if (fired.current === auth.userId) return;
     fired.current = auth.userId;
     fetch('/api/auth/migrate', { method: 'POST' }).catch(() => {
-      // Surface only via console — UI doesn't block on this.
+      // Surface only via console - UI doesn't block on this.
       console.warn('[migrate-on-sign-in] migrate request failed');
     });
   }, [auth]);

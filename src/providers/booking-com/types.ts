@@ -20,7 +20,7 @@ export const BookingComHotelSchema = z.object({
   review_score: z.number().optional(), // 0..10 in their scale
   review_nr: z.number().int().optional(),
   description: z.string().optional(),
-  // Photos — primary image url + an optional gallery.
+  // Photos - primary image url + an optional gallery.
   main_photo_url: z.string().url().optional(),
   photos: z
     .array(
@@ -30,7 +30,7 @@ export const BookingComHotelSchema = z.object({
       }),
     )
     .optional(),
-  // Pricing — per-night (if dates supplied) or "from" rate.
+  // Pricing - per-night (if dates supplied) or "from" rate.
   min_total_price: z.number().optional(),
   price_breakdown: z
     .object({
@@ -39,7 +39,7 @@ export const BookingComHotelSchema = z.object({
     })
     .optional(),
   currency_code: z.string().length(3).optional(),
-  // Capacity hints — Booking.com surfaces these on the room object,
+  // Capacity hints - Booking.com surfaces these on the room object,
   // but the search-level summary often includes "max_persons" too.
   max_persons: z.number().int().optional(),
   // Property type ("Hotel", "Villa", ...). We map to our enum.

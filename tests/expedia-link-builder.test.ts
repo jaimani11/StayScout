@@ -85,7 +85,7 @@ describe('buildExpediaSearchUrl', () => {
     expect(url).toContain('_src=stayscout');
   });
 
-  it('omits affcid when no cid configured (mock-safe — URL still works)', () => {
+  it('omits affcid when no cid configured (mock-safe - URL still works)', () => {
     const url = buildExpediaSearchUrl(
       {
         destination: 'Tokyo',

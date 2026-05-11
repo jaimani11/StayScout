@@ -12,7 +12,7 @@ import type {
 import { mintShareSlug as generateShareSlug } from './share-slug';
 
 function toSharedTrip(t: SavedTrip): SharedTrip {
-  // Mask intent.rawInput — public surface should never echo what the
+  // Mask intent.rawInput - public surface should never echo what the
   // owner typed. Structured trip parameters stay so the recipient sees
   // "7 nights, family of 4" rather than the literal sentence.
   return {
@@ -27,7 +27,7 @@ function toSharedTrip(t: SavedTrip): SharedTrip {
 /**
  * In-memory SessionStore implementation. Always available; default when
  * DATABASE_URL is unset. State is process-local and lost on restart, but
- * survives page refreshes within a dev-server session — that's enough
+ * survives page refreshes within a dev-server session - that's enough
  * for the demo flow to feel real.
  */
 export class InMemorySessionStore implements SessionStore {
@@ -133,7 +133,7 @@ export class InMemorySessionStore implements SessionStore {
     return click;
   }
 
-  /** Test helper — read the click log. */
+  /** Test helper - read the click log. */
   _getClicks(): readonly AffiliateClickRecord[] {
     return this.clicks;
   }
@@ -175,7 +175,7 @@ export class InMemorySessionStore implements SessionStore {
     const destBucket = this.tripsByOwner.get(toKey) ?? new Map<string, SavedTrip>();
     let copied = 0;
     for (const trip of sourceBucket.values()) {
-      // De-dupe on proposalId — already-migrated trips don't get duplicated.
+      // De-dupe on proposalId - already-migrated trips don't get duplicated.
       let existsForDest = false;
       for (const existing of destBucket.values()) {
         if (existing.proposalId === trip.proposalId) {
@@ -195,7 +195,7 @@ export class InMemorySessionStore implements SessionStore {
       copied += 1;
     }
     this.tripsByOwner.set(toKey, destBucket);
-    // Clear source bucket — anonymous record no longer has trips. We
+    // Clear source bucket - anonymous record no longer has trips. We
     // keep the empty bucket for audit-style semantics in Postgres.
     sourceBucket.clear();
     return {
@@ -206,7 +206,7 @@ export class InMemorySessionStore implements SessionStore {
     };
   }
 
-  /** Test helper — clears all in-memory state. */
+  /** Test helper - clears all in-memory state. */
   reset(): void {
     this.turns.clear();
     this.tripsByOwner.clear();

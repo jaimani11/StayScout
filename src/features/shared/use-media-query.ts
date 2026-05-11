@@ -18,7 +18,7 @@ export function useMediaQuery(query: string): boolean {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
     const m = window.matchMedia(query);
     const handler = (e: MediaQueryListEvent) => setMatches(e.matches);
-    // Sync external state (matchMedia) into React — the legitimate use
+    // Sync external state (matchMedia) into React - the legitimate use
     // of setState-in-effect that the rule is supposed to allow but
     // flags here.
     // eslint-disable-next-line react-hooks/set-state-in-effect

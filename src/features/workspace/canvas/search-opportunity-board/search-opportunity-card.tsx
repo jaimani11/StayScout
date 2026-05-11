@@ -6,7 +6,7 @@ import { ProvenanceBadge } from '@/features/shared/provenance-badge';
 import { encodeAffiliateLink } from '@lib/affiliate/link-encoder';
 
 /**
- * Slice F1 — single provider card on the SearchOpportunityBoard.
+ * Slice F1 - single provider card on the SearchOpportunityBoard.
  *
  * One per provider (Expedia, Vrbo, Hotels.com). Every CTA routes
  * through `/r/[id]` so:
@@ -14,7 +14,7 @@ import { encodeAffiliateLink } from '@lib/affiliate/link-encoder';
  *   - the redirect handler re-validates the host against the allowlist
  *   - the affcid travels through (E2)
  *
- * The chip uses the SEARCH variants from `ProvenanceBadge` — it's the
+ * The chip uses the SEARCH variants from `ProvenanceBadge` - it's the
  * honest signal: "we don't have inventory in hand, this routes you to
  * the partner for live results." Distinct from the bold `LIVE` chip on
  * real proposal cards.

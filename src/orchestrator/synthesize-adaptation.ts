@@ -11,7 +11,7 @@ import type { IntentDelta } from '@core/intent-delta';
  * something changed.
  *
  * Notes appear as chips on the trip-board adaptation banner; the
- * description string is the chip text. Keep it short — the chip is
+ * description string is the chip text. Keep it short - the chip is
  * narrow.
  */
 
@@ -92,7 +92,7 @@ function budgetNotes(beforeRaw: unknown, afterRaw: unknown): AdaptationNote[] {
       },
     ];
   }
-  // Tightening — amount went down.
+  // Tightening - amount went down.
   if (
     typeof before.amount === 'number' &&
     typeof after.amount === 'number' &&
@@ -108,7 +108,7 @@ function budgetNotes(beforeRaw: unknown, afterRaw: unknown): AdaptationNote[] {
       },
     ];
   }
-  // Loosening — amount went up.
+  // Loosening - amount went up.
   if (
     typeof before.amount === 'number' &&
     typeof after.amount === 'number' &&

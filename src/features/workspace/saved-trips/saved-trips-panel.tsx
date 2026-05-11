@@ -37,11 +37,11 @@ export function SavedTripsPanel() {
 
   function handleSelect(trip: SavedTripRowData) {
     // Prime the SessionStore so the orchestrator's getTurn(priorProposalRef.turnId)
-    // lookup resolves on a subsequent refine. Fire-and-forget — never
+    // lookup resolves on a subsequent refine. Fire-and-forget - never
     // gates the local UX (B8 tenet: network shouldn't block resurface).
     void resurface(trip.id);
 
-    // Slice C2: clicking a row clears its monitoring badge — the user
+    // Slice C2: clicking a row clears its monitoring badge - the user
     // has seen what changed (the panel was open, the row was visible
     // long enough to be clicked).
     if (trip.monitoringEvents.length > 0) {
@@ -75,7 +75,7 @@ export function SavedTripsPanel() {
     return () => document.removeEventListener('keydown', handler);
   }, [open, closeSavedPanel]);
 
-  // Re-fetch when the panel opens — covers the post-sign-in case where
+  // Re-fetch when the panel opens - covers the post-sign-in case where
   // the migration route just promoted anonymous trips to user-owned.
   useEffect(() => {
     if (open) void refresh();

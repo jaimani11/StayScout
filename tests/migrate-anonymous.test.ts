@@ -88,7 +88,7 @@ describe('migrateAnonymousToUser (in-memory)', () => {
     expect(result.tripsCopied).toBe(0);
   });
 
-  it('is idempotent — a second call adds nothing', async () => {
+  it('is idempotent - a second call adds nothing', async () => {
     const s = new InMemorySessionStore();
     await s.saveTrip(args('anon_bob', 'p_1'));
 

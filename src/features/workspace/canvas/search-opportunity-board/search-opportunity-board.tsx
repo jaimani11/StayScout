@@ -6,24 +6,24 @@ import { useWorkspaceStore } from '../../store/workspace-store';
 import { SearchOpportunityCard } from './search-opportunity-card';
 
 /**
- * Slice F1 — SearchOpportunityBoard.
+ * Slice F1 - SearchOpportunityBoard.
  *
  * Renders when the orchestrator decided not to build a proposal because
  * neither a real provider nor curated inventory can serve the
  * destination. Three goals:
  *
- *   1. Honesty — show the user that we're routing them to the partner
+ *   1. Honesty - show the user that we're routing them to the partner
  *      for live availability, never invent a hotel.
- *   2. Continuity — keep the same intent digest visible so the user
+ *   2. Continuity - keep the same intent digest visible so the user
  *      can refine ("make it 6 people") and see the URLs update.
- *   3. Monetization — every CTA routes through `/r/[id]` for click
+ *   3. Monetization - every CTA routes through `/r/[id]` for click
  *      attribution + affcid attachment (E2 plumbing).
  *
  * Structure:
- *   Hero band  — destination name, optional flavor line, intent digest
+ *   Hero band  - destination name, optional flavor line, intent digest
  *                chip, destination photo background
- *   Cards row  — Expedia / Vrbo / Hotels.com tiles (in builder order)
- *   Footnote   — "We pull real availability from these partners. Your
+ *   Cards row  - Expedia / Vrbo / Hotels.com tiles (in builder order)
+ *   Footnote   - "We pull real availability from these partners. Your
  *                click earns commission and is logged at /admin/clicks."
  *                (subtle, present-tense, honest)
  */
@@ -60,7 +60,7 @@ export function SearchOpportunityBoard({ opportunity }: Props) {
           maxWidth: '46rem',
         }}
       >
-        We don&rsquo;t have direct inventory for {opportunity.destination.name} yet — these links
+        We don&rsquo;t have direct inventory for {opportunity.destination.name} yet - these links
         send you straight to our partners for live availability. Affiliate links · prices may
         change.
       </p>
@@ -87,7 +87,7 @@ function HeroBand({ opportunity }: { opportunity: SearchOpportunity }) {
         fill
         sizes="(max-width: 768px) 100vw, 70vw"
         style={{ objectFit: 'cover' }}
-        // Photo lookup is hash-deterministic — same destination always
+        // Photo lookup is hash-deterministic - same destination always
         // gets the same image. Priority because this is above-the-fold
         // for the opportunity flow.
         priority
@@ -171,7 +171,7 @@ function HeroBand({ opportunity }: { opportunity: SearchOpportunity }) {
   );
 }
 
-/** "2 adults · Sep 1–5 · luxury, walkable" — compact summary for the chip. */
+/** "2 adults · Sep 1–5 · luxury, walkable" - compact summary for the chip. */
 function describeDigest(o: SearchOpportunity): string {
   const { intentDigest } = o;
   const partyParts: string[] = [];

@@ -56,7 +56,7 @@ function makeTrip(id: string, ownerId = 'anon_t'): SavedTrip {
   };
 }
 
-/** Always-fires checker — emits a price-drop on every check. */
+/** Always-fires checker - emits a price-drop on every check. */
 function alwaysFiresChecker(): MonitoringChecker {
   return {
     async check({ trip, now }): Promise<MonitoringEvent | null> {
@@ -84,7 +84,7 @@ function neverFiresChecker(): MonitoringChecker {
   };
 }
 
-/** Always-throws checker — exercises failure isolation. */
+/** Always-throws checker - exercises failure isolation. */
 function alwaysThrowsChecker(): MonitoringChecker {
   return {
     async check() {
@@ -126,18 +126,18 @@ describe('MonitoringRunner', () => {
     expect(snap?.lastEventAt).toBeUndefined();
   });
 
-  it('isolates owner — does not check or list across owners', async () => {
+  it('isolates owner - does not check or list across owners', async () => {
     const store = new InMemoryMonitoringStore();
     const runner = new MonitoringRunner(store, alwaysFiresChecker(), { intervalMs: 60_000 });
 
-    // Alice's trip — generates event for Alice.
+    // Alice's trip - generates event for Alice.
     await runner.checkOwner({
       owner: { ownerKind: 'session', ownerId: 'anon_alice' },
       trips: [makeTrip('trip_a', 'anon_alice')],
       now: 1_000_000,
     });
 
-    // Bob requests his (empty) list — should not see Alice's event.
+    // Bob requests his (empty) list - should not see Alice's event.
     const bobMap = await runner.checkOwner({
       owner: { ownerKind: 'session', ownerId: 'anon_bob' },
       trips: [],
@@ -153,7 +153,7 @@ describe('MonitoringRunner', () => {
     const store = new InMemoryMonitoringStore();
     const runner = new MonitoringRunner(store, alwaysFiresChecker(), { intervalMs: 60_000 });
 
-    // Pass a trip owned by alice while requesting as bob — defense-in-depth.
+    // Pass a trip owned by alice while requesting as bob - defense-in-depth.
     await runner.checkOwner({
       owner: { ownerKind: 'session', ownerId: 'anon_bob' },
       trips: [makeTrip('trip_alice', 'anon_alice')],
@@ -164,7 +164,7 @@ describe('MonitoringRunner', () => {
     );
   });
 
-  it('isolates per-trip failures — one bad trip does not stall others', async () => {
+  it('isolates per-trip failures - one bad trip does not stall others', async () => {
     // Use a checker that throws only on a specific tripId.
     const partialChecker: MonitoringChecker = {
       async check({ trip, now }) {
@@ -215,7 +215,7 @@ describe('MonitoringRunner', () => {
 
     // Generate an event then acknowledge nothing.
     await runner.checkOwner({ owner, trips: [makeTrip('trip_a')], now: 1_000_000 });
-    // Second call — within throttle, no new event, but the prior unack event is still surfaced.
+    // Second call - within throttle, no new event, but the prior unack event is still surfaced.
     const map = await runner.checkOwner({
       owner,
       trips: [makeTrip('trip_a')],

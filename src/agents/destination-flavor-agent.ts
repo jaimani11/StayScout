@@ -6,7 +6,7 @@ import { lintVoice } from '@lib/curation';
 import { DESTINATION_FLAVOR_SYSTEM_PROMPT } from './prompts/destination-flavor-system';
 
 /**
- * Slice F1 — DestinationFlavorAgent.
+ * Slice F1 - DestinationFlavorAgent.
  *
  * Produces a one- or two-sentence "feel of the place" line for a
  * destination + traveler context. Used by the orchestrator on the
@@ -17,11 +17,11 @@ import { DESTINATION_FLAVOR_SYSTEM_PROMPT } from './prompts/destination-flavor-s
  * provider: that provider used to invent fake hotels, which F1 retires.
  * The flavor agent reuses the same voice rules (anti-cliché lint, no
  * invented brand names) and the same temperature/cache discipline, but
- * only generates a single piece of editorial copy — never property data.
+ * only generates a single piece of editorial copy - never property data.
  *
  * Failure mode: returns `null` when the agent can't produce
  * voice-compliant text within retries. The caller treats that as
- * "no flavor line, render board without it" — the SearchOpportunity
+ * "no flavor line, render board without it" - the SearchOpportunity
  * UI degrades gracefully on a missing `flavor` field.
  */
 
@@ -63,7 +63,7 @@ export const DestinationFlavorAgent: Agent<DestinationFlavorAgentInput, Destinat
             system:
               DESTINATION_FLAVOR_SYSTEM_PROMPT +
               (attempt > 1
-                ? '\n\nYour previous attempt used a banned word or exceeded the character limit — try again with grounded sensory language, under 220 characters.'
+                ? '\n\nYour previous attempt used a banned word or exceeded the character limit - try again with grounded sensory language, under 220 characters.'
                 : ''),
             messages: [{ role: 'user', content: userPrompt }],
             responseSchema: ResponseSchema,
@@ -95,7 +95,7 @@ export const DestinationFlavorAgent: Agent<DestinationFlavorAgentInput, Destinat
           lastErr = err;
         }
       }
-      // Caller decides what to do — return null + log, let the
+      // Caller decides what to do - return null + log, let the
       // SearchOpportunity render without a flavor line.
       console.warn('[destination-flavor-agent] giving up', {
         destination: input.destination.name,

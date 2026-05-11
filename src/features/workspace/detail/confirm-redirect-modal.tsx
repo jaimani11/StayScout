@@ -10,7 +10,7 @@ import { generateGoUrl } from '@/lib/affiliate/go-url';
 /**
  * Confirm + handoff modal for the booking redirect.
  *
- * The CTA is a real `<a>` whose href hits `/api/go` — the server records
+ * The CTA is a real `<a>` whose href hits `/api/go` - the server records
  * the click and 302s to the provider's deep link. target=_blank means
  * the user keeps StayScout in the original tab.
  *
@@ -107,7 +107,7 @@ export function ConfirmRedirectModal({
               }}
             >
               {stay.name} books through {providerHost}. Prices are identical; StayScout earns a
-              small affiliate commission on completed bookings — that&apos;s how the concierge stays
+              small affiliate commission on completed bookings - that&apos;s how the concierge stays
               free.
             </p>
             <div className="mt-4 flex flex-col gap-2 sm:flex-row">

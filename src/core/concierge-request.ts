@@ -9,7 +9,7 @@ export const ClientCapabilitiesSchema = z.object({
 export type ClientCapabilities = z.infer<typeof ClientCapabilitiesSchema>;
 
 /**
- * Canonical orchestrator request shape — sessionId is always set by
+ * Canonical orchestrator request shape - sessionId is always set by
  * the time the orchestrator runs.
  */
 export const ConciergeRequestSchema = z.object({
@@ -29,7 +29,7 @@ export type ConciergeRequest = z.infer<typeof ConciergeRequestSchema>;
 /**
  * Wire-level body schema for `POST /api/concierge`. Looser than the
  * canonical shape: `sessionId` is optional so external callers /
- * smoke tests / replay tools don't have to know about this — the
+ * smoke tests / replay tools don't have to know about this - the
  * cookie session is the canonical source. The route transforms a
  * parsed body into a `ConciergeRequest` by filling in the cookie
  * session id before passing it to the orchestrator.

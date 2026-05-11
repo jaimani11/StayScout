@@ -9,7 +9,7 @@ describe('BagOfWordsEmbedding', () => {
     expect(v).toHaveLength(256);
   });
 
-  it('is deterministic — same input → identical vector', async () => {
+  it('is deterministic - same input → identical vector', async () => {
     const a = await emb.embed('we always travel in September');
     const b = await emb.embed('we always travel in September');
     expect(a).toEqual(b);

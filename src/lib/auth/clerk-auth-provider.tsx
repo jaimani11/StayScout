@@ -6,7 +6,7 @@ import { AuthContext } from './auth-context';
 import type { AuthState } from './auth-state';
 
 /**
- * ClerkAuthProvider — mounted only when NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+ * ClerkAuthProvider - mounted only when NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
  * is present. Wraps ClerkProvider, then a bridge that derives our
  * AuthState from Clerk's useUser() at render time (no setState-in-effect).
  */

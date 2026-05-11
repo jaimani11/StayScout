@@ -3,7 +3,7 @@
  * dashboard reads from here. Bounded so a long-running process can't
  * leak memory.
  *
- * No persistence — this is intentionally local. Postgres telemetry +
+ * No persistence - this is intentionally local. Postgres telemetry +
  * Langfuse handle archival; this is the operator's quick "what just
  * happened?" view in the admin UI.
  */
@@ -72,7 +72,7 @@ export class MemoryTelemetryStore {
 
   recordAgentRun(turnId: string, run: Omit<AgentRunRecord, 'recordedAt'>): void {
     const turn = this.turnIndex.get(turnId);
-    if (!turn) return; // unknown turn — not an error, just not tracked here
+    if (!turn) return; // unknown turn - not an error, just not tracked here
     if (turn.agentRuns.length >= MAX_RUNS_PER_TURN) return; // bound per-turn list
     turn.agentRuns.push({ ...run, recordedAt: Date.now() });
   }
@@ -143,14 +143,14 @@ export class MemoryTelemetryStore {
     };
   }
 
-  /** Slice C5 — admin drill-in lookup. Returns null when the turn has
+  /** Slice C5 - admin drill-in lookup. Returns null when the turn has
    *  scrolled out of the ring buffer (no surfaceable error; the page
    *  renders 404). */
   getTurn(turnId: string): TurnRecord | null {
     return this.turnIndex.get(turnId) ?? null;
   }
 
-  /** Test-only — wipe state. */
+  /** Test-only - wipe state. */
   _reset(): void {
     this.turns.length = 0;
     this.turnIndex.clear();
@@ -163,7 +163,7 @@ function percentile(sortedAsc: number[], p: number): number {
   return sortedAsc[idx] ?? 0;
 }
 
-// Process-singleton — same buffer across the orchestrator + the
+// Process-singleton - same buffer across the orchestrator + the
 // dashboard's read API. HMR-safe on globalThis.
 declare global {
   var __stayscoutTelemetryStore: MemoryTelemetryStore | undefined;

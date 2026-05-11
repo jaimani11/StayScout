@@ -12,7 +12,7 @@ export interface IntentAgentInput {
    * Pre-formatted memory block (Slice C1). When the orchestrator's
    * `MemoryRetriever` found relevant prior memories for the owner, it
    * passes the formatted `<memory>` prompt block here. The agent
-   * appends it to the user message (NOT the system prompt — keeps the
+   * appends it to the user message (NOT the system prompt - keeps the
    * cached system block effective).
    */
   priorMemoryBlock?: string;
@@ -28,14 +28,14 @@ export const INTENT_MODEL = 'claude-haiku-4-5';
  *      string `"unspecified"` instead of `{kind: "unspecified"}` for
  *      trivial discriminated-union variants. `coerceTripIntentShortcuts`
  *      expands those before the authoritative Zod parse.
- *   3. If anything fails — network error, schema mismatch even after
- *      coercion, timeout — `synthesizeFallbackIntent(rawInput)` returns
+ *   3. If anything fails - network error, schema mismatch even after
+ *      coercion, timeout - `synthesizeFallbackIntent(rawInput)` returns
  *      a heuristic-derived intent so the demo never blocks on a model
  *      error. Surfaced via console.warn so operators see when fallback
  *      activates.
  *
  * The agent's contract (returns TripIntent) is unchanged. Callers can't
- * tell whether they got a model-derived or fallback intent — by design.
+ * tell whether they got a model-derived or fallback intent - by design.
  */
 export const IntentAgent: Agent<IntentAgentInput, TripIntent> = {
   id: INTENT_AGENT_ID,
@@ -80,11 +80,11 @@ export const IntentAgent: Agent<IntentAgentInput, TripIntent> = {
       ctx.traceLogger.recordAgentRun(INTENT_AGENT_ID, input, result, durationMs, modelMeta);
       return result;
     } catch (err) {
-      // Cancellation propagates — never fall back on a user-initiated abort.
+      // Cancellation propagates - never fall back on a user-initiated abort.
       if (err instanceof DOMException && err.name === 'AbortError') {
         throw err;
       }
-      console.warn('[intent-agent] model call failed — using deterministic fallback intent', {
+      console.warn('[intent-agent] model call failed - using deterministic fallback intent', {
         rawInput: input.rawInput,
         error: err instanceof Error ? err.message : String(err),
       });

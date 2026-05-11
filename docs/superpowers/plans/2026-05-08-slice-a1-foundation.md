@@ -1,4 +1,4 @@
-# StayScout Slice A1 — Foundation & Design System Implementation Plan
+# StayScout Slice A1 - Foundation & Design System Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -12,7 +12,7 @@
 
 ---
 
-## Slice A roadmap (context — only A1 is in this plan)
+## Slice A roadmap (context - only A1 is in this plan)
 
 | Slice | Title | Status |
 |---|---|---|
@@ -86,7 +86,7 @@ stayscout/
 
 Total: 30 new files. No modifications (greenfield slice).
 
-Note on `src/lib/fonts.ts` vs `src/lib/theme/`: `fonts` is a single file, not a folder; `theme` is a folder with multiple files. Don't `mkdir src/lib/fonts/` — it would shadow the file path.
+Note on `src/lib/fonts.ts` vs `src/lib/theme/`: `fonts` is a single file, not a folder; `theme` is a folder with multiple files. Don't `mkdir src/lib/fonts/` - it would shadow the file path.
 
 ---
 
@@ -209,7 +209,7 @@ Create `tsconfig.json`:
 }
 ```
 
-Note: `exactOptionalPropertyTypes` is intentionally `false` — `true` is too strict for our `Partial<>`-heavy contracts (TripIntent.confidence) and would generate friction for no gain.
+Note: `exactOptionalPropertyTypes` is intentionally `false` - `true` is too strict for our `Partial<>`-heavy contracts (TripIntent.confidence) and would generate friction for no gain.
 
 - [ ] **Step 2: Run typecheck (expect zero errors, even with no source files yet)**
 
@@ -244,7 +244,7 @@ mkdir -p tests
 mkdir -p public/icons
 ```
 
-Note: `src/lib/fonts.ts` is a file (created in Task 6), not a folder — do not `mkdir src/lib/fonts`.
+Note: `src/lib/fonts.ts` is a file (created in Task 6), not a folder - do not `mkdir src/lib/fonts`.
 
 - [ ] **Step 2: Create placeholder `index.ts` for each layer with a doc comment**
 
@@ -329,7 +329,7 @@ export default {
 };
 ```
 
-- [ ] **Step 3: Create `src/styles/globals.css`** (minimal — `tokens.css` follows in Task 5)
+- [ ] **Step 3: Create `src/styles/globals.css`** (minimal - `tokens.css` follows in Task 5)
 
 Create `src/styles/globals.css`:
 ```css
@@ -373,7 +373,7 @@ git commit -m "chore: install Tailwind v4 and add globals.css scaffold"
 
 ---
 
-## Task 5: Design tokens (`tokens.css`) — colors, type, spacing, motion, glass
+## Task 5: Design tokens (`tokens.css`) - colors, type, spacing, motion, glass
 
 **Files:**
 - Create: `src/styles/tokens.css`
@@ -383,7 +383,7 @@ git commit -m "chore: install Tailwind v4 and add globals.css scaffold"
 Create `src/styles/tokens.css`:
 ```css
 /* ============================================================
-   StayScout Design Tokens — spec §4
+   StayScout Design Tokens - spec §4
    Two themes (cinematic dark / boutique-sunset light) plus a
    theme-independent --featured-* set for the marketing break.
    ============================================================ */
@@ -419,7 +419,7 @@ Create `src/styles/tokens.css`:
   --dur-cinematic: 900ms;
 }
 
-/* ============== DARK MODE (default — cinematic) ============== */
+/* ============== DARK MODE (default - cinematic) ============== */
 :root,
 :root[data-theme="dark"] {
   --surface-base: #0B0D10;
@@ -490,7 +490,7 @@ Create `src/styles/tokens.css`:
 }
 
 /* ============== FIXED BOUTIQUE-LIGHT TOKENS ==============
-   For the "Featured stays" marketing section break — keeps boutique
+   For the "Featured stays" marketing section break - keeps boutique
    identity regardless of global theme. Spec §4.1.
 */
 :root {
@@ -582,7 +582,7 @@ git commit -m "feat: add next/font config for Fraunces × Inter × Geist Mono"
 **Files:**
 - Create: `src/lib/theme/types.ts`, `src/lib/theme/get-server-theme.ts`, `src/lib/theme/theme-provider.tsx`, `src/lib/theme/theme-toggle.tsx`
 
-The theme is read on the server from a cookie before HTML is sent — preventing the FOUC that happens with client-only theme libraries. The shared cookie name and `ThemeMode` type live in a tiny `types.ts` so both the server reader and the client provider stay DRY without crossing the server/client line.
+The theme is read on the server from a cookie before HTML is sent - preventing the FOUC that happens with client-only theme libraries. The shared cookie name and `ThemeMode` type live in a tiny `types.ts` so both the server reader and the client provider stay DRY without crossing the server/client line.
 
 - [ ] **Step 1: Create the shared types module**
 
@@ -590,7 +590,7 @@ Create `src/lib/theme/types.ts`:
 ```ts
 // Shared types and constants for the theme system. Imported by both the
 // server reader (get-server-theme.ts, uses next/headers) and the client
-// provider (theme-provider.tsx). No JSX, no React, no Next imports — safe
+// provider (theme-provider.tsx). No JSX, no React, no Next imports - safe
 // to import from anywhere.
 
 export type ThemeMode = 'dark' | 'light';
@@ -609,7 +609,7 @@ import { THEME_COOKIE, type ThemeMode } from './types';
 /**
  * Read the theme cookie on the server. Falls back to 'dark' (cinematic) if
  * unset. Used in app/layout.tsx to set the data-theme attribute on <html>
- * before any client JS runs — no FOUC.
+ * before any client JS runs - no FOUC.
  */
 export async function getServerTheme(): Promise<ThemeMode> {
   const store = await cookies();
@@ -737,7 +737,7 @@ git commit -m "feat: add theme provider with cookie persistence (no FOUC)"
 **Files:**
 - Create: `public/icons/sparkle.svg`, `src/features/shared/icons/sparkle.tsx`, `src/features/shared/icons/index.ts`
 
-The sparkle is the AI/concierge motif — appears in input bars, AI message prefixes, agent step bullets, and the docked-input symbol.
+The sparkle is the AI/concierge motif - appears in input bars, AI message prefixes, agent step bullets, and the docked-input symbol.
 
 - [ ] **Step 1: Create `public/icons/sparkle.svg` (for `next/image` if ever needed)**
 
@@ -780,7 +780,7 @@ export function Sparkle({
 Create `src/features/shared/icons/index.ts`:
 ```ts
 // Re-export the lucide icons we use, plus our custom sparkle.
-// New icons added here on demand — keeps imports tidy and lets us swap
+// New icons added here on demand - keeps imports tidy and lets us swap
 // implementations later without touching call sites.
 
 export { Sparkle } from './sparkle';
@@ -828,7 +828,7 @@ import { useEffect, useState } from 'react';
 /**
  * Returns whether the user has requested reduced motion. SSR-safe: always
  * returns `false` on the server, then updates after hydration. Use this to
- * gate cinematic motion (shimmer, materialize, breathe) — fall back to a
+ * gate cinematic motion (shimmer, materialize, breathe) - fall back to a
  * 200ms cross-fade when true. Spec §4.5.
  */
 export function useReducedMotion(): boolean {
@@ -887,7 +887,7 @@ import { getServerTheme } from '@/lib/theme/get-server-theme';
 import '@/styles/globals.css';
 
 export const metadata: Metadata = {
-  title: 'StayScout — Travel concierge software',
+  title: 'StayScout - Travel concierge software',
   description:
     'AI-native travel orchestration. Describe your trip in a sentence; specialized agents handle the rest.',
   metadataBase: new URL(
@@ -926,7 +926,7 @@ Notes:
 - `suppressHydrationWarning` on `<html>` is appropriate because the cookie-driven theme can briefly diverge if a different tab has changed it.
 - The bloom layers are applied at the layout level so they show beneath every page. `background-attachment: fixed` keeps them anchored as the user scrolls past the workspace into marketing sections.
 
-- [ ] **Step 2: Commit (page.tsx in next task — verify build only after that)**
+- [ ] **Step 2: Commit (page.tsx in next task - verify build only after that)**
 
 ```bash
 git add src/app/layout.tsx
@@ -935,12 +935,12 @@ git commit -m "feat: add root layout with server-resolved theme and bloom backgr
 
 ---
 
-## Task 11: A1 landing shell — header + placeholder hero
+## Task 11: A1 landing shell - header + placeholder hero
 
 **Files:**
 - Create: `src/features/landing/header.tsx`, `src/features/landing/workspace-shell-placeholder.tsx`, `src/app/page.tsx`, `src/app/not-found.tsx`
 
-This is the visual milestone for A1: a single page that proves the design system works. It will be replaced by the real workspace in Slice A7 — but for A1 it's the artifact we use to verify fonts, tokens, theme toggle, and bloom.
+This is the visual milestone for A1: a single page that proves the design system works. It will be replaced by the real workspace in Slice A7 - but for A1 it's the artifact we use to verify fonts, tokens, theme toggle, and bloom.
 
 - [ ] **Step 1: Create the header**
 
@@ -1135,7 +1135,7 @@ Open `http://localhost:3000` and verify:
 - Header shows `stayscout` wordmark in Fraunces and `v0.1 · public preview` in Geist Mono
 - Hero "intelligently found" has italic gold accent on the word
 - Theme toggle (top-right) switches to cream boutique-light: cream surface, deep ink type, olive accent on italic phrase
-- Reload after toggling — theme persists (no FOUC flash)
+- Reload after toggling - theme persists (no FOUC flash)
 
 Stop dev server (`Ctrl+C`) once verified.
 
@@ -1153,7 +1153,7 @@ git commit -m "feat: add A1 landing shell with header and placeholder hero"
 
 ---
 
-## Task 12: Next.js config — image remote patterns + experimental flags
+## Task 12: Next.js config - image remote patterns + experimental flags
 
 **Files:**
 - Create: `next.config.ts`
@@ -1303,7 +1303,7 @@ Replace `src/core/index.ts` with:
 // Deps: none (no runtime, no React, no Next imports)
 // Provides: types, contracts, discriminated unions, Zod schemas (Slice A2+)
 
-// TEMPORARY DELIBERATE BOUNDARY VIOLATION — REVERTED IN STEP 6
+// TEMPORARY DELIBERATE BOUNDARY VIOLATION - REVERTED IN STEP 6
 import '@/agents';
 
 export {};
@@ -1468,7 +1468,7 @@ git commit -m "ci: add typecheck + lint + format-check + build pipeline"
 **Files:**
 - Create: `vercel.json`
 
-Vercel auto-detects Next.js — `vercel.json` only carries overrides we actually need.
+Vercel auto-detects Next.js - `vercel.json` only carries overrides we actually need.
 
 - [ ] **Step 1: Create `vercel.json`**
 
@@ -1510,7 +1510,7 @@ Create `README.md`:
 
 ## Status
 
-**Slice A1 — Foundation & Design System** complete. The visual foundation is in (cinematic dark + boutique-light themes, Fraunces × Inter × Geist Mono typography, design tokens, theme toggle with no FOUC). Workspace, agents, and Trip Board come online in subsequent slices.
+**Slice A1 - Foundation & Design System** complete. The visual foundation is in (cinematic dark + boutique-light themes, Fraunces × Inter × Geist Mono typography, design tokens, theme toggle with no FOUC). Workspace, agents, and Trip Board come online in subsequent slices.
 
 Spec: [`docs/superpowers/specs/2026-05-08-stayscout-slice-a-design.md`](docs/superpowers/specs/2026-05-08-stayscout-slice-a-design.md)
 Plans: [`docs/superpowers/plans/`](docs/superpowers/plans/)
@@ -1542,14 +1542,14 @@ The src tree is split into layers with strict ESLint-enforced boundaries. Adding
 
 ```
 src/
-  core/           types & contracts only — no runtime, no React, no Next imports
+  core/           types & contracts only - no runtime, no React, no Next imports
   agents/         Agent implementations           ← deps: core, lib
   providers/      Provider implementations        ← deps: core, lib
   orchestrator/   Orchestrator + event stream    ← deps: core, agents, providers, lib
   lib/            model client, streaming, fonts, photos, session, quality,
                   curation, evaluation, theme    ← deps: core
   features/       UI features by domain          ← deps: anything except app
-  app/            Next.js routes — thin glue     ← deps: anything
+  app/            Next.js routes - thin glue     ← deps: anything
   styles/         design tokens, globals.css
 ```
 
@@ -1560,29 +1560,29 @@ The reverse fails CI.
 
 | Slice | Status |
 |---|---|
-| A1 — Foundation & Design System | ✓ |
-| A2 — Core Contracts | next |
-| A3 — Mock Italy Provider + Curation Library | |
-| A4 — ModelClient + IntentAgent | |
-| A5 — Orchestrator + Streaming Protocol | |
-| A6 — LLM-Synthesized Provider + MoodSnapshotAgent | |
-| A7 — Workspace Shell + Chat Sidebar | |
-| A8 — Trip Board Canvas (materialization) | |
-| A9 — Refine Flow + Compare + Memory Hints + Detail View | |
-| A10 — Marketing Sections + Mobile Fallback + Polish & Deploy | |
+| A1 - Foundation & Design System | ✓ |
+| A2 - Core Contracts | next |
+| A3 - Mock Italy Provider + Curation Library | |
+| A4 - ModelClient + IntentAgent | |
+| A5 - Orchestrator + Streaming Protocol | |
+| A6 - LLM-Synthesized Provider + MoodSnapshotAgent | |
+| A7 - Workspace Shell + Chat Sidebar | |
+| A8 - Trip Board Canvas (materialization) | |
+| A9 - Refine Flow + Compare + Memory Hints + Detail View | |
+| A10 - Marketing Sections + Mobile Fallback + Polish & Deploy | |
 | B / C / D | (after A is shipped) |
 
 ## Conventions
 
 - TDD where it makes sense (logic, parsers, agents, providers). Visual scaffolding gets manual verification.
 - Single source of truth for UI state lives in Zustand (Slice A7+). No component-local state for non-ephemeral data.
-- The Provider interface is sacred — every real-world inventory source must fit through it.
+- The Provider interface is sacred - every real-world inventory source must fit through it.
 - Optional polish (mood snapshots, memory hints) must never block the critical path.
 - Editorial voice: fragments and italics, never paragraphs and exclamations. No "discover", "unforgettable", "hidden gem", "journey".
 
 ## License
 
-Proprietary — all rights reserved (placeholder until license decision).
+Proprietary - all rights reserved (placeholder until license decision).
 ````
 
 - [ ] **Step 2: Commit**
@@ -1620,8 +1620,8 @@ Verify:
 - [ ] Header `stayscout` is in Fraunces, `v0.1 · public preview` is in Geist Mono
 - [ ] Hero text "intelligently found" is italic in warm gold (`#D4A574`)
 - [ ] Theme toggle (top-right): clicks switch to cream boutique-light. Olive accent (`#5A6B3F`) on the italic phrase. Bloom warmth shifts subtly.
-- [ ] Reload after switching — theme persists, **no white flash**
-- [ ] Run with `prefers-reduced-motion: reduce` enabled in DevTools — page renders without animation issues (theme transition still works, capped at 200ms via globals.css rule)
+- [ ] Reload after switching - theme persists, **no white flash**
+- [ ] Run with `prefers-reduced-motion: reduce` enabled in DevTools - page renders without animation issues (theme transition still works, capped at 200ms via globals.css rule)
 
 Stop the dev server.
 
@@ -1630,7 +1630,7 @@ Stop the dev server.
 Run: `git status`
 Expected: `working tree clean`.
 
-- [ ] **Step 4: Push to GitHub (optional — gates A1 review)**
+- [ ] **Step 4: Push to GitHub (optional - gates A1 review)**
 
 If a remote is set:
 ```bash
@@ -1652,36 +1652,36 @@ git push --tags    # if remote set
 
 Run this before declaring A1 done.
 
-**1. Spec coverage** (each item from spec §4 — Design System):
-- [x] Color tokens (dark + light) — Task 5
-- [x] Featured fixed token set — Task 5
-- [x] Typography scale — Task 5
-- [x] Font loading (Fraunces + Inter + Geist Mono) — Task 6
-- [x] Spacing & radii — Task 5 (radii); Tailwind defaults handle spacing
-- [x] Elevation tokens — Task 5
-- [x] Motion tokens (easing, duration) — Task 5
-- [x] Reduced-motion support — Task 9 + globals.css in Task 4
-- [x] Glass usage rules — codified, applied in Slices A7+
-- [x] Photo treatment rules — applied in Slice A3+
-- [x] Icon system (Lucide + custom Sparkle) — Task 8
-- [x] shadcn primitives — installed selectively in later slices
-- [x] Sound stub — deferred per spec §4.10
-- [x] Layered folder structure — Task 3
-- [x] ESLint boundary enforcement — Task 13
-- [x] Theme toggle with cookie persistence (no FOUC) — Task 7
+**1. Spec coverage** (each item from spec §4 - Design System):
+- [x] Color tokens (dark + light) - Task 5
+- [x] Featured fixed token set - Task 5
+- [x] Typography scale - Task 5
+- [x] Font loading (Fraunces + Inter + Geist Mono) - Task 6
+- [x] Spacing & radii - Task 5 (radii); Tailwind defaults handle spacing
+- [x] Elevation tokens - Task 5
+- [x] Motion tokens (easing, duration) - Task 5
+- [x] Reduced-motion support - Task 9 + globals.css in Task 4
+- [x] Glass usage rules - codified, applied in Slices A7+
+- [x] Photo treatment rules - applied in Slice A3+
+- [x] Icon system (Lucide + custom Sparkle) - Task 8
+- [x] shadcn primitives - installed selectively in later slices
+- [x] Sound stub - deferred per spec §4.10
+- [x] Layered folder structure - Task 3
+- [x] ESLint boundary enforcement - Task 13
+- [x] Theme toggle with cookie persistence (no FOUC) - Task 7
 
 **2. Spec coverage** (cross-cutting):
-- [x] Node runtime — confirmed in next.config.ts (no edge config)
-- [x] Vercel deploy target — Task 16
-- [x] CI — Task 15
+- [x] Node runtime - confirmed in next.config.ts (no edge config)
+- [x] Vercel deploy target - Task 16
+- [x] CI - Task 15
 
 **3. Placeholder scan:** No "TBD", "TODO", "fill in details" in any task. ✓
 
 **4. Type/symbol consistency:**
-- `getServerTheme()` (Task 7) is called from `app/layout.tsx` (Task 10) — names match.
-- `THEME_COOKIE` and `ThemeMode` live in `src/lib/theme/types.ts` (Task 7 Step 1) — both `get-server-theme.ts` and `theme-provider.tsx` import from there. No duplication.
-- `fontVariables` in `lib/fonts.ts` (Task 6) is consumed in `app/layout.tsx` (Task 10) — names match.
-- `Sparkle` (Task 8) re-exported from `features/shared/icons/index.ts` and consumed in `landing/workspace-shell-placeholder.tsx` (Task 11) — names match.
+- `getServerTheme()` (Task 7) is called from `app/layout.tsx` (Task 10) - names match.
+- `THEME_COOKIE` and `ThemeMode` live in `src/lib/theme/types.ts` (Task 7 Step 1) - both `get-server-theme.ts` and `theme-provider.tsx` import from there. No duplication.
+- `fontVariables` in `lib/fonts.ts` (Task 6) is consumed in `app/layout.tsx` (Task 10) - names match.
+- `Sparkle` (Task 8) re-exported from `features/shared/icons/index.ts` and consumed in `landing/workspace-shell-placeholder.tsx` (Task 11) - names match.
 
 ---
 
@@ -1690,5 +1690,5 @@ Run this before declaring A1 done.
 Once A1 is shipped (`slice-a1` tag created, CI green, manual verification done):
 
 1. Demo the live preview to confirm the foundation feels right.
-2. Generate the **Slice A2 — Core Contracts** plan via writing-plans, informed by anything we learned in A1.
+2. Generate the **Slice A2 - Core Contracts** plan via writing-plans, informed by anything we learned in A1.
 3. Continue.

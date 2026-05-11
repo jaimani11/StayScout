@@ -1,5 +1,5 @@
 /**
- * Monitoring subsystem types. Saved trips become "watched" — the
+ * Monitoring subsystem types. Saved trips become "watched" - the
  * MonitoringRunner periodically (on-demand from /api/trips/list) asks
  * the MonitoringChecker whether anything material has changed; events
  * accumulate in the store until the user acknowledges them.

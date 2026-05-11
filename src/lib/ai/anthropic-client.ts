@@ -13,7 +13,7 @@ import type {
 // Anthropic's messages API only accepts 'user' / 'assistant' roles. Our
 // ModelMessage interface allows 'system' for ergonomics, but in practice
 // system content travels via the top-level `system` field. We drop any
-// 'system'-roled messages here — IntentAgent and friends always pass
+// 'system'-roled messages here - IntentAgent and friends always pass
 // system text via req.system anyway.
 function toMessageParams(messages: readonly ModelMessage[]): Anthropic.MessageParam[] {
   return messages
@@ -32,7 +32,7 @@ export class AnthropicClientError extends Error {
 }
 
 /**
- * AnthropicModelClient — implementation of the ModelClient interface backed
+ * AnthropicModelClient - implementation of the ModelClient interface backed
  * by @anthropic-ai/sdk. Slice A4. Slice B can wrap with a RoutedModelClient
  * that picks providers per-agent.
  *
@@ -58,7 +58,7 @@ export class AnthropicModelClient implements ModelClient {
     // to fall through to the same "not set" error message.
     if (!apiKey || apiKey.length === 0) {
       throw new AnthropicClientError(
-        'ANTHROPIC_API_KEY is not set (or is an empty string). Add a value to .env.local — note that a parent-shell empty-string export will override it.',
+        'ANTHROPIC_API_KEY is not set (or is an empty string). Add a value to .env.local - note that a parent-shell empty-string export will override it.',
       );
     }
     this.client = new Anthropic({ apiKey });
@@ -122,7 +122,7 @@ export class AnthropicModelClient implements ModelClient {
           );
         }
 
-        // Apply caller-supplied coercion before strict Zod parse — fixes
+        // Apply caller-supplied coercion before strict Zod parse - fixes
         // common tool-use shortcuts (e.g. discriminated-union variants
         // emitted as bare strings).
         const candidate = req.coerce ? req.coerce(toolUse.input) : toolUse.input;

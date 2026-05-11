@@ -15,11 +15,11 @@ interface ShareModalProps {
 
 /**
  * Modal that surfaces the share URL. Mounts the slug-mint request when
- * opened (lazy — most saved trips never get shared). Two affordances:
+ * opened (lazy - most saved trips never get shared). Two affordances:
  *   - Copy link (clipboard, with a sparkle on success)
  *   - Open in new tab (preview the public view)
  *
- * Mobile: prefer Web Share API when available — single tap into native
+ * Mobile: prefer Web Share API when available - single tap into native
  * share sheet (iMessage, WhatsApp, etc.).
  */
 export function ShareModal({ open, onClose, resolve, tripName }: ShareModalProps) {
@@ -47,7 +47,7 @@ export function ShareModal({ open, onClose, resolve, tripName }: ShareModalProps
         setError('Could not generate a share link.');
       } else {
         setUrl(result.url);
-        // Native share sheet first — better mobile UX. Falls through to
+        // Native share sheet first - better mobile UX. Falls through to
         // the modal if unsupported or rejected.
         if (typeof navigator !== 'undefined' && 'share' in navigator) {
           navigator
@@ -57,7 +57,7 @@ export function ShareModal({ open, onClose, resolve, tripName }: ShareModalProps
               url: result.url,
             })
             .catch(() => {
-              // User cancelled or unsupported — modal stays.
+              // User cancelled or unsupported - modal stays.
             });
         }
       }
@@ -164,7 +164,7 @@ export function ShareModal({ open, onClose, resolve, tripName }: ShareModalProps
                 lineHeight: 1.5,
               }}
             >
-              Anyone with the link can see the trip. They can save it to their own StayScout — your
+              Anyone with the link can see the trip. They can save it to their own StayScout - your
               saved copy stays separate.
             </p>
 

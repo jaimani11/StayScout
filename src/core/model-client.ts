@@ -18,7 +18,7 @@ export interface GenerateRequest<T> {
   /**
    * Optional pre-validation hook. The client applies this to the raw
    * tool-use input before running `responseSchema.safeParse`. Use it
-   * for schema-specific coercion the model occasionally fumbles — e.g.,
+   * for schema-specific coercion the model occasionally fumbles - e.g.,
    * expanding bare-string `"unspecified"` into `{kind: "unspecified"}`
    * for discriminated-union variants. Idempotent + side-effect-free.
    */
@@ -69,7 +69,7 @@ export interface GenerateWithMetaResult<T> {
 export interface ModelClient {
   /**
    * Convenience: returns just the parsed result. Same surface as Slice
-   * A — every existing call site stays unchanged.
+   * A - every existing call site stays unchanged.
    */
   generate<T>(req: GenerateRequest<T>): Promise<T>;
 
@@ -77,7 +77,7 @@ export interface ModelClient {
    * Returns the result alongside per-call usage. Callers that want to
    * surface cost/latency in traces use this; callers that don't care
    * keep using `generate`. Both share an implementation in real
-   * clients — the difference is what the caller chooses to receive.
+   * clients - the difference is what the caller chooses to receive.
    */
   generateWithMeta<T>(req: GenerateRequest<T>): Promise<GenerateWithMetaResult<T>>;
 

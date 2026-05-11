@@ -1,5 +1,5 @@
 /**
- * Anonymous session cookie. Slice A keeps things minimal — a UUID stored
+ * Anonymous session cookie. Slice A keeps things minimal - a UUID stored
  * in an HttpOnly cookie. Slice B replaces with a signed cookie once we
  * have real user accounts and need tamper-detection.
  */

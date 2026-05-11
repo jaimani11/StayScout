@@ -14,7 +14,7 @@ interface BookThisButtonProps {
  * modal which calls /api/bookings/draft + lets the user confirm.
  *
  * Lives next to the "PLAN DAY-BY-DAY →" link (Slice C3) without
- * conflicting — same `data-row-action` attribute keeps the click from
+ * conflicting - same `data-row-action` attribute keeps the click from
  * bubbling to the row's resurface handler.
  */
 export function BookThisButton({ trip }: BookThisButtonProps) {

@@ -7,7 +7,7 @@ import { ITALIAN_DESTINATIONS } from '@lib/curation/destinations';
  *   - `/destinations` (curated index)
  *   - `/destinations/[slug]` (one per curated entry)
  *
- * Deliberately EXCLUDES `/t/[slug]` — share slugs are unguessable
+ * Deliberately EXCLUDES `/t/[slug]` - share slugs are unguessable
  * (~95 bits of entropy) and meant for direct sharing, not indexing.
  * Crawling them would defeat the privacy intent.
  */

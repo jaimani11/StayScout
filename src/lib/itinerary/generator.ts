@@ -4,7 +4,7 @@ import { findDestinationBySlugOrAlias } from '@lib/curation/destinations';
 import { CURATED_ITINERARIES, type CuratedItineraryTemplate } from '@lib/curation/itineraries';
 
 /**
- * ItineraryGenerator — produces a 3-day plan for a saved trip.
+ * ItineraryGenerator - produces a 3-day plan for a saved trip.
  *
  * Two implementations:
  *   - `CuratedItineraryGenerator` (this file, default): looks up the
@@ -34,7 +34,7 @@ export class CuratedItineraryGenerator implements ItineraryGenerator {
 }
 
 /**
- * Synthesized — generic 3-day skeleton derived from the trip's
+ * Synthesized - generic 3-day skeleton derived from the trip's
  * intent. Mediocre on detail but never crashes the UX. Used when the
  * destination is outside the curated library.
  */

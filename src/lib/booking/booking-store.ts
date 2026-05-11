@@ -8,7 +8,7 @@ import type { Booking, BookingDraft, OwnerKey } from '@core/booking';
  * DB to integration-test against. Schema is in place in `prisma/schema.prisma`.
  *
  * Owner-keyed reads. Admin reads (`listAll`) go through the same
- * interface but require admin-gated callers — the store doesn't
+ * interface but require admin-gated callers - the store doesn't
  * enforce that, the route does.
  */
 export interface BookingStore {
@@ -29,7 +29,7 @@ export interface BookingStore {
   /**
    * Most-recent-first across all owners. Default limit 100. Used by
    * `/admin/bookings`. Production traffic should NOT call this without
-   * a small limit — sorting via Postgres uses an index on createdAt.
+   * a small limit - sorting via Postgres uses an index on createdAt.
    */
   listAll(args?: { limit?: number }): Promise<Booking[]>;
 }

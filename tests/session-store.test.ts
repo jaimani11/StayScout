@@ -242,7 +242,7 @@ function runContract(name: string, makeStore: () => SessionStore) {
       });
       expect(click.ownerKind).toBe('user');
       expect(click.ownerId).toBe('user_bob');
-      // sessionId still recorded — needed for cross-device reconciliation.
+      // sessionId still recorded - needed for cross-device reconciliation.
       expect(click.sessionId).toBe('anon_bob_session');
     });
   });

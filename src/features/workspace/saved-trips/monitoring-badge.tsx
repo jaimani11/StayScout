@@ -6,7 +6,7 @@ import type { MonitoringEvent, MonitoringEventKind } from '@lib/monitoring';
  * Compact chip rendered on a saved-trip row when monitoring has
  * unacknowledged events. Color-coded by kind:
  *
- *   - price-drop   → accent (positive — the user's getting a deal)
+ *   - price-drop   → accent (positive - the user's getting a deal)
  *   - price-rise / unavailable → warning (call to action / urgency)
  *   - better-match / new-alternative → neutral subtle highlight
  *

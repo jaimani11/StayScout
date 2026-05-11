@@ -23,7 +23,7 @@ export function Canvas() {
 
   function renderContent() {
     if (phase === 'idle' || !turn) return <EmptyState />;
-    // Slice F1 — opportunity boards render whenever the turn has one,
+    // Slice F1 - opportunity boards render whenever the turn has one,
     // even while later streaming events are still arriving. Skeleton
     // never lingers waiting on a `proposal.ready` that won't come.
     if (turn.searchOpportunity) {

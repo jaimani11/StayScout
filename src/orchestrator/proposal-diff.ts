@@ -2,7 +2,7 @@ import type { TripProposal } from '@core/trip-proposal';
 import type { ProposalDiff } from '@core/intent-delta';
 
 /**
- * Diff between two TripProposals — drives the canvas's diff transition
+ * Diff between two TripProposals - drives the canvas's diff transition
  * (cards present in both freeze; removed fade; added materialize; hero
  * cross-fades on swap). Identity tracking is by Stay.id.
  */

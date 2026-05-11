@@ -11,7 +11,7 @@ export const runtime = 'nodejs';
  * POST /api/bookings/confirm
  *
  * Body: `{ idempotencyKey }`. The provider's `book(draft)` is idempotent
- * on this key — double-clicks coalesce to a single booking, network
+ * on this key - double-clicks coalesce to a single booking, network
  * retries are safe.
  *
  * Status mapping:

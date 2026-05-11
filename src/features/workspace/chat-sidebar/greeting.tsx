@@ -5,7 +5,7 @@ import { useWorkspaceStore } from '../store/workspace-store';
 import { useConciergeStream } from '../hooks/use-concierge-stream';
 
 // Diverse suggestions across geographies + party shapes + vibes so the
-// app reads as a real concierge from the first frame — not a "demo for
+// app reads as a real concierge from the first frame - not a "demo for
 // Tuscany". Slice F1: opportunity board handles destinations we don't
 // have curated inventory for, so every one of these resolves today.
 const SUGGESTIONS = [
@@ -50,7 +50,7 @@ export function Greeting() {
         <em style={{ color: 'var(--accent-primary)', fontStyle: 'italic' }}>next?</em>
       </h1>
 
-      {/* What StayScout does — a single editorial line that orients new
+      {/* What StayScout does - a single editorial line that orients new
        *  visitors before they pick a suggestion. */}
       <p
         className="mb-5 max-w-md"
@@ -61,12 +61,12 @@ export function Greeting() {
           lineHeight: 1.55,
         }}
       >
-        Describe your trip in plain English — a city, vibe, party size, budget. I&rsquo;ll surface
+        Describe your trip in plain English - a city, vibe, party size, budget. I&rsquo;ll surface
         real stays where I have them or hand you to Expedia, Vrbo, and Hotels.com with your search
         already filled in.
       </p>
 
-      {/* "How it works" — three quick steps. Tiny + understated; doesn't
+      {/* "How it works" - three quick steps. Tiny + understated; doesn't
        *  compete with the suggestions below. */}
       <ol
         className="mb-5 space-y-1"
@@ -81,7 +81,7 @@ export function Greeting() {
       >
         {[
           'Type a destination or pick a suggestion below.',
-          'I read your trip — dates, party, vibe — and route to the right partner.',
+          'I read your trip - dates, party, vibe - and route to the right partner.',
           'Click any card to land on the partner site with your search ready.',
         ].map((step, i) => (
           <li
@@ -107,7 +107,7 @@ export function Greeting() {
         ))}
       </ol>
 
-      {/* Suggestion chips — pre-baked prompts that exercise both the
+      {/* Suggestion chips - pre-baked prompts that exercise both the
        *  curated-inventory path (Tuscany) and the search-opportunity
        *  path (Austria, Vancouver, Tokyo, Lisbon). */}
       <div

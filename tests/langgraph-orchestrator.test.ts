@@ -7,7 +7,7 @@ import { MockModelClient } from './helpers/mock-model-client';
 
 /**
  * Mirror tests/orchestrator.test.ts against the LangGraph engine. Same
- * scenarios, same assertions — proves behavioral parity at the unit
+ * scenarios, same assertions - proves behavioral parity at the unit
  * level. Stream-equivalence is enforced separately by
  * tests/orchestrator-parity.test.ts.
  */
@@ -136,7 +136,7 @@ describe('LangGraphOrchestrator', () => {
   });
 
   it('intent-agent model errors fall back to heuristic, turn still completes', async () => {
-    // Mirrors the legacy-engine test — both engines must honor the
+    // Mirrors the legacy-engine test - both engines must honor the
     // post-bugfix resilience contract (model error → fallback, not
     // turn.failed).
     process.env.MOCK_PROVIDER_LATENCY_MS = '0';

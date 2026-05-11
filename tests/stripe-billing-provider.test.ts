@@ -10,7 +10,7 @@ import { InMemoryWebhookEventStore } from '@/lib/billing/webhook-idempotency';
  *
  * These exercise the **real** signature-verification + idempotency +
  * state-sync code paths via the SDK's own `generateTestHeaderString`
- * helper. No live network — `customers.create`, `checkout.sessions.create`,
+ * helper. No live network - `customers.create`, `checkout.sessions.create`,
  * and `subscriptions.retrieve` are stubbed; everything else (signature
  * verification + crypto + payload routing) runs unmodified.
  *
@@ -77,7 +77,7 @@ function subscriptionFixture(overrides: {
 /**
  * Build a real Stripe instance for signing test fixtures (the crypto
  * machinery is on the instance) AND a stub for outbound calls. Same
- * instance does both — we override the resource methods we care about.
+ * instance does both - we override the resource methods we care about.
  */
 function buildStubbedStripeClient(opts: {
   customersCreate?: () => Promise<unknown>;
@@ -116,7 +116,7 @@ function buildProvider(opts: Parameters<typeof buildStubbedStripeClient>[0] = {}
 }
 
 /** Sign a payload with the test webhook secret. Uses the SDK's own
- *  helper — same code Stripe uses to sign deliveries in production. */
+ *  helper - same code Stripe uses to sign deliveries in production. */
 function signPayload(stripe: Stripe, payload: string): string {
   return stripe.webhooks.generateTestHeaderString({
     payload,
@@ -124,7 +124,7 @@ function signPayload(stripe: Stripe, payload: string): string {
   });
 }
 
-describe('StripeBillingProvider — webhook signature verification', () => {
+describe('StripeBillingProvider - webhook signature verification', () => {
   let env: ReturnType<typeof buildProvider>;
 
   beforeEach(() => {
@@ -169,7 +169,7 @@ describe('StripeBillingProvider — webhook signature verification', () => {
   });
 });
 
-describe('StripeBillingProvider — event handlers update store', () => {
+describe('StripeBillingProvider - event handlers update store', () => {
   it('checkout.session.completed → upsert subscription with priceId + status', async () => {
     const subFixture = subscriptionFixture({
       id: 'sub_checkout_done',
@@ -280,7 +280,7 @@ describe('StripeBillingProvider — event handlers update store', () => {
   });
 });
 
-describe('StripeBillingProvider — idempotency', () => {
+describe('StripeBillingProvider - idempotency', () => {
   it('re-delivery of the same event.id returns idempotent: true and does not re-apply', async () => {
     let retrieveCount = 0;
     const env = buildProvider({
@@ -317,7 +317,7 @@ describe('StripeBillingProvider — idempotency', () => {
   });
 });
 
-describe('StripeBillingProvider — checkout', () => {
+describe('StripeBillingProvider - checkout', () => {
   it("createCheckoutSession throws BillingError 'sign-in-required' for anonymous", async () => {
     const env = buildProvider();
     await expect(
@@ -383,7 +383,7 @@ describe('StripeBillingProvider — checkout', () => {
   });
 });
 
-describe('StripeBillingProvider — getEntitlement', () => {
+describe('StripeBillingProvider - getEntitlement', () => {
   it("returns 'stripe-canceled-grace' when canceled but currentPeriodEnd is in future", async () => {
     const env = buildProvider();
     await env.store.upsert({

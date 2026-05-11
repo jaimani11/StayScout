@@ -49,7 +49,7 @@ function makeIntent(over: Partial<TripIntent> = {}): TripIntent {
   };
 }
 
-describe('rankStays — Slice E1 stronger ranking', () => {
+describe('rankStays - Slice E1 stronger ranking', () => {
   it('every vibe-tag bonus: a "wellness" refine raises wellness-tagged stays', () => {
     const wellness = makeStay({
       id: 'wellness-tagged',

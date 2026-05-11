@@ -4,10 +4,10 @@ import { jsonResponse, resolveRouteContext } from '../../_lib/route-context';
 export const runtime = 'nodejs';
 
 /**
- * GET /api/trips/[tripId] — fetch one saved trip. Returns 404 if the
+ * GET /api/trips/[tripId] - fetch one saved trip. Returns 404 if the
  * current owner doesn't own it (no leakage between owners).
  *
- * DELETE /api/trips/[tripId] — unbookmark. 404 if not owned.
+ * DELETE /api/trips/[tripId] - unbookmark. 404 if not owned.
  */
 
 interface RouteParams {

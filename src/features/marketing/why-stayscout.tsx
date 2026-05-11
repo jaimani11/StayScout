@@ -4,7 +4,7 @@ const TILES = [
   {
     eyebrow: 'Architecture',
     headline: 'Specialized agents, not a chatbot.',
-    body: 'Named agents — intent, search, ranking, mood, memory — work in sequence on your trip. Each step is visible in the chat sidebar. The orchestrator owns the wire format; the UI never knows about the LLM.',
+    body: 'Named agents - intent, search, ranking, mood, memory - work in sequence on your trip. Each step is visible in the chat sidebar. The orchestrator owns the wire format; the UI never knows about the LLM.',
     accent: 'var(--accent-primary)',
   },
   {
@@ -16,7 +16,7 @@ const TILES = [
   {
     eyebrow: 'Personalization',
     headline: 'Memory that improves with you.',
-    body: 'Slice A keeps a session-scoped memory hinter. Slice C upgrades to a real Memory Agent reading from pgvector — preferences, pace, walkability bias, food priority. Same wire format; the UI tile is already in place.',
+    body: 'Slice A keeps a session-scoped memory hinter. Slice C upgrades to a real Memory Agent reading from pgvector - preferences, pace, walkability bias, food priority. Same wire format; the UI tile is already in place.',
     accent: 'var(--accent-primary)',
   },
 ] as const;

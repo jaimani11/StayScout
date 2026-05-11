@@ -192,7 +192,7 @@ export function DetailPanel() {
               </ul>
 
               <div className="mt-6 flex flex-col gap-3">
-                {/* Primary affiliate CTA — replaces the old "Continue to
+                {/* Primary affiliate CTA - replaces the old "Continue to
                  *  Booking" button. Built-in disclosure (Powered by Expedia
                  *  · Affiliate link · Prices may change) lives directly
                  *  beneath the button. Routes via /r/[id] for click

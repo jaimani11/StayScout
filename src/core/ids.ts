@@ -12,7 +12,7 @@ export type TurnId = Brand<string, 'TurnId'>;
 export type StepId = Brand<string, 'StepId'>;
 export type ProposalId = Brand<string, 'ProposalId'>;
 
-// Constructor helpers — the only way to mint a branded value at runtime.
+// Constructor helpers - the only way to mint a branded value at runtime.
 // (We don't validate format here; producers like the orchestrator are
 //  expected to pass shaped strings.)
 export const stayId = (s: string): StayId => s as StayId;

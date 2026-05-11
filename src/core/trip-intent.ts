@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// ============== VibeTag — closed taxonomy ==============
+// ============== VibeTag - closed taxonomy ==============
 // A closed string union so the Intent Agent can't drift into freeform tag
 // soup. Spec §3.1; future enrichment (pace, luxury tolerance, etc.) lands
 // as additional optional fields on TripIntent, not by widening this union.

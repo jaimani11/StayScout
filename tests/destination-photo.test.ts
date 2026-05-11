@@ -20,7 +20,7 @@ describe('resolveDestinationPhoto', () => {
 
   it('falls back to country-level lookup when the city is unknown', () => {
     // Austrian alpine destination that almost certainly isn’t in the
-    // curated cities table — should resolve via __country:AT.
+    // curated cities table - should resolve via __country:AT.
     const photo = resolveDestinationPhoto({ name: 'St. Anton am Arlberg', country: 'AT' });
     expect(photo.url).toMatch(/^https:\/\/images\.unsplash\.com/);
     expect(photo.alt.length).toBeGreaterThan(0);

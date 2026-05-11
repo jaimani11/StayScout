@@ -33,13 +33,13 @@ export interface LangGraphOrchestratorOptions {
   moodSnapshotAgent?: Agent<MoodSnapshotAgentInput, MoodSnapshot>;
   destinationFlavorAgent?: Agent<DestinationFlavorAgentInput, DestinationFlavor | null>;
   providerRouter?: (intent: TripIntent) => Provider;
-  /** Slice F1 — decides inventory vs opportunity path. Defaults to
+  /** Slice F1 - decides inventory vs opportunity path. Defaults to
    *  `routeForIntent` over the global provider registry. */
   routeDecider?: (intent: TripIntent) => RouteDecision;
   sessionStore?: SessionStore;
   /** Optional LangGraph checkpoint saver. MemorySaver if omitted. */
   checkpointer?: BaseCheckpointSaver;
-  /** Slice C1 — optional memory subsystem. Same opt-in shape as the
+  /** Slice C1 - optional memory subsystem. Same opt-in shape as the
    *  legacy Orchestrator. */
   memoryRecorder?: MemoryRecorder;
   memoryRetriever?: MemoryRetriever;
@@ -47,8 +47,8 @@ export interface LangGraphOrchestratorOptions {
 
 /**
  * LangGraph-driven orchestrator. Same `run()` shape as the legacy
- * `Orchestrator` class — `(req, ctx) → AsyncIterable<OrchestratorEvent>`
- * — so consumers (route handler, tests) don't change.
+ * `Orchestrator` class - `(req, ctx) → AsyncIterable<OrchestratorEvent>`
+ * - so consumers (route handler, tests) don't change.
  *
  * Internally:
  *   1. A typed event queue captures events emitted by graph nodes.

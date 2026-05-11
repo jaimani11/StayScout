@@ -9,12 +9,12 @@ import type { MemoryStore, OwnerArgs } from './memory-store';
  * critical path).
  *
  * Recording strategy: per turn, write up to 3 memories.
- *   1. Episodic: rawInput verbatim (≤ 280 chars) — useful for direct
+ *   1. Episodic: rawInput verbatim (≤ 280 chars) - useful for direct
  *      semantic recall of phrases.
  *   2. Structural: a one-line snapshot of vibe + traveler composition
- *      ("family of 4, walkable, slow") — useful for the intent agent's
+ *      ("family of 4, walkable, slow") - useful for the intent agent's
  *      enrichment prompt.
- *   3. Optional caveats: the user said "no kids this trip" — recorded
+ *   3. Optional caveats: the user said "no kids this trip" - recorded
  *      as a structural memory with `signalKey` so search can dedup.
  *
  * Idempotency: a recorder seen the same `turnId` twice no-ops (in-mem
@@ -58,7 +58,7 @@ export class MemoryRecorder {
         });
       }
 
-      // 3. Caveats — explicit one-shot directives the user attached.
+      // 3. Caveats - explicit one-shot directives the user attached.
       for (const caveat of args.intent.caveats.slice(0, 3)) {
         await this.store.record({
           ...args.owner,

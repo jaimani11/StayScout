@@ -20,7 +20,7 @@ interface UpgradeCardProps {
  *   - 'free'      → "Upgrade to Premium" (direct to Stripe Checkout
  *                    in real mode; in-app mock-checkout in mock mode).
  *
- * Curated Italian destinations bypass the gate entirely — the curated
+ * Curated Italian destinations bypass the gate entirely - the curated
  * library always renders, no upgrade required. The gate only fires for
  * the synthesized-itinerary path.
  */
@@ -64,7 +64,7 @@ export function UpgradeCard({ destinationName, reason, returnPath, cancelPath }:
             lineHeight: 1.1,
           }}
         >
-          Day-by-day for everywhere — premium.
+          Day-by-day for everywhere - premium.
         </h1>
         <p
           className="mt-2 max-w-xl"
@@ -77,7 +77,7 @@ export function UpgradeCard({ destinationName, reason, returnPath, cancelPath }:
             lineHeight: 1.55,
           }}
         >
-          We hand-write three-day plans for the seven Italian regions we know best — Tuscany,
+          We hand-write three-day plans for the seven Italian regions we know best - Tuscany,
           Umbria, Amalfi, Rome, Venice, Lake Como, Cinque Terre. Anywhere else needs the model, and
           that&apos;s premium.
         </p>
@@ -117,7 +117,7 @@ export function UpgradeCard({ destinationName, reason, returnPath, cancelPath }:
         >
           {reason === 'anonymous'
             ? 'Premium plans are tied to a signed-in account so they survive across devices and browsers. Sign in first, then upgrade.'
-            : 'Premium covers everywhere outside the curated library — three days written for your trip from the same editorial frame, refined per destination.'}
+            : 'Premium covers everywhere outside the curated library - three days written for your trip from the same editorial frame, refined per destination.'}
         </p>
 
         <ul
@@ -133,7 +133,7 @@ export function UpgradeCard({ destinationName, reason, returnPath, cancelPath }:
           {[
             'Three-day plans for any destination, generated from your trip intent.',
             'Same editorial voice as our hand-curated Italian regions.',
-            'Adjustable — drag, swap, or rewrite slots after the fact.',
+            'Adjustable - drag, swap, or rewrite slots after the fact.',
             'Cancel anytime; period you paid for is honored.',
           ].map((line) => (
             <li key={line} className="flex items-start gap-2">
@@ -185,7 +185,7 @@ export function UpgradeCard({ destinationName, reason, returnPath, cancelPath }:
             lineHeight: 1.5,
           }}
         >
-          Curated Italy stays free for everyone — Tuscany, Rome, Venice and the others render their
+          Curated Italy stays free for everyone - Tuscany, Rome, Venice and the others render their
           three days the moment you save the trip.
         </p>
       </footer>

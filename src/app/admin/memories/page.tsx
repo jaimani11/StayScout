@@ -22,7 +22,7 @@ export const dynamic = 'force-dynamic';
  *     memories. With `?q=<query>` also set, runs a similarity search
  *     and shows ranked results with scores.
  *
- * The memory subsystem still runs in-memory in the C-series — this
+ * The memory subsystem still runs in-memory in the C-series - this
  * page is the operator's window into that ring buffer. Postgres path
  * lands in C1.x.
  */
@@ -85,7 +85,7 @@ export default async function AdminMemoriesPage({ searchParams }: PageProps) {
       {
         key: 'latest',
         label: 'Latest',
-        render: (r) => (r.latest ? new Date(r.latest).toLocaleString() : '—'),
+        render: (r) => (r.latest ? new Date(r.latest).toLocaleString() : '-'),
       },
       {
         key: 'open',
@@ -194,7 +194,7 @@ export default async function AdminMemoriesPage({ searchParams }: PageProps) {
             {m.signalKey}
           </code>
         ) : (
-          '—'
+          '-'
         ),
     },
     {
@@ -224,7 +224,7 @@ export default async function AdminMemoriesPage({ searchParams }: PageProps) {
             {m.score.toFixed(3)}
           </span>
         ) : (
-          '—'
+          '-'
         ),
     });
   }
@@ -235,7 +235,7 @@ export default async function AdminMemoriesPage({ searchParams }: PageProps) {
       title="Memories · owner"
       subtitle={
         query
-          ? `Similarity search results — ranked by cosine score against the bag-of-words embedding.`
+          ? `Similarity search results - ranked by cosine score against the bag-of-words embedding.`
           : `Most-recent memories for this owner.`
       }
     >

@@ -19,12 +19,12 @@ import { CircuitBreaker, CircuitBreakerOpenError } from './circuit-breaker';
  *   - `fetchStays(query, ctx)`: hit the upstream API, return raw stays
  *   - `buildBadges(query, stays)`: provider-specific badge labels
  *
- * Everything else — caching, freshness metadata, error wrapping — is
+ * Everything else - caching, freshness metadata, error wrapping - is
  * inherited. New providers should be tiny: declare endpoint + auth in
  * the subclass, lean on the base for the search() lifecycle.
  *
  * Cache: per-instance LRU keyed on canonical query hash. TTL is
- * subclass-configurable (default 30 minutes — industry norm for hotel
+ * subclass-configurable (default 30 minutes - industry norm for hotel
  * meta-search availability).
  */
 export interface BaseAffiliateProviderOptions {
@@ -37,7 +37,7 @@ export interface BaseAffiliateProviderOptions {
   cacheMax?: number;
   /** How old the cached data is allowed to be before badging cached/stale. */
   dataMaxAgeMs?: number;
-  /** Circuit breaker — open after N consecutive failures, default 5. */
+  /** Circuit breaker - open after N consecutive failures, default 5. */
   circuitThreshold?: number;
   /** Circuit cooldown ms before half-open trial, default 30s. */
   circuitCooldownMs?: number;
@@ -84,12 +84,12 @@ export abstract class BaseAffiliateProvider implements Provider {
     try {
       stays = await this.breaker.run(() => this.fetchStays(q, ctx));
     } catch (err) {
-      // Circuit open OR fetchStays threw — return empty so the fanout
+      // Circuit open OR fetchStays threw - return empty so the fanout
       // falls through to other providers. The error already counted
       // toward the breaker's failure threshold (or originated FROM the
       // breaker rejecting fast). Log at warn so operators see it.
       if (err instanceof CircuitBreakerOpenError) {
-        console.warn(`[${this.id as string}] circuit open — skipping fetch`);
+        console.warn(`[${this.id as string}] circuit open - skipping fetch`);
       } else {
         console.warn(`[${this.id as string}] fetch failed:`, err);
       }

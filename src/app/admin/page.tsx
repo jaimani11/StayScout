@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic';
  * populated by the orchestrator's TraceLogger composite. Always shows
  * locally-captured data; Langfuse (when wired) holds the durable copy.
  *
- * Slice C5 — auth gate centralized in `requireAdmin()`. Layout wrapped
+ * Slice C5 - auth gate centralized in `requireAdmin()`. Layout wrapped
  * by `AdminShell` so the new admin pages share a consistent header +
  * nav. Recent turn rows now link to `/admin/turns/[turnId]` for the
  * full trace drill-in.
@@ -40,7 +40,7 @@ export default async function AdminPage() {
     <AdminShell
       section="dashboard"
       title="Dashboard"
-      subtitle={`Recent turns, agent latency, model cost. Process-local — restarts clear it.${
+      subtitle={`Recent turns, agent latency, model cost. Process-local - restarts clear it.${
         features.langfuse ? ' Durable copy lives in Langfuse.' : ''
       }`}
     >
@@ -52,7 +52,7 @@ export default async function AdminPage() {
         />
         <SummaryCard
           label="P50 latency"
-          value={summary.p50DurationMs ? `${summary.p50DurationMs}ms` : '—'}
+          value={summary.p50DurationMs ? `${summary.p50DurationMs}ms` : '-'}
           caption={summary.p95DurationMs ? `p95 ${summary.p95DurationMs}ms` : 'no completed turns'}
         />
         <SummaryCard
@@ -134,7 +134,7 @@ export default async function AdminPage() {
               color: 'var(--ink-tertiary)',
             }}
           >
-            No turns yet — run a search to populate.
+            No turns yet - run a search to populate.
           </p>
         ) : (
           <div

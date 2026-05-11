@@ -8,7 +8,7 @@
  *     provider) a plain Map + insertion-order semantics is enough.
  *     `Map` iteration order IS insertion order; on get-hit we delete +
  *     re-insert to bump the entry to "most recent."
- *   - TTL is checked lazily on `get` — expired entries return null +
+ *   - TTL is checked lazily on `get` - expired entries return null +
  *     are deleted, no background sweeper needed.
  */
 export interface CacheEntry<V> {
@@ -37,7 +37,7 @@ export class LRUCache<K, V> {
   }
 
   set(key: K, value: V, ttlMs: number): void {
-    if (ttlMs <= 0) return; // Caller asked for "don't cache" — silently no-op.
+    if (ttlMs <= 0) return; // Caller asked for "don't cache" - silently no-op.
     if (this.map.has(key)) this.map.delete(key);
     this.map.set(key, { value, expiresAt: Date.now() + ttlMs });
     while (this.map.size > this.max) {

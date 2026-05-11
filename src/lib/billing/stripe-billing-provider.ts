@@ -18,7 +18,7 @@ import type {
 import type { SubscriptionStore } from './subscription-store';
 import type { WebhookEventStore } from './webhook-idempotency';
 
-/** Pinned API version. Changing this is a deliberate upgrade — newer
+/** Pinned API version. Changing this is a deliberate upgrade - newer
  *  SDK builds may default to a newer API but our code shape is tied
  *  to the fields we read in webhook payloads (notably the move of
  *  `current_period_end` onto `subscription.items.data[].current_period_end`
@@ -48,18 +48,18 @@ const HANDLED_EVENT_TYPES = new Set([
  * Real Stripe-backed billing provider.
  *
  * Used when STRIPE_SECRET_KEY + STRIPE_WEBHOOK_SECRET + STRIPE_PRICE_ID
- * are all set (test or live keys both work — verification doesn't care).
+ * are all set (test or live keys both work - verification doesn't care).
  *
  * Three guarantees:
- *   1. Subscription state is the source of truth — getEntitlement() reads
+ *   1. Subscription state is the source of truth - getEntitlement() reads
  *      our SubscriptionStore, which is only ever written from verified
  *      webhook deliveries. Clients never claim premium.
  *   2. Webhooks are signature-verified via stripe.webhooks.constructEvent
  *      against the configured STRIPE_WEBHOOK_SECRET. Failure is logged
- *      and returned as `{ ok: false, reason: 'signature' }` — never thrown,
+ *      and returned as `{ ok: false, reason: 'signature' }` - never thrown,
  *      so the route handler can map cleanly to HTTP 400.
  *   3. Webhooks are idempotent on event.id via WebhookEventStore. Stripe
- *      retries on any non-2xx, and occasionally double-delivers — the
+ *      retries on any non-2xx, and occasionally double-delivers - the
  *      check-and-set pattern guarantees we apply state changes once.
  *
  * Customer creation is lazy: the first time a user starts checkout, we
@@ -68,7 +68,7 @@ const HANDLED_EVENT_TYPES = new Set([
  *
  * The provider is intentionally injected with its store + event log so
  * tests can swap them. Construction fails fast if any required arg is
- * missing — partial config never reaches this class (the factory
+ * missing - partial config never reaches this class (the factory
  * filters for that).
  */
 export class StripeBillingProvider implements BillingProvider {
@@ -85,7 +85,7 @@ export class StripeBillingProvider implements BillingProvider {
     priceId: string;
     store: SubscriptionStore;
     eventLog: WebhookEventStore;
-    /** For tests — inject a stubbed Stripe client instead of constructing one. */
+    /** For tests - inject a stubbed Stripe client instead of constructing one. */
     stripeClient?: Stripe;
   }) {
     if (!args.secretKey || !args.webhookSecret || !args.priceId) {
@@ -189,7 +189,7 @@ export class StripeBillingProvider implements BillingProvider {
       return { ok: false, reason: 'signature' };
     }
 
-    // Idempotency check BEFORE applying state changes. Atomic — second
+    // Idempotency check BEFORE applying state changes. Atomic - second
     // delivery of the same event.id short-circuits without re-applying.
     const status = await this.eventLog.markProcessed(event.id);
     if (status === 'duplicate') {

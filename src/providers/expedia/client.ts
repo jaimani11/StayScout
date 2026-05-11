@@ -8,7 +8,7 @@ import { ExpediaSearchResponseSchema, type ExpediaSearchResponse } from './types
  *
  * Endpoint: `/v3/properties/availability` returns properties + rates
  * for a date window. (`/v3/properties/search` is the raw catalog
- * lookup without availability — we use availability since the
+ * lookup without availability - we use availability since the
  * concierge always plans against specific or hinted dates.)
  *
  * Auth: HMAC-SHA512 signature over `apiKey + sharedSecret + epochSeconds`,
@@ -16,16 +16,16 @@ import { ExpediaSearchResponseSchema, type ExpediaSearchResponse } from './types
  * header. Built in `_shared/rapid-signature.ts` so Vrbo can reuse.
  *
  * Rapid also requires:
- *   - `Customer-Ip` — the inbound user's IP. Affiliate attribution
+ *   - `Customer-Ip` - the inbound user's IP. Affiliate attribution
  *     uses this for fraud + loyalty programs.
- *   - `Customer-Session-Id` — opaque per-user session identifier; we
+ *   - `Customer-Session-Id` - opaque per-user session identifier; we
  *     pass our anonymous-session UUID when no Customer-Ip is set.
  *
  * Reference:
  *   https://developers.expediagroup.com/docs/rapid/lodging/shop/property-availability
  *
  * Production: when applying for keys, request access to the
- * "Affiliate Lite" tier first — supports search + availability without
+ * "Affiliate Lite" tier first - supports search + availability without
  * the booking endpoints. Booking flow stays redirect-based via the
  * affiliate URL builder in `mapper.ts`.
  */
@@ -39,7 +39,7 @@ export type ExpediaCredentials = RapidCredentials;
 
 export interface ExpediaSearchOptions {
   /** Inbound user's IP for affiliate attribution. Falls back to
-   *  `'127.0.0.1'` for dev — production should always set this. */
+   *  `'127.0.0.1'` for dev - production should always set this. */
   customerIp?: string;
   /** Opaque per-user session id (anon-session UUID is fine). */
   customerSessionId?: string;
@@ -88,7 +88,7 @@ export async function searchExpedia(
 function buildQueryParams(query: ProviderSearchQuery, opts: ExpediaSearchOptions): URLSearchParams {
   const params = new URLSearchParams();
 
-  // Geographic filter — Rapid accepts `country_code` (alpha-2) +
+  // Geographic filter - Rapid accepts `country_code` (alpha-2) +
   // optionally `region_id` for a curated region match. The concierge
   // gives us a country code; deeper filters arrive when we wire
   // Rapid's region taxonomy (E1.x).
@@ -97,7 +97,7 @@ function buildQueryParams(query: ProviderSearchQuery, opts: ExpediaSearchOptions
     params.set('country_code', dest.country.toUpperCase());
   }
 
-  // Dates — Rapid wants `checkin` / `checkout` ISO YYYY-MM-DD. The
+  // Dates - Rapid wants `checkin` / `checkout` ISO YYYY-MM-DD. The
   // availability endpoint requires both; if the user said "I dunno"
   // we synthesize a window 30 days out for a 5-night stay (matches
   // the booking-draft default in src/agents/booking-agent.ts).
@@ -112,7 +112,7 @@ function buildQueryParams(query: ProviderSearchQuery, opts: ExpediaSearchOptions
     params.set('checkout', checkOut.toISOString().slice(0, 10));
   }
 
-  // Occupancy — Rapid accepts `occupancy=A-C[,age]…` (e.g. `2-1[8]` =
+  // Occupancy - Rapid accepts `occupancy=A-C[,age]…` (e.g. `2-1[8]` =
   // 2 adults + 1 child age 8). Children ages aren't in our intent;
   // we default to 8 to keep the rate request valid.
   const childCount = Math.max(0, query.travelers.children.count);
@@ -123,16 +123,16 @@ function buildQueryParams(query: ProviderSearchQuery, opts: ExpediaSearchOptions
     params.set('occupancy', `${query.travelers.adults}`);
   }
 
-  // Currency — preview in USD; production callers can override.
+  // Currency - preview in USD; production callers can override.
   params.set('currency', 'USD');
 
-  // Optional category filter — used by Vrbo to restrict to
+  // Optional category filter - used by Vrbo to restrict to
   // vacation-rental categories. Rapid accepts a comma-separated list.
   if (opts.categoryIdsAllowlist && opts.categoryIdsAllowlist.length > 0) {
     params.set('category_ids', opts.categoryIdsAllowlist.join(','));
   }
 
-  // Result cap — Rapid defaults to 250; we want concise results.
+  // Result cap - Rapid defaults to 250; we want concise results.
   params.set('limit', String(Math.min(query.limit ?? 25, 50)));
 
   return params;

@@ -1,9 +1,9 @@
-# Providers — setup walkthrough
+# Providers - setup walkthrough
 
 Real-time inventory comes from partner APIs. Each one self-registers
 when its env vars are present; otherwise the registry skips it and
 the keyless-dev floor (curated Italy + LLM-synthesized) handles the
-request. Adding keys is purely additive — no code changes needed.
+request. Adding keys is purely additive - no code changes needed.
 
 This doc walks through partner-application + env wiring for the three
 real providers we ship adapters for, plus what to expect when you
@@ -16,7 +16,7 @@ can't get keys yet.
 | Provider | What it serves | Keys required | Self-registers when… |
 |---|---|---|---|
 | Expedia (EPS Rapid) | Hotels + apart-hotels, real-time availability + rates | `EXPEDIA_API_KEY` + `EXPEDIA_SHARED_SECRET` | both set |
-| Vrbo (EPS Rapid + category filter) | Vacation rentals — cottages, villas, cabins, private homes | `VRBO_API_KEY` + `VRBO_SHARED_SECRET`, optional `VRBO_AFFILIATE_ID` | both required keys set |
+| Vrbo (EPS Rapid + category filter) | Vacation rentals - cottages, villas, cabins, private homes | `VRBO_API_KEY` + `VRBO_SHARED_SECRET`, optional `VRBO_AFFILIATE_ID` | both required keys set |
 | Booking.com Affiliate Partner Network | Affiliate-deeplink redirect to Booking.com property pages | `BOOKING_COM_AFFILIATE_ID` + `BOOKING_COM_API_KEY` | both set |
 
 If none are set, the app still works end-to-end via the curated +
@@ -25,7 +25,7 @@ or `AI PREVIEW` so users always know where data came from.
 
 ---
 
-## Provider provenance — what users see
+## Provider provenance - what users see
 
 Every stay card shows a provenance chip in the corner. Vocabulary:
 
@@ -43,7 +43,7 @@ Honesty is the load-bearing thing.
 
 ---
 
-## Expedia — EPS Rapid
+## Expedia - EPS Rapid
 
 ### What it is
 
@@ -53,13 +53,13 @@ we hit (`/v3/properties/availability`) returns properties + rates for
 a date window; redirect-based booking goes through your affiliate URL.
 
 The integration adapter shape lives at `src/providers/expedia/`. When
-keys land, the existing code makes real calls — no rewrites needed.
+keys land, the existing code makes real calls - no rewrites needed.
 
 ### Apply
 
 1. Visit https://www.partner-solutions.expediagroup.com/.
 2. Apply for the **Affiliate** (or **Affiliate Lite**) tier. Affiliate
-   Lite supports Shop + Availability without the booking endpoints —
+   Lite supports Shop + Availability without the booking endpoints -
    the right tier for our redirect flow.
 3. Approval typically takes 2–6 weeks. Sandbox creds arrive first;
    production creds after a compliance review.
@@ -82,15 +82,15 @@ Rapid uses **HMAC-SHA512** over `apiKey + sharedSecret + epochSeconds`,
 sent as the `Authorization: EAN APIKey=…,Signature=…,timestamp=…`
 header. Built in `src/providers/_shared/rapid-signature.ts` and
 shared with Vrbo. Rapid rejects requests whose timestamp drifts more
-than ±5 minutes — we mint per-request, so long-running calls don't
+than ±5 minutes - we mint per-request, so long-running calls don't
 expire mid-flight.
 
 Plus two per-request headers Rapid requires for affiliate attribution:
 
-- `Customer-Ip` — the inbound user's IP. Production should set from
+- `Customer-Ip` - the inbound user's IP. Production should set from
   `CF-Connecting-IP` or `X-Forwarded-For`. Defaults to `127.0.0.1`
   in dev.
-- `Customer-Session-Id` — opaque per-user id. We pass our anon-session
+- `Customer-Session-Id` - opaque per-user id. We pass our anon-session
   UUID; production can also use Clerk userId.
 
 ### Rate limits + sandbox
@@ -110,13 +110,13 @@ Plus two per-request headers Rapid requires for affiliate attribution:
 
 ---
 
-## Vrbo — EPS Rapid with vacation-rental filter
+## Vrbo - EPS Rapid with vacation-rental filter
 
 ### What it is
 
 Vrbo became Expedia Group's vacation-rental brand after the 2015
 acquisition. Their inventory is served through the same Rapid surface
-as Expedia — we just filter by Rapid's vacation-rental category ids
+as Expedia - we just filter by Rapid's vacation-rental category ids
 (8 cottage, 16 vacation rental, 19 private vacation home, 22 cabin,
 35 guest house, 37 villa).
 
@@ -173,7 +173,7 @@ rentals; the filter ensures the chip + the listing match.
 
 ---
 
-## Booking.com — Affiliate Partner Network
+## Booking.com - Affiliate Partner Network
 
 ### What it is
 
@@ -217,7 +217,7 @@ your aid + label.
 
 ---
 
-## Affiliate redirect — `/api/go`
+## Affiliate redirect - `/api/go`
 
 All three live providers route bookings through our redirect:
 
@@ -228,7 +228,7 @@ All three live providers route bookings through our redirect:
 The route:
 
 1. Validates `u` against the per-provider host allowlist
-   (`src/lib/affiliate/allowlist.ts`) — closes the open-redirect
+   (`src/lib/affiliate/allowlist.ts`) - closes the open-redirect
    attack surface that would otherwise let StayScout's domain be
    used for phishing.
 2. Records an `AffiliateClick` row keyed on the current owner
@@ -237,7 +237,7 @@ The route:
    cookies set on the cross-origin hop, which is what affiliate
    networks need for tracking.
 
-Click failures don't block the redirect — booking flow is sacred.
+Click failures don't block the redirect - booking flow is sacred.
 Failures are logged + the user proceeds.
 
 ---
@@ -260,7 +260,7 @@ When the user asks about a destination outside the curated set
 (Tokyo, Patagonia, Lisbon, etc.), this provider asks Claude for 4
 plausible stays and renders them with photos hashed from a
 per-category Unsplash pool (5–6 photos per category, deterministic
-selection by stay slug — different stays in the same batch get
+selection by stay slug - different stays in the same batch get
 different photos). Tagged `AI PREVIEW`.
 
 The synthesized stays look beautiful but are **not real listings**.
@@ -268,7 +268,7 @@ The chip + the warning-tone styling make this explicit. Booking
 links route to a placeholder; users can't book a synthesized stay.
 
 This is the right behavior for a product still waiting on partner
-approval — the demo is honest. The moment Expedia/Vrbo/Booking.com
+approval - the demo is honest. The moment Expedia/Vrbo/Booking.com
 keys land, the same destinations start surfacing real partner
 results, and the chip flips from `AI PREVIEW` to `EXPEDIA · LIVE`.
 
@@ -280,16 +280,16 @@ The pattern is the same every time. Reference: `src/providers/expedia/`
 and `src/providers/vrbo/` (the latter shows how to specialize a
 sibling provider on top of an existing client).
 
-1. **`types.ts`** — Zod schema for the partner's response shape.
+1. **`types.ts`** - Zod schema for the partner's response shape.
    Validate only fields you actually map; extras strip on parse.
-2. **`client.ts`** — HTTP function that takes
+2. **`client.ts`** - HTTP function that takes
    `(query, creds, signal, opts?)` and returns the validated
    response (or `null` on transport failure).
-3. **`mapper.ts`** — Convert partner records → our `Stay` shape.
+3. **`mapper.ts`** - Convert partner records → our `Stay` shape.
    Namespace the id as `<providerId>:<nativeId>`. Set `providerId`
    so the provenance chip resolves. Build the affiliate redirect URL
    here.
-4. **`index.ts`** — `class FooProvider extends BaseAffiliateProvider`,
+4. **`index.ts`** - `class FooProvider extends BaseAffiliateProvider`,
    `static fromEnv()` returning null when keys missing, override
    `fetchStays` + `buildBadges`.
 5. Register in `src/providers/index.ts` (`buildProviderRegistry`).
@@ -320,7 +320,7 @@ curl -sN -m 30 -H "Content-Type: application/json" \
   -d '{"turnId":"t_smoke","type":"compose","input":{"rawInput":"London, four nights, walkable"},"clientCapabilities":{"supportsAdaptationDelta":true,"supportsMoodSnapshot":true,"supportsMemoryHint":true}}' \
   http://localhost:3000/api/concierge \
   | jq -r 'select(.kind=="proposal.ready") | .proposal.hero.providerId'
-# Expected: "expedia" — chip shows EXPEDIA · LIVE in the UI.
+# Expected: "expedia" - chip shows EXPEDIA · LIVE in the UI.
 ```
 
 If the call fails, check `/tmp/stayscout-dev.log` for the

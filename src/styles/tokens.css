@@ -1,5 +1,5 @@
 /* ============================================================
-   StayScout Design Tokens — spec §4
+   StayScout Design Tokens - spec §4
    Two themes (cinematic dark / boutique-sunset light) plus a
    theme-independent --featured-* set for the marketing break.
    ============================================================ */
@@ -35,7 +35,7 @@
   --dur-cinematic: 900ms;
 }
 
-/* ============== DARK MODE (default — cinematic) ============== */
+/* ============== DARK MODE (default - cinematic) ============== */
 :root,
 :root[data-theme='dark'] {
   --surface-base: #0b0d10;
@@ -52,7 +52,7 @@
   --accent-primary-glow: rgba(212, 165, 116, 0.4);
   --accent-secondary: #5078c8;
 
-  /* Warning — used for failure states, cancel-confirm, monitoring alerts.
+  /* Warning - used for failure states, cancel-confirm, monitoring alerts.
      Distinct from accent-secondary (which is a cool counterpoint, not a
      warning signal). Coral pairs with the cinematic palette. */
   --accent-warning: #ff8e6b;
@@ -96,7 +96,7 @@
   --accent-primary-glow: rgba(90, 107, 63, 0.3);
   --accent-secondary: #b0552f;
 
-  /* Warning — light-mode coral, deeper than dark to keep contrast on
+  /* Warning - light-mode coral, deeper than dark to keep contrast on
      the cream base. Distinct from --accent-secondary (clay) so the
      two never get confused in close proximity. */
   --accent-warning: #c84a1f;
@@ -123,7 +123,7 @@
 }
 
 /* ============== FIXED BOUTIQUE-LIGHT TOKENS ==============
-   For the "Featured stays" marketing section break — keeps boutique
+   For the "Featured stays" marketing section break - keeps boutique
    identity regardless of global theme. Spec §4.1.
 */
 :root {

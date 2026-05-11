@@ -8,7 +8,7 @@ import type { SessionStore } from './session-store';
  * in Next 16 + Turbopack dev: server components and API route handlers
  * sometimes get separate module bundles, which produced TWO instances
  * of the in-memory store. A trip saved via POST /api/trips/save was
- * invisible to a server-rendered /trips/[id]/itinerary page — same
+ * invisible to a server-rendered /trips/[id]/itinerary page - same
  * cookie, same owner key, but two different stores. `globalThis`
  * anchors the singleton to the actual Node process so every consumer
  * (route, server component, server action, monitoring runner, etc.)
@@ -36,7 +36,7 @@ export function getSessionStore(): SessionStore {
   return globalThis.__stayscoutSessionStore;
 }
 
-// Test seam — replace the singleton between tests.
+// Test seam - replace the singleton between tests.
 export function _setSessionStoreForTesting(store: SessionStore | null): void {
   globalThis.__stayscoutSessionStore = store ?? undefined;
 }

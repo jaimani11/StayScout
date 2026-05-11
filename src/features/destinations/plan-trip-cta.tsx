@@ -8,11 +8,11 @@ interface PlanTripCtaProps {
 
 /**
  * Bottom-of-page call-to-action. Lands the visitor in the workspace
- * with a destination-specific prompt seeded — `UrlInit` (B3) consumes
+ * with a destination-specific prompt seeded - `UrlInit` (B3) consumes
  * `?prompt=` on first paint and clears it from the URL.
  *
  * The prompt mirrors how a user would phrase the search themselves:
- * "{Name}, 7 nights, couple, walkable" — short, structured.
+ * "{Name}, 7 nights, couple, walkable" - short, structured.
  */
 export function PlanTripCta({ destination }: PlanTripCtaProps) {
   const prompt = `${destination.name}, 7 nights, couple, walkable`;
@@ -62,7 +62,7 @@ export function PlanTripCta({ destination }: PlanTripCtaProps) {
             lineHeight: 1.55,
           }}
         >
-          Tell the concierge what you&apos;re after — a few words is enough. Stays materialize, you
+          Tell the concierge what you&apos;re after - a few words is enough. Stays materialize, you
           compare, you save what fits.
         </p>
         <Link

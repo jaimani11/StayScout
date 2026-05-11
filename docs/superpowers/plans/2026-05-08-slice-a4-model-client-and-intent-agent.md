@@ -1,10 +1,10 @@
-# StayScout Slice A4 — ModelClient + IntentAgent Implementation Plan
+# StayScout Slice A4 - ModelClient + IntentAgent Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Land the AI core — a real `AnthropicModelClient` implementing the `ModelClient` interface (with structured outputs via tool use, prompt caching, and streaming), plus the `IntentAgent` that turns natural language into a validated `TripIntent` for both compose and refine flows. After A4, the system can take a sentence and produce a typed intent that the rest of the architecture already programs against.
+**Goal:** Land the AI core - a real `AnthropicModelClient` implementing the `ModelClient` interface (with structured outputs via tool use, prompt caching, and streaming), plus the `IntentAgent` that turns natural language into a validated `TripIntent` for both compose and refine flows. After A4, the system can take a sentence and produce a typed intent that the rest of the architecture already programs against.
 
-**Architecture:** `AnthropicModelClient` lives in `src/lib/ai/`, depending only on `core` and `@anthropic-ai/sdk`. Structured outputs use the tool-use pattern: define a single tool whose `input_schema` is the Zod schema converted to JSON Schema, force tool use, parse and re-validate. System prompts use Anthropic's `cache_control: ephemeral` markers so the per-turn cost is just the user message. The `IntentAgent` is `Agent<{rawInput, priorIntent?}, TripIntent>` — same shape for compose and refine; the prompt template branches internally.
+**Architecture:** `AnthropicModelClient` lives in `src/lib/ai/`, depending only on `core` and `@anthropic-ai/sdk`. Structured outputs use the tool-use pattern: define a single tool whose `input_schema` is the Zod schema converted to JSON Schema, force tool use, parse and re-validate. System prompts use Anthropic's `cache_control: ephemeral` markers so the per-turn cost is just the user message. The `IntentAgent` is `Agent<{rawInput, priorIntent?}, TripIntent>` - same shape for compose and refine; the prompt template branches internally.
 
 **Tests:** Unit tests use `MockModelClient` (a hand-rolled test helper) so the suite runs offline. A `test:live` script runs gated integration tests against the real API. A `test:eval` script runs the §8.15 golden cases through the live API.
 
@@ -26,7 +26,7 @@ src/lib/ai/
 
 src/agents/
 ├── intent-agent.ts            [new] IntentAgent impl
-└── index.ts                   [modify] barrel — re-export IntentAgent
+└── index.ts                   [modify] barrel - re-export IntentAgent
 
 tests/
 ├── helpers/
@@ -53,7 +53,7 @@ Total: ~10 new files.
 
 - [ ] Create `.env.example`:
   ```
-  # Anthropic API key — required for live model calls (IntentAgent, MoodSnapshotAgent).
+  # Anthropic API key - required for live model calls (IntentAgent, MoodSnapshotAgent).
   # Get one at https://console.anthropic.com/settings/keys
   ANTHROPIC_API_KEY=
 
@@ -96,7 +96,7 @@ Two methods. `generate<T>` always uses tool-use when `responseSchema` is present
   }
 
   /**
-   * AnthropicModelClient — implementation of the ModelClient interface
+   * AnthropicModelClient - implementation of the ModelClient interface
    * backed by @anthropic-ai/sdk. Slice A4. Slice B can wrap with a
    * RoutedModelClient that picks providers per-agent.
    *
@@ -129,7 +129,7 @@ Two methods. `generate<T>` always uses tool-use when `responseSchema` is present
         ? [{ type: 'text' as const, text: req.system, cache_control: { type: 'ephemeral' as const } }]
         : undefined;
 
-      // Tool-use path — enforces a JSON Schema output and returns the
+      // Tool-use path - enforces a JSON Schema output and returns the
       // parsed argument validated against the user's Zod schema.
       if (req.responseSchema) {
         const jsonSchema = zodToJsonSchema(req.responseSchema, {
@@ -176,7 +176,7 @@ Two methods. `generate<T>` always uses tool-use when `responseSchema` is present
         }
       }
 
-      // Plain text path — returns the assistant's first text block as T.
+      // Plain text path - returns the assistant's first text block as T.
       try {
         const resp = await this.client.messages.create({
           model: req.model,
@@ -239,7 +239,7 @@ Two methods. `generate<T>` always uses tool-use when `responseSchema` is present
 
 - [ ] Create `src/lib/ai/prompts/intent-system.ts`:
   ```ts
-  // System prompt for the IntentAgent. Drafted to be cacheable —
+  // System prompt for the IntentAgent. Drafted to be cacheable -
   // identical across all turns of all sessions, so it lives entirely
   // in the cached system blocks.
 
@@ -250,7 +250,7 @@ Your only job is to turn a user's natural-language description of a trip into a 
 Output rules:
 - Preserve the user's exact original text in \`rawInput\`. Never paraphrase it there.
 - Use only fields and enum values defined by the schema. Never invent fields, never invent tags.
-- Default unspecified fields gracefully — do not invent destinations, dates, or budgets.
+- Default unspecified fields gracefully - do not invent destinations, dates, or budgets.
 - Set \`confidence\` (0–1) on fields you inferred rather than were directly told. Use ≤0.5 for heavy guesses, ≥0.8 for things the user said outright.
 
 Defaults when ambiguous:
@@ -263,7 +263,7 @@ Defaults when ambiguous:
 - preferences.amenities/avoid: []
 - caveats: []
 
-VibeTag taxonomy (use ONLY these — never invent):
+VibeTag taxonomy (use ONLY these - never invent):
 luxury, budget, mid-range, walkable, remote, urban, romantic, family-friendly,
 group, foodie, cultural, nature, adventure, slow, fast-paced,
 avoid-tourist-traps, iconic-landmarks, wellness, beach, mountains.
@@ -288,7 +288,7 @@ Inference rules:
 
 Be precise. Do not editorialise.`;
 
-  // Optional few-shot examples — small to keep cache small. Anthropic's
+  // Optional few-shot examples - small to keep cache small. Anthropic's
   // ephemeral cache benefits most from STABLE system content, so the
   // few-shots live in the system block, not in the conversation.
   export const INTENT_FEW_SHOTS = `Example A:
@@ -321,14 +321,14 @@ Output (high level):
   // Build a refine-variant user message that includes the prior intent
   // so the model produces a NEW intent reflecting the user's adjustment.
   // The IntentDelta is computed downstream by the orchestrator (Slice A5)
-  // by structurally diffing prior vs new — we keep the model's output
+  // by structurally diffing prior vs new - we keep the model's output
   // shape identical to compose so the IntentAgent has one return type.
 
   export function buildRefinePrompt(args: {
     rawInput: string;
     priorIntent: TripIntent;
   }): string {
-    return `The user is REFINING an existing trip — not starting over.
+    return `The user is REFINING an existing trip - not starting over.
 
 Their adjustment: ${JSON.stringify(args.rawInput)}
 
@@ -625,7 +625,7 @@ Produce the TripIntent.`;
   });
   ```
 
-- [ ] Run `pnpm test` — expect 8 new tests + the existing 33.
+- [ ] Run `pnpm test` - expect 8 new tests + the existing 33.
 - [ ] Commit: `test(intent-agent): unit tests with MockModelClient covering compose + refine`
 
 ## Task 7: Live API integration test (gated)

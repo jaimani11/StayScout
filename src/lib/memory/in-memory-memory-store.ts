@@ -13,7 +13,7 @@ import type {
  * Process-local MemoryStore. Each owner has a bounded ring buffer of
  * memories; eviction is FIFO once the cap is reached.
  *
- * Search is exhaustive O(N) cosine similarity per query — fine for
+ * Search is exhaustive O(N) cosine similarity per query - fine for
  * N ≤ 200 (the cap). Larger N would need a vector index; that's the
  * Postgres path's job.
  */
@@ -110,12 +110,12 @@ export class InMemoryMemoryStore implements MemoryStore {
     this.buckets.delete(ownerKey(args));
   }
 
-  /** Test-only — wipe everything. */
+  /** Test-only - wipe everything. */
   _reset(): void {
     this.buckets.clear();
   }
 
-  /** Test/diagnostic — total memories across all owners. */
+  /** Test/diagnostic - total memories across all owners. */
   size(): number {
     let total = 0;
     for (const bucket of this.buckets.values()) total += bucket.length;

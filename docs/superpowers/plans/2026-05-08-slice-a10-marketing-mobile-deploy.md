@@ -1,10 +1,10 @@
-# StayScout Slice A10 — Marketing + Mobile + Deploy Implementation Plan
+# StayScout Slice A10 - Marketing + Mobile + Deploy Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Land the four below-fold marketing sections (How It Works → Featured Stays in light-mode break → Why StayScout → Footer), the mobile fallback for the workspace, and ship-ready README + Vercel config. After A10, Slice A is complete: a single page that opens with the cinematic workspace and scrolls into a calm marketing narrative below the fold.
 
-**Architecture:** Marketing sections live in `src/features/marketing/` and are RSC (Server Components) — no client JS, fast first paint, SEO-friendly. They sit *below* the `<Workspace>` (which stays a single 100vh client island). Mobile fallback uses Tailwind responsive breakpoints to stack the chat sidebar below the canvas at `<md` (768px). README + Vercel config get final-pass polish.
+**Architecture:** Marketing sections live in `src/features/marketing/` and are RSC (Server Components) - no client JS, fast first paint, SEO-friendly. They sit *below* the `<Workspace>` (which stays a single 100vh client island). Mobile fallback uses Tailwind responsive breakpoints to stack the chat sidebar below the canvas at `<md` (768px). README + Vercel config get final-pass polish.
 
 **Tech additions:** none.
 
@@ -37,9 +37,9 @@ tests/                            no new tests (RSC visual sections)
 
 - [ ] Create `src/features/marketing/how-it-works.tsx`:
   - Three steps, ~80vh each, sticky-scroll
-  - Step 1: "You write a sentence." — input pill illustration
-  - Step 2: "Specialized agents do the work." — three agent rows
-  - Step 3: "You stay in control." — Trip Board hero preview
+  - Step 1: "You write a sentence." - input pill illustration
+  - Step 2: "Specialized agents do the work." - three agent rows
+  - Step 3: "You stay in control." - Trip Board hero preview
   - Cool blue bloom background overlay (var(--bloom-cool))
   - Server Component (no `'use client'`)
 
@@ -47,7 +47,7 @@ tests/                            no new tests (RSC visual sections)
 
 - [ ] Create `src/features/marketing/featured-stays.tsx`:
   - Headline: "Hand-selected by the concierge."
-  - Pulls 6 stays from `ALL_STAYS` (deterministic — first 6 in registry order)
+  - Pulls 6 stays from `ALL_STAYS` (deterministic - first 6 in registry order)
   - Cards: 16:10 photo, stay name (Fraunces), 1-line italic description, price
   - Uses fixed `--featured-*` tokens (cream + olive + clay) regardless of global theme
   - Section background gradient transitions from `--surface-base` to `--featured-bg`

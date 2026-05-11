@@ -9,7 +9,7 @@ interface FeaturedStaysProps {
 }
 
 /**
- * Grid of featured stays for a destination page. Read-only — clicking
+ * Grid of featured stays for a destination page. Read-only - clicking
  * a card lands the visitor in the workspace with the destination's
  * prompt pre-filled, so they can run their own search.
  */

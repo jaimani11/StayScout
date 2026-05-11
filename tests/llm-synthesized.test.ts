@@ -102,7 +102,7 @@ describe('LLMSynthesizedProvider', () => {
     expect(result.freshness.source).toBe('synthesized');
   });
 
-  it('caches by (destination, vibe, budget) — second call hits cache', async () => {
+  it('caches by (destination, vibe, budget) - second call hits cache', async () => {
     let calls = 0;
     const client = new MockModelClient().respondGenerate(() => {
       calls += 1;
@@ -122,7 +122,7 @@ describe('LLMSynthesizedProvider', () => {
   });
 });
 
-describe('coerceLlmStayBatch — vibe + price tolerance', () => {
+describe('coerceLlmStayBatch - vibe + price tolerance', () => {
   function bareStay(overrides: Partial<LLMStay> & Record<string, unknown> = {}) {
     return {
       ...sampleLLMStay,
@@ -153,7 +153,7 @@ describe('coerceLlmStayBatch — vibe + price tolerance', () => {
     const raw = { stays: [bareStay({ pricePerNight: 999_999 })] };
     const coerced = coerceLlmStayBatch(raw) as { stays: LLMStay[] };
     expect(coerced.stays[0]?.pricePerNight).toBe(25_000);
-    expect(LLMStayBatchSchema.safeParse(coerced).success).toBe(false); // batch min 2 — but stay-level parse OK if alone
+    expect(LLMStayBatchSchema.safeParse(coerced).success).toBe(false); // batch min 2 - but stay-level parse OK if alone
   });
 
   it('clamps a below-floor price up to the minimum', () => {

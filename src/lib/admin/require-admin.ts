@@ -3,7 +3,7 @@ import { getServerAuth, type AuthState } from '@lib/auth';
 import { getServerFeatures } from '@lib/env';
 
 /**
- * Slice C5 — single admin auth gate.
+ * Slice C5 - single admin auth gate.
  *
  * Three modes:
  *   - Auth on (Clerk configured) AND `STAYSCOUT_ADMIN_PUBLIC` unset →

@@ -11,7 +11,7 @@ import type { TripIntent, VibeTag } from '@core/trip-intent';
  *      Gaussian fit, capacity headroom, tier match.
  *
  * Slice E1 broadened the bonus surface so a refine like "wellness,
- * foodie, romantic" actually changes ranking — every vibe tag the
+ * foodie, romantic" actually changes ranking - every vibe tag the
  * user requested contributes a small bonus when the stay carries it,
  * in addition to the strong tag-overlap multiplier and the bespoke
  * walkability/familyFit/remoteness/quiet signals.
@@ -51,7 +51,7 @@ export function rankStays(stays: readonly Stay[], intent: TripIntent): Stay[] {
   // Stage 1: hard filters
   const filtered = stays.filter((s) => passesFilters(s, intent));
   // If filtering empties the result, fall back to scoring the original
-  // set rather than returning nothing — better to give the user a
+  // set rather than returning nothing - better to give the user a
   // ranked-but-imperfect list than an empty board. The provider
   // builder will surface the gap via badges.
   const pool = filtered.length > 0 ? filtered : stays;
@@ -69,7 +69,7 @@ export function rankStays(stays: readonly Stay[], intent: TripIntent): Stay[] {
 /**
  * Hard-filter pass. Rejects stays the user explicitly can't accept:
  *   - Sleeping capacity below the party size.
- *   - Must-have amenity absent (any-of semantics — at least ONE
+ *   - Must-have amenity absent (any-of semantics - at least ONE
  *     listed must overlap with the stay's amenities).
  *   - Avoided amenity present (any match drops the stay).
  *   - Per-night budget exceeded by > 50% (soft cap is in the budget-fit
@@ -105,11 +105,11 @@ function scoreStay(stay: Stay, intent: TripIntent): number {
   const intentTags = new Set<VibeTag>(intent.vibe.tags);
   const stayTagSet = new Set(stay.signals.tags);
 
-  // Tag overlap — strongest signal.
+  // Tag overlap - strongest signal.
   const overlap = stay.signals.tags.filter((t) => intentTags.has(t)).length;
   let score = overlap * W_TAG_OVERLAP;
 
-  // Generic per-vibe nudge for ANY tag the user requested + stay carries —
+  // Generic per-vibe nudge for ANY tag the user requested + stay carries -
   // ensures wellness/foodie/romantic/cultural/nature/iconic-landmarks/
   // adventure/etc. all move the order, not just the four hand-coded ones.
   let extraVibeBonus = 0;
@@ -128,7 +128,7 @@ function scoreStay(stay: Stay, intent: TripIntent): number {
     score += (higherBetter ? norm : 1 - norm) * weight;
   }
 
-  // Budget Gaussian — closer to the requested per-night budget is better.
+  // Budget Gaussian - closer to the requested per-night budget is better.
   const budgetPerNight = derivePerNightBudget(intent);
   if (budgetPerNight !== null) {
     const diff = Math.abs(stay.pricing.pricePerNight.amount - budgetPerNight);
@@ -137,7 +137,7 @@ function scoreStay(stay: Stay, intent: TripIntent): number {
     score += fit * W_BUDGET_FIT;
   }
 
-  // Capacity headroom — passing capacity already cleared the filter,
+  // Capacity headroom - passing capacity already cleared the filter,
   // but the bonus keeps it consistent across pre- and post-filter use.
   const totalTravelers =
     intent.travelers.adults + intent.travelers.children.count + intent.travelers.infants;
@@ -145,7 +145,7 @@ function scoreStay(stay: Stay, intent: TripIntent): number {
     score += W_CAPACITY_FIT;
   }
 
-  // Tier (luxury / budget / mid-range) match — explicit shoulder.
+  // Tier (luxury / budget / mid-range) match - explicit shoulder.
   const wantedTier = TIER_TAGS.find((t) => intentTags.has(t));
   if (wantedTier && stay.signals.tags.includes(wantedTier)) {
     score += W_TIER_MATCH;

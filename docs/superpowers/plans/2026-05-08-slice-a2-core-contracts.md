@@ -1,10 +1,10 @@
-# StayScout Slice A2 — Core Contracts Implementation Plan
+# StayScout Slice A2 - Core Contracts Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Land every contract from spec §3 in `src/core/` — `TripIntent`, `Stay`, `TripProposal`, `Agent<I,O>`, `Provider`, `OrchestratorEvent`, `ModelClient`, `ConciergeRequest`, plus the supporting types (deltas, diffs, mood snapshots, trust annotations, data quality, escalation, etc.). Each domain type that crosses a wire (LLM output, JSONL stream, route-handler request) gets a paired Zod schema for runtime validation. After A2, the type system is the contract everything else conforms to — agents, providers, orchestrator, UI all program against `@core/*`.
+**Goal:** Land every contract from spec §3 in `src/core/` - `TripIntent`, `Stay`, `TripProposal`, `Agent<I,O>`, `Provider`, `OrchestratorEvent`, `ModelClient`, `ConciergeRequest`, plus the supporting types (deltas, diffs, mood snapshots, trust annotations, data quality, escalation, etc.). Each domain type that crosses a wire (LLM output, JSONL stream, route-handler request) gets a paired Zod schema for runtime validation. After A2, the type system is the contract everything else conforms to - agents, providers, orchestrator, UI all program against `@core/*`.
 
-**Architecture:** Flat layout under `src/core/`, one file per coherent type cluster. Zod schemas live alongside their types and use `z.infer<>` to keep TS types as the source of truth where shapes are simple, or vice-versa where the schema is more authoritative. No React, no Next, no upward imports — boundary lint already enforces this.
+**Architecture:** Flat layout under `src/core/`, one file per coherent type cluster. Zod schemas live alongside their types and use `z.infer<>` to keep TS types as the source of truth where shapes are simple, or vice-versa where the schema is more authoritative. No React, no Next, no upward imports - boundary lint already enforces this.
 
 **Tests:** Vitest + a handful of golden cases. Schema tests verify valid examples parse and invalid ones throw. The TripIntent golden cases double as the §8.15 evaluation baseline.
 
@@ -86,8 +86,8 @@ Total: 17 source files in `core/` + 4 test files.
   import { describe, expect, it } from 'vitest';
   describe('sanity', () => { it('boots', () => { expect(1 + 1).toBe(2); }); });
   ```
-- [ ] Run: `pnpm test` — expect 1 test passing.
-- [ ] Add `tests/**` to ESLint? Already covered by the boundary config — leave as-is.
+- [ ] Run: `pnpm test` - expect 1 test passing.
+- [ ] Add `tests/**` to ESLint? Already covered by the boundary config - leave as-is.
 - [ ] Commit: `chore: add Zod, Vitest, and a sanity test`
 
 ## Task 2: Branded ID types (`src/core/ids.ts`)
@@ -110,7 +110,7 @@ Branded primitives so we can't accidentally mix `StayId` with `ProviderId` at co
   export type StepId = Brand<string, 'StepId'>;
   export type ProposalId = Brand<string, 'ProposalId'>;
 
-  // Constructor helpers — the only way to mint a branded value at runtime.
+  // Constructor helpers - the only way to mint a branded value at runtime.
   // (We don't validate format here; producers like the orchestrator are
   //  expected to pass shaped strings.)
   export const stayId = (s: string): StayId => s as StayId;
@@ -121,8 +121,8 @@ Branded primitives so we can't accidentally mix `StayId` with `ProviderId` at co
   export const stepId = (s: string): StepId => s as StepId;
   export const proposalId = (s: string): ProposalId => s as ProposalId;
   ```
-- [ ] Lint should pass — no React, no Next.
-- [ ] No tests yet — these are pure type aliases.
+- [ ] Lint should pass - no React, no Next.
+- [ ] No tests yet - these are pure type aliases.
 
 ## Task 3: `TripIntent` + Zod schema + golden tests (`src/core/trip-intent.ts`)
 
@@ -132,7 +132,7 @@ This is the most cross-cutting type. Used by every agent.
   ```ts
   import { z } from 'zod';
 
-  // ============== VibeTag — closed taxonomy ==============
+  // ============== VibeTag - closed taxonomy ==============
   // A closed string union so the Intent Agent can't drift into
   // freeform tag soup. Spec §3.1; future enrichment (pace,
   // luxury tolerance, etc.) lands as additional optional fields,
@@ -366,7 +366,7 @@ This is the most cross-cutting type. Used by every agent.
     providerId: ProviderId;
   };
   ```
-- [ ] No tests yet for Stay specifically — Zod will be exercised end-to-end when providers ship in A3. Plan adds them in A3.
+- [ ] No tests yet for Stay specifically - Zod will be exercised end-to-end when providers ship in A3. Plan adds them in A3.
 - [ ] Commit: `feat(core): add Stay shape + Zod schema (provider-canonical)`
 
 ## Task 5: `TripProposal` + `ReasoningChip` (`src/core/trip-proposal.ts`)
@@ -463,7 +463,7 @@ This is the most cross-cutting type. Used by every agent.
   import { ReasoningChipSchema } from './trip-proposal';
   import { TripIntentSchema } from './trip-intent';
 
-  // IntentDelta — we keep `changed` permissive (unknowns) since the values
+  // IntentDelta - we keep `changed` permissive (unknowns) since the values
   // can be arbitrary slice types on either side; the structural fact is
   // "this key changed from X to Y".
   export const IntentDeltaSchema = z.object({
@@ -529,7 +529,7 @@ This is the most cross-cutting type. Used by every agent.
   });
   export type MemoryHint = z.infer<typeof MemoryHintSchema>;
 
-  // EscalationPath — interface-only stub for Slice C+ human concierge handoff
+  // EscalationPath - interface-only stub for Slice C+ human concierge handoff
   export const EscalationPathSchema = z.object({
     kind: z.literal('concierge-handoff'),
     reason: z.string(),
@@ -624,7 +624,7 @@ This is the most cross-cutting type. Used by every agent.
 
 ## Task 11: `Agent<I, O>` interface family (`src/core/agent.ts`)
 
-Pure TS interfaces — no Zod (these aren't wire shapes).
+Pure TS interfaces - no Zod (these aren't wire shapes).
 
 - [ ] Create `src/core/agent.ts`:
   ```ts
@@ -664,7 +664,7 @@ Pure TS interfaces — no Zod (these aren't wire shapes).
     ): void;
   }
 
-  // Shape of a stable agent step descriptor — used by the orchestrator
+  // Shape of a stable agent step descriptor - used by the orchestrator
   // when emitting agent.step.* events.
   export interface AgentStep {
     stepId: StepId;
@@ -685,7 +685,7 @@ Pure TS interfaces — no Zod (these aren't wire shapes).
   import type { TemporalContext } from './temporal';
   import type { FreshnessInfo } from './trust';
 
-  // Capabilities are runtime data, so they get a Zod schema too — useful for
+  // Capabilities are runtime data, so they get a Zod schema too - useful for
   // a future ProviderRegistry that validates third-party providers.
   export const ProviderCapabilitiesSchema = z.object({
     realtime: z.boolean(),
@@ -717,7 +717,7 @@ Pure TS interfaces — no Zod (these aren't wire shapes).
     preferences?: TripPreferences;
     filters?: ProviderFilters;
     limit?: number;
-    compareSet?: string[];                  // StayId list — ranking-aware comparison seam
+    compareSet?: string[];                  // StayId list - ranking-aware comparison seam
     temporalContext?: TemporalContext;      // populated by Slice B
   }
 
@@ -978,7 +978,7 @@ The wire format. Every event the UI sees flows through this schema.
     });
   });
   ```
-- [ ] Run `pnpm test` — expect 5 new tests passing.
+- [ ] Run `pnpm test` - expect 5 new tests passing.
 - [ ] Commit: `feat(core): add OrchestratorEvent discriminated union + schema + tests`
 
 ## Task 14: `ModelClient` (`src/core/model-client.ts`)
@@ -1119,12 +1119,12 @@ The wire format. Every event the UI sees flows through this schema.
     });
   });
   ```
-- [ ] Run `pnpm test` — expect 4 new tests passing.
+- [ ] Run `pnpm test` - expect 4 new tests passing.
 - [ ] Commit: `feat(core): add ConciergeRequest wire-format schema + tests`
 
 ## Task 16: `PartialnessReport` shared type (`src/core/partial.ts`)
 
-Some types here are already inlined into `OrchestratorEvent` — extract the reusable shape so other layers can import it directly.
+Some types here are already inlined into `OrchestratorEvent` - extract the reusable shape so other layers can import it directly.
 
 - [ ] Create `src/core/partial.ts`:
   ```ts
@@ -1162,12 +1162,12 @@ Some types here are already inlined into `OrchestratorEvent` — extract the reu
   export * from './concierge-request';
   export * from './partial';
   ```
-- [ ] Run `pnpm typecheck` — verify no name collisions.
+- [ ] Run `pnpm typecheck` - verify no name collisions.
 - [ ] Commit: `feat(core): wire barrel exports`
 
 ## Task 18: Golden Intent test cases (`tests/eval/intent-extraction/golden.json`)
 
-The §8.15 evaluation baseline — used by Slice A4's IntentAgent and Slice B's RankingEvaluator.
+The §8.15 evaluation baseline - used by Slice A4's IntentAgent and Slice B's RankingEvaluator.
 
 - [ ] Create `tests/eval/intent-extraction/golden.json`:
   ```json

@@ -67,7 +67,7 @@ describe('CircuitBreaker', () => {
     clock.advance(1001);
     await expect(cb.run(async () => Promise.reject(new Error('boom2')))).rejects.toThrow('boom2');
     expect(cb.getState()).toBe('open');
-    // Cooldown timer is renewed — still open after 999ms more.
+    // Cooldown timer is renewed - still open after 999ms more.
     clock.advance(999);
     expect(cb.getState()).toBe('open');
     clock.advance(2);

@@ -8,7 +8,7 @@ import {
 import { resolveDestinationPhoto } from '@lib/imagery/destination-photo';
 
 /**
- * Slice F1 — build a SearchOpportunity from intent.
+ * Slice F1 - build a SearchOpportunity from intent.
  *
  * Emitted when the orchestrator decides the destination isn't backed
  * by real or curated inventory. Instead of synthesizing fake
@@ -17,9 +17,9 @@ import { resolveDestinationPhoto } from '@lib/imagery/destination-photo';
  * site with our affcid attached.
  *
  * Three providers in display order:
- *   1. Expedia        — broadest hotel inventory; affcid carries
- *   2. Vrbo           — vacation rentals; same Expedia Group affiliate
- *   3. Hotels.com     — Expedia Group sibling; same affcid often works
+ *   1. Expedia        - broadest hotel inventory; affcid carries
+ *   2. Vrbo           - vacation rentals; same Expedia Group affiliate
+ *   3. Hotels.com     - Expedia Group sibling; same affcid often works
  *
  * Per Slice F1 plan: Hotels.com reuses the Expedia affcid for now.
  * Adding a distinct Hotels.com affiliate program is a one-line env
@@ -131,7 +131,7 @@ function vrboSearchOpportunity(args: {
   children: number;
   config: ExpediaAffiliateConfig;
 }): SearchOpportunityProvider {
-  // Vrbo affiliate-search URL — uses the same Expedia Group affcid
+  // Vrbo affiliate-search URL - uses the same Expedia Group affcid
   // since they're one program. The path differs (Vrbo's search uses
   // /search?q=… instead of Hotel-Search?destination=…).
   const params = new URLSearchParams();
@@ -152,7 +152,7 @@ function vrboSearchOpportunity(args: {
     providerId: 'vrbo',
     displayName: 'Vrbo',
     url: `https://www.vrbo.com/search?${params.toString()}`,
-    hint: 'Vacation rentals — cottages, villas, cabins, private homes.',
+    hint: 'Vacation rentals - cottages, villas, cabins, private homes.',
   };
 }
 
@@ -182,7 +182,7 @@ function hotelsComSearchOpportunity(args: {
     providerId: 'hotels-com',
     displayName: 'Hotels.com',
     url: `https://www.hotels.com/Hotel-Search?${params.toString()}`,
-    hint: 'Hotels.com — Expedia Group sibling; loyalty rewards.',
+    hint: 'Hotels.com - Expedia Group sibling; loyalty rewards.',
   };
 }
 

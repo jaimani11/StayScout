@@ -39,7 +39,7 @@ describe('generateGoUrl', () => {
   it('encodes the bookingLink URL safely (decodes back to the original)', () => {
     const url = generateGoUrl({ stay: fakeStay() });
     const params = new URLSearchParams(url.split('?')[1]);
-    // URLSearchParams decodes — this should round-trip.
+    // URLSearchParams decodes - this should round-trip.
     expect(params.get('u')).toContain('?provider=mock-italy');
     expect(params.get('u')).toContain('utm=foo');
   });

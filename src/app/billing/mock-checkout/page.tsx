@@ -17,14 +17,14 @@ export const dynamic = 'force-dynamic';
  * STRIPE_SECRET_KEY/_WEBHOOK_SECRET/_PRICE_ID set).
  *
  * MockBillingProvider already grants premium to every authenticated
- * user, so this page doesn't need to mutate state — it just simulates
+ * user, so this page doesn't need to mutate state - it just simulates
  * the redirect cycle so the UI flow is identical to real Stripe:
  *   /trips/.../itinerary → Upgrade → /billing/mock-checkout
  *     → click "Pretend to pay" → /billing/return → trip itinerary.
  *
  * If the project isn't actually in mock mode (someone hit this URL
  * directly while Stripe is configured), redirect them to the workspace
- * — the Stripe flow goes through `/api/billing/checkout` instead.
+ * - the Stripe flow goes through `/api/billing/checkout` instead.
  */
 interface PageProps {
   searchParams: Promise<{ return?: string; cancel?: string }>;
@@ -113,7 +113,7 @@ export default async function MockCheckoutPage({ searchParams }: PageProps) {
         >
           You don&apos;t have <code>STRIPE_SECRET_KEY</code>, <code>STRIPE_WEBHOOK_SECRET</code>,
           and <code>STRIPE_PRICE_ID</code> set, so the demo is running on the mock billing provider.
-          Every authenticated user is already premium — clicking through here just bounces you back
+          Every authenticated user is already premium - clicking through here just bounces you back
           to your trip.
         </p>
       </header>
@@ -134,7 +134,7 @@ export default async function MockCheckoutPage({ searchParams }: PageProps) {
             lineHeight: 1.55,
           }}
         >
-          Real-mode setup is a few minutes — see <code>docs/billing.md</code> for the Stripe CLI
+          Real-mode setup is a few minutes - see <code>docs/billing.md</code> for the Stripe CLI
           walkthrough. Test cards work end-to-end with <code>4242 4242 4242 4242</code>.
         </p>
         <div className="flex flex-wrap gap-3">

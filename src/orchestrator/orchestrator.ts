@@ -35,18 +35,18 @@ export interface OrchestratorOptions {
   moodSnapshotAgent?: Agent<MoodSnapshotAgentInput, MoodSnapshot>;
   destinationFlavorAgent?: Agent<DestinationFlavorAgentInput, DestinationFlavor | null>;
   providerRouter?: (intent: TripIntent) => Provider;
-  /** Slice F1 — decides between real inventory path and SearchOpportunity
+  /** Slice F1 - decides between real inventory path and SearchOpportunity
    *  path. Defaults to `routeForIntent` over the global provider registry.
    *  Override for tests that want to pin the route. */
   routeDecider?: (intent: TripIntent) => RouteDecision;
   /**
    * Persistence boundary. Defaults to a per-Orchestrator
-   * InMemorySessionStore so unit tests don't need to wire up a store —
+   * InMemorySessionStore so unit tests don't need to wire up a store -
    * production passes the singleton from `@lib/session/factory`.
    */
   sessionStore?: SessionStore;
   /**
-   * Slice C1 — optional memory subsystem. When provided, the
+   * Slice C1 - optional memory subsystem. When provided, the
    * orchestrator records memories on completed turns + retrieves them
    * before intent extraction. Default: none (no memory). Tests don't
    * need to wire this up.
@@ -57,7 +57,7 @@ export interface OrchestratorOptions {
 
 /**
  * Walks the agent graph for a turn and emits a typed event stream. Slice A
- * graph is sequential — Intent → Provider.search → buildProposal. Slice B
+ * graph is sequential - Intent → Provider.search → buildProposal. Slice B
  * replaces this class with a LangGraph.js graph; the emitted event shape
  * stays identical so consumers don't change.
  */
@@ -77,7 +77,7 @@ export class Orchestrator {
   private readonly memoryRetriever: MemoryRetriever | null;
   private readonly seenSessions = new Set<string>();
   private readonly seenTurnIds = new Set<string>();
-  // One MemoryHinter per session — keyed by sessionId, lazy-init.
+  // One MemoryHinter per session - keyed by sessionId, lazy-init.
   private readonly hinterBySession = new Map<string, MemoryHinter>();
 
   constructor(opts: OrchestratorOptions) {
@@ -113,7 +113,7 @@ export class Orchestrator {
   ): AsyncIterable<OrchestratorEvent> {
     const turnStartedAt = performance.now();
 
-    // Idempotency guard (spec §6.6) — same turnId twice = early exit.
+    // Idempotency guard (spec §6.6) - same turnId twice = early exit.
     if (this.seenTurnIds.has(req.turnId)) {
       yield {
         kind: 'turn.failed',
@@ -148,7 +148,7 @@ export class Orchestrator {
 
     const agentTrace: AgentTraceSummary = { agents: [], totalDurationMs: 0 };
 
-    // ============== Step 1 — Intent ==============
+    // ============== Step 1 - Intent ==============
     const intentStepId = stepId(`${req.turnId}-intent`);
     yield {
       kind: 'agent.step.started',
@@ -161,7 +161,7 @@ export class Orchestrator {
     // Slice C1: retrieve relevant prior memories before intent
     // extraction. The owner-key mirrors trip ownership (sessionId for
     // anonymous; userId for authenticated, surfaced via auth in route).
-    // Failures here NEVER block the intent step — fall through with
+    // Failures here NEVER block the intent step - fall through with
     // null + log.
     const memoryOwner = { ownerKind: 'session' as const, ownerId: req.sessionId };
     let retrievedMemories: RetrievedMemories | null = null;
@@ -216,7 +216,7 @@ export class Orchestrator {
       yield { kind: 'intent.extracted', turnId: req.turnId, intent };
     }
 
-    // ============== Step 1.5 — Route decision (F1) ==============
+    // ============== Step 1.5 - Route decision (F1) ==============
     // Decide between real-inventory path (existing) and SearchOpportunity
     // path (new). Opportunity short-circuits the proposal flow: we emit
     // `search.opportunity.ready` + complete the turn. No fake hotels.
@@ -226,7 +226,7 @@ export class Orchestrator {
       return;
     }
 
-    // ============== Step 2 — Provider search ==============
+    // ============== Step 2 - Provider search ==============
     const provider = this.providerRouter(intent);
     const searchStepId = stepId(`${req.turnId}-search`);
     yield {
@@ -270,7 +270,7 @@ export class Orchestrator {
       yield {
         kind: 'concierge.message',
         turnId: req.turnId,
-        message: "*Couldn't find anything that fits — try broadening the dates?*",
+        message: "*Couldn't find anything that fits - try broadening the dates?*",
         tone: 'apologize',
       };
       yield {
@@ -281,8 +281,8 @@ export class Orchestrator {
       return;
     }
 
-    // ============== Step 3 — Compose proposal ==============
-    // Slice A has no separate ranking agent — the provider's order is the
+    // ============== Step 3 - Compose proposal ==============
+    // Slice A has no separate ranking agent - the provider's order is the
     // ranking. Slice B inserts RankingAgent here behind the same step id.
     agentTrace.totalDurationMs = Math.round(performance.now() - turnStartedAt);
     const proposal = buildProposal({ intent, stays: searchResult.stays, agentTrace });
@@ -296,7 +296,7 @@ export class Orchestrator {
       };
       // Slice A: synthesize adaptation notes from the IntentDelta we
       // already computed. Slice B's RankingAgent replaces this with real
-      // reasoning — same wire format, banner UI unchanged.
+      // reasoning - same wire format, banner UI unchanged.
       const synthDelta = computeIntentDelta(priorTurn.intent, intent);
       const notes = synthesizeAdaptationNotes(synthDelta);
       if (notes.length > 0) {
@@ -331,8 +331,8 @@ export class Orchestrator {
       ...(req.type === 'refine' ? { tone: 'narrate' as const } : {}),
     };
 
-    // ============== Step 4 — Mood snapshot (post-proposal, non-blocking) ==============
-    // Failures here NEVER block the turn — proposal already shipped.
+    // ============== Step 4 - Mood snapshot (post-proposal, non-blocking) ==============
+    // Failures here NEVER block the turn - proposal already shipped.
     const dest = intent.destinations[0];
     if (dest) {
       yield* this.runMoodSnapshotEvents(req, dest, ctx.signal);
@@ -341,7 +341,7 @@ export class Orchestrator {
     // ============== Memory hint ==============
     // Two sources of memory hints:
     //   1. Slice C1 retrieval: cross-session semantic recall via the
-    //      MemoryRetriever (when wired). Takes precedence — surfaces
+    //      MemoryRetriever (when wired). Takes precedence - surfaces
     //      a richer hint based on prior memory, even on the first
     //      turn of a new session.
     //   2. Slice A9 heuristic: the in-session MemoryHinter that
@@ -353,7 +353,7 @@ export class Orchestrator {
       yield {
         kind: 'concierge.memory.hint',
         turnId: req.turnId,
-        message: `Remembered from earlier — ${top.content}`,
+        message: `Remembered from earlier - ${top.content}`,
         signalKey: 'memory-retrieval',
         confidence: clampUnit(top.score),
       };
@@ -379,7 +379,7 @@ export class Orchestrator {
       durationMs: Math.round(performance.now() - turnStartedAt),
     };
 
-    // Slice C1 — record memories AFTER turn.completed so we don't
+    // Slice C1 - record memories AFTER turn.completed so we don't
     // block the user-visible event stream. Failures inside the
     // recorder are caught + logged there.
     if (this.memoryRecorder) {
@@ -404,20 +404,20 @@ export class Orchestrator {
   }
 
   /**
-   * Slice F1 — opportunity branch.
+   * Slice F1 - opportunity branch.
    *
    * Runs when the route decider says we don't have inventory for this
    * destination. Steps:
-   *   1. DestinationFlavorAgent (best-effort, optional) — produces a
+   *   1. DestinationFlavorAgent (best-effort, optional) - produces a
    *      one-line "feel of the place" for the hero band.
-   *   2. buildSearchOpportunity — three provider search URLs prefilled
+   *   2. buildSearchOpportunity - three provider search URLs prefilled
    *      with intent (dates, party, vibe).
    *   3. Emit `search.opportunity.ready`.
-   *   4. Persist the turn (intent only — no proposal; F1.x will add
+   *   4. Persist the turn (intent only - no proposal; F1.x will add
    *      opportunity persistence for refine analytics).
    *   5. Complete the turn.
    *
-   * Mood + memory hint are deliberately skipped here — they're tied to
+   * Mood + memory hint are deliberately skipped here - they're tied to
    * the proposal flow. The opportunity board is its own complete UX.
    */
   private async *runOpportunityBranch(
@@ -436,7 +436,7 @@ export class Orchestrator {
       yield {
         kind: 'concierge.message',
         turnId: req.turnId,
-        message: "*Tell me where you'd like to go — a city, region, or country.*",
+        message: "*Tell me where you'd like to go - a city, region, or country.*",
         tone: 'apologize',
       };
       yield {
@@ -447,7 +447,7 @@ export class Orchestrator {
       return;
     }
 
-    // ============== Step F1.A — Destination flavor (best-effort) ==============
+    // ============== Step F1.A - Destination flavor (best-effort) ==============
     const flavorStepId = stepId(`${req.turnId}-flavor`);
     yield {
       kind: 'agent.step.started',
@@ -473,7 +473,7 @@ export class Orchestrator {
         agentCtx,
       );
     } catch (err) {
-      // Flavor is decorative — never fail the turn on its account.
+      // Flavor is decorative - never fail the turn on its account.
       console.warn('[orchestrator] flavor agent threw', {
         error: err instanceof Error ? err.message : String(err),
       });
@@ -487,7 +487,7 @@ export class Orchestrator {
       durationMs: flavorDurationMs,
     };
 
-    // ============== Step F1.B — Build opportunity ==============
+    // ============== Step F1.B - Build opportunity ==============
     const opportunity = buildSearchOpportunity({
       intent,
       ...(flavor?.text ? { flavor: flavor.text } : {}),
@@ -499,7 +499,7 @@ export class Orchestrator {
       opportunity,
     };
 
-    // ============== Step F1.C — Complete ==============
+    // ============== Step F1.C - Complete ==============
     agentTrace.totalDurationMs = Math.round(performance.now() - turnStartedAt);
     yield {
       kind: 'turn.completed',
@@ -508,7 +508,7 @@ export class Orchestrator {
     };
 
     // Persist the turn so /refine can find priorIntent. Proposal field
-    // stays unset — F1.x adds opportunity-aware persistence (per plan).
+    // stays unset - F1.x adds opportunity-aware persistence (per plan).
     await this.sessionStore.putTurn({
       turnId: req.turnId,
       sessionId: req.sessionId,
@@ -545,7 +545,7 @@ export class Orchestrator {
         stepId: moodStepId,
         durationMs,
       };
-      // Only emit when the agent actually produced renderable text —
+      // Only emit when the agent actually produced renderable text -
       // a snapshot with empty `text` reaches the UI as blank chrome.
       // Curated paths always produce text; LLM paths can occasionally
       // return empty on flaky model calls. Defense-in-depth.

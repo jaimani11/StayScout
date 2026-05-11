@@ -5,7 +5,7 @@ import { CURATED_MOODS } from '@lib/curation/moods';
 import { ITALIAN_DESTINATIONS } from '@lib/curation/destinations';
 import { lintField } from '@lib/quality/taste-lint';
 
-describe('seed quality — curated stays', () => {
+describe('seed quality - curated stays', () => {
   it('has the expected total count', () => {
     expect(ALL_STAYS.length).toBe(30);
   });
@@ -78,7 +78,7 @@ describe('voice lint smoke', () => {
     const r = lintField(
       'test',
       'desc',
-      'A magical place — your unforgettable journey starts here.',
+      'A magical place - your unforgettable journey starts here.',
     );
     expect(r.length).toBeGreaterThanOrEqual(2);
   });

@@ -12,7 +12,7 @@ import { useReducedMotion } from '@/features/shared/motion/reduced-motion';
  *   - half: 50vh
  *   - full: 95vh
  *
- * The sheet is always visible (no hide state — chat is always at hand).
+ * The sheet is always visible (no hide state - chat is always at hand).
  * Drag-to-snap with rubber-banding past the bounds. A backdrop dims
  * the canvas only at `full`.
  *
@@ -28,7 +28,7 @@ const FULL_VH = 0.95;
 type Snap = 'peek' | 'half' | 'full';
 
 interface MobileBottomSheetProps {
-  /** Renders inside the sheet — typically the ChatSidebar. */
+  /** Renders inside the sheet - typically the ChatSidebar. */
   children: ReactNode;
   /** Initial snap on first render. Default 'peek'. */
   initialSnap?: Snap;
@@ -105,7 +105,7 @@ export function MobileBottomSheet({ children, initialSnap = 'peek' }: MobileBott
   }
 
   if (viewportH === 0) {
-    // First paint — render at peek statically; effect will animate.
+    // First paint - render at peek statically; effect will animate.
     return null;
   }
 
@@ -136,7 +136,7 @@ export function MobileBottomSheet({ children, initialSnap = 'peek' }: MobileBott
         }}
         className="fixed inset-x-0 bottom-0 z-40 flex flex-col rounded-t-[20px] shadow-[0_-12px_40px_rgba(0,0,0,0.45)] md:hidden"
       >
-        {/* Drag handle — also the tap target to cycle snaps */}
+        {/* Drag handle - also the tap target to cycle snaps */}
         <button
           type="button"
           aria-label={`Sheet: ${snap}. Tap to cycle.`}

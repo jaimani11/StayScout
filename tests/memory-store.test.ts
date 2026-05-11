@@ -37,7 +37,7 @@ describe('InMemoryMemoryStore', () => {
     expect(out[0]?.memory.content).toBe('we always travel in September');
   });
 
-  it('isolates memory by owner — different owners do not see each other', async () => {
+  it('isolates memory by owner - different owners do not see each other', async () => {
     const store = makeStore();
     await store.record({
       ownerKind: 'session',

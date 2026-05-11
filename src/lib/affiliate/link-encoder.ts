@@ -12,9 +12,9 @@ import { isAllowedAffiliateHost } from './allowlist';
  *
  *   - No new persistence (the click record stays in the existing B4
  *     table; the *link itself* doesn't need a row).
- *   - Stateless across deploys — copy a `/r/[id]` URL between
+ *   - Stateless across deploys - copy a `/r/[id]` URL between
  *     environments and it still resolves.
- *   - Bounded length — the payload only carries url + a handful of
+ *   - Bounded length - the payload only carries url + a handful of
  *     short ids; typical encoded id is ~120 chars. We bound at 1024
  *     to keep the URL well under common 2048-char limits.
  *
@@ -93,7 +93,7 @@ export function decodeAffiliateLink(id: string): AffiliateLinkPayload | null {
   const providerId = typeof obj.p === 'string' ? obj.p : null;
   if (!url || !providerId) return null;
   if (url.length > MAX_URL_LEN) return null;
-  // Re-validate against the host allowlist — even though `encode`
+  // Re-validate against the host allowlist - even though `encode`
   // doesn't itself enforce, a tampered id from outside our app must
   // never resolve to a foreign URL.
   if (!isAllowedAffiliateHost(url)) return null;
@@ -108,7 +108,7 @@ export function decodeAffiliateLink(id: string): AffiliateLinkPayload | null {
 // ============== base64url helpers ==============
 
 function toBase64Url(s: string): string {
-  // Server (Node) path — `Buffer` always available in our route handlers.
+  // Server (Node) path - `Buffer` always available in our route handlers.
   // The `typeof` guard is for tree-shaking + edge runtime safety.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const B = (globalThis as any).Buffer as typeof Buffer | undefined;

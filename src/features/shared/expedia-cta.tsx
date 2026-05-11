@@ -15,22 +15,22 @@ import { encodeAffiliateLink } from '@lib/affiliate/link-encoder';
  *
  * Two variants:
  *
- *   - `compact` — small inline link for the trip-board cards. Renders
+ *   - `compact` - small inline link for the trip-board cards. Renders
  *     "View on Expedia →" without disclosure copy (the disclosure
  *     lives once on the detail panel where the primary CTA is).
  *
- *   - `primary` — full button + FTC-aligned disclosure footer
+ *   - `primary` - full button + FTC-aligned disclosure footer
  *     ("Powered by Expedia · Affiliate link · Prices may change").
  *     Used on the detail panel, where the user has decided this is
  *     the listing they care about.
  *
  * URL resolution:
  *   1. If the stay's existing `bookingLink.url` is on `expedia.com`,
- *      use it as-is — the Rapid mapper already attached the
+ *      use it as-is - the Rapid mapper already attached the
  *      affiliate `aid`/`affcid`. (Future: when Rapid is wired live,
  *      this is the property-level deeplink.)
  *   2. Otherwise build a destination-level Expedia search URL from
- *      the user's intent — so curated mock-italy stays and
+ *      the user's intent - so curated mock-italy stays and
  *      AI-synthesized stays both get a usable, monetized CTA.
  *
  * Mock-safe: when `EXPEDIA_AFFILIATE_CID` is unset, the URL still
@@ -38,13 +38,13 @@ import { encodeAffiliateLink } from '@lib/affiliate/link-encoder';
  * attached. The CTA continues to work (no broken state); commission
  * doesn't track. Honest, non-blocking.
  *
- * Server component (no `'use client'`) — pure URL math + an anchor.
+ * Server component (no `'use client'`) - pure URL math + an anchor.
  */
 
 interface ExpediaCtaProps {
   stay: Stay;
   intent: TripIntent;
-  /** When the stay was proposed — used for click attribution. */
+  /** When the stay was proposed - used for click attribution. */
   turnId?: string;
   variant: 'compact' | 'primary';
 }
@@ -136,7 +136,7 @@ export function ExpediaCta({ stay, intent, turnId, variant }: ExpediaCtaProps) {
  *   - Otherwise build a destination-level Expedia search URL from
  *     intent. Works for mock-italy, llm-synthesized, anything.
  *   - If neither path produces a valid Expedia URL, returns null and
- *     the CTA hides — better to omit a broken link than show one.
+ *     the CTA hides - better to omit a broken link than show one.
  */
 function resolveOutboundUrl(stay: Stay, intent: TripIntent): string | null {
   // (1) Existing booking link on expedia host?

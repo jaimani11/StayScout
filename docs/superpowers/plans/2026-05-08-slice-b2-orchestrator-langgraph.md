@@ -1,4 +1,4 @@
-# Slice B2 Implementation Plan — Orchestrator → LangGraph
+# Slice B2 Implementation Plan - Orchestrator → LangGraph
 
 > **For agentic workers:** This plan is executed inline, batched, only pausing for real blockers.
 
@@ -15,10 +15,10 @@
 These choices shape every task. Departures need explicit justification.
 
 **1. Two engines coexist during rollout.**
-A `STAYSCOUT_ORCHESTRATOR` env flag selects the engine. Default: `hand-rolled`. Opt-in: `langgraph`. Hand-rolled is removed in a later sub-slice once parity is proven against real traffic. Reason: 397 lines of working, tested code being rewritten — risk-management trumps "clean" replacement.
+A `STAYSCOUT_ORCHESTRATOR` env flag selects the engine. Default: `hand-rolled`. Opt-in: `langgraph`. Hand-rolled is removed in a later sub-slice once parity is proven against real traffic. Reason: 397 lines of working, tested code being rewritten - risk-management trumps "clean" replacement.
 
 **2. Public API is invariant.**
-`Orchestrator.run(req, ctx)` returning `AsyncIterable<OrchestratorEvent>` is the contract. The Next route handler, the singleton, all 16 orchestrator-related tests — none change. Reason: lockable contract = scoped change.
+`Orchestrator.run(req, ctx)` returning `AsyncIterable<OrchestratorEvent>` is the contract. The Next route handler, the singleton, all 16 orchestrator-related tests - none change. Reason: lockable contract = scoped change.
 
 **3. Minimal graph state.**
 Channels carry only data needed for branching + checkpointing (request, priorTurn, intent, searchResult, proposal, agentTrace). Events emit via a side-channel queue, not state. Reason: smaller state = smaller checkpoints = faster persist; events flow time-ordered, not batched at node end.
@@ -27,34 +27,34 @@ Channels carry only data needed for branching + checkpointing (request, priorTur
 `MemorySaver` (LangGraph built-in) when `DATABASE_URL` is unset. `PostgresSaver` from `@langchain/langgraph-checkpoint-postgres` otherwise. Same `BaseCheckpointSaver` interface, same node code. Reason: keyless dev experience preserved; adding `DATABASE_URL` flips persistence on, no other change.
 
 **5. Streaming via emitter, not stream-mode.**
-Each node closes over an `emit(event)` callback obtained from `RunnableConfig`. The runner's AsyncIterable yields from the emitter's queue as nodes call it. We do not use LangGraph's `streamMode='updates'` — its event shape doesn't map cleanly to our discriminated union, and node-end batching loses the within-node ordering we rely on (e.g., `step.completed` then `intent.extracted`). Reason: faithful event sequencing, decoupled from LangGraph's emission model.
+Each node closes over an `emit(event)` callback obtained from `RunnableConfig`. The runner's AsyncIterable yields from the emitter's queue as nodes call it. We do not use LangGraph's `streamMode='updates'` - its event shape doesn't map cleanly to our discriminated union, and node-end batching loses the within-node ordering we rely on (e.g., `step.completed` then `intent.extracted`). Reason: faithful event sequencing, decoupled from LangGraph's emission model.
 
 **6. Stateful concerns isolated per Orchestrator instance.**
-`seenSessions`, `seenTurnIds`, `hinterBySession` live on the `LangGraphOrchestrator` instance — not in graph state. Reason: these are runtime invariants that must survive across turns within the same process; they're not part of the graph's data flow.
+`seenSessions`, `seenTurnIds`, `hinterBySession` live on the `LangGraphOrchestrator` instance - not in graph state. Reason: these are runtime invariants that must survive across turns within the same process; they're not part of the graph's data flow.
 
 ---
 
 ## File Structure
 
 **Create:**
-- `src/orchestrator/langgraph/event-queue.ts` — typed AsyncIterable-backed queue for emitter pattern
-- `src/orchestrator/langgraph/state.ts` — graph state channel definitions (shared types)
-- `src/orchestrator/langgraph/nodes.ts` — node functions (bootstrap, intent, search, compose, refine, mood, memory, complete)
-- `src/orchestrator/langgraph/graph.ts` — `buildGraph()` — StateGraph definition + edges
-- `src/orchestrator/langgraph/checkpointer.ts` — factory: MemorySaver | PostgresSaver
-- `src/orchestrator/langgraph/orchestrator.ts` — `LangGraphOrchestrator` class with same `run()` contract
-- `src/orchestrator/langgraph/index.ts` — barrel
-- `src/orchestrator/engine.ts` — `getOrchestrator()` factory honoring the env flag
-- `tests/langgraph-orchestrator.test.ts` — same scenarios as `orchestrator.test.ts` against the LangGraph engine
-- `tests/orchestrator-parity.test.ts` — runs both engines, asserts event-stream equivalence
+- `src/orchestrator/langgraph/event-queue.ts` - typed AsyncIterable-backed queue for emitter pattern
+- `src/orchestrator/langgraph/state.ts` - graph state channel definitions (shared types)
+- `src/orchestrator/langgraph/nodes.ts` - node functions (bootstrap, intent, search, compose, refine, mood, memory, complete)
+- `src/orchestrator/langgraph/graph.ts` - `buildGraph()` - StateGraph definition + edges
+- `src/orchestrator/langgraph/checkpointer.ts` - factory: MemorySaver | PostgresSaver
+- `src/orchestrator/langgraph/orchestrator.ts` - `LangGraphOrchestrator` class with same `run()` contract
+- `src/orchestrator/langgraph/index.ts` - barrel
+- `src/orchestrator/engine.ts` - `getOrchestrator()` factory honoring the env flag
+- `tests/langgraph-orchestrator.test.ts` - same scenarios as `orchestrator.test.ts` against the LangGraph engine
+- `tests/orchestrator-parity.test.ts` - runs both engines, asserts event-stream equivalence
 
 **Modify:**
-- `src/orchestrator/singleton.ts` — delegate to `engine.ts` factory
-- `src/lib/env/get-server-features.ts` — surface `orchestratorEngine: 'hand-rolled' | 'langgraph'`
-- `package.json` — add deps
-- `.env.example` — document `STAYSCOUT_ORCHESTRATOR`
+- `src/orchestrator/singleton.ts` - delegate to `engine.ts` factory
+- `src/lib/env/get-server-features.ts` - surface `orchestratorEngine: 'hand-rolled' | 'langgraph'`
+- `package.json` - add deps
+- `.env.example` - document `STAYSCOUT_ORCHESTRATOR`
 
-**Untouched:** `orchestrator.ts` (legacy hand-rolled), `intent-delta.ts`, `proposal-builder.ts`, `proposal-diff.ts`, `synthesize-adaptation.ts` — these stay shared between engines.
+**Untouched:** `orchestrator.ts` (legacy hand-rolled), `intent-delta.ts`, `proposal-builder.ts`, `proposal-diff.ts`, `synthesize-adaptation.ts` - these stay shared between engines.
 
 ---
 
@@ -82,7 +82,7 @@ Each node closes over an `emit(event)` callback obtained from `RunnableConfig`. 
 - [ ] Implement `intent` node: agent.step.started, run IntentAgent, agent.step.completed, intent.extracted/refined.
 - [ ] Implement `search` node: agent.step.started, provider.search, provider.search.completed, agent.step.completed. Empty result → emits concierge.message + sets `terminated=true` (skips compose).
 - [ ] `graph.ts`: build a StateGraph with nodes wired bootstrap → intent → search. Conditional edge from search to either `compose_decide` or END based on `terminated`.
-- [ ] Verify: `pnpm typecheck` + `pnpm lint` clean. (No tests yet — graph isn't runnable end-to-end.)
+- [ ] Verify: `pnpm typecheck` + `pnpm lint` clean. (No tests yet - graph isn't runnable end-to-end.)
 
 ### Task 3: Compose/refine branch + concierge
 
@@ -118,7 +118,7 @@ Each node closes over an `emit(event)` callback obtained from `RunnableConfig`. 
 - Create: `src/orchestrator/engine.ts`
 - Modify: `src/orchestrator/singleton.ts`, `src/lib/env/get-server-features.ts`, `.env.example`
 
-- [ ] `checkpointer.ts`: `getCheckpointer()` — returns `MemorySaver` when `getServerFeatures().database` is false; `PostgresSaver` when true. Singleton.
+- [ ] `checkpointer.ts`: `getCheckpointer()` - returns `MemorySaver` when `getServerFeatures().database` is false; `PostgresSaver` when true. Singleton.
 - [ ] `engine.ts`: `getOrchestrator()` reads `STAYSCOUT_ORCHESTRATOR` env (default `hand-rolled`). Returns either `Orchestrator` (legacy) or `LangGraphOrchestrator`, both shaped as `{ run(...): AsyncIterable<OrchestratorEvent> }`.
 - [ ] Update `singleton.ts` to delegate.
 - [ ] Add `orchestratorEngine` field to `getServerFeatures()`.
@@ -133,7 +133,7 @@ Each node closes over an `emit(event)` callback obtained from `RunnableConfig`. 
 
 - [ ] `langgraph-orchestrator.test.ts`: mirrors the existing `orchestrator.test.ts` (compose, refine, no-stays, idempotency, abort) against `LangGraphOrchestrator`.
 - [ ] `orchestrator-parity.test.ts`: runs the same `ConciergeRequest` through both engines, normalizes timestamps + step ids, asserts the resulting event sequences are equivalent.
-- [ ] Verify: `pnpm test` — all tests pass (legacy tests + new langgraph tests + parity).
+- [ ] Verify: `pnpm test` - all tests pass (legacy tests + new langgraph tests + parity).
 
 ### Task 8: Pipeline + tag
 
@@ -145,11 +145,11 @@ Each node closes over an `emit(event)` callback obtained from `RunnableConfig`. 
 
 ## What stays unchanged
 
-- `Orchestrator` (legacy) class — still exists, still default until flag flips.
+- `Orchestrator` (legacy) class - still exists, still default until flag flips.
 - All 119 existing tests pass against legacy.
-- All call sites (`/api/concierge` route, singleton, frontend hooks) — unchanged.
-- `OrchestratorEvent` type — invariant.
-- `proposal-builder`, `proposal-diff`, `synthesize-adaptation`, `intent-delta` — shared utilities.
+- All call sites (`/api/concierge` route, singleton, frontend hooks) - unchanged.
+- `OrchestratorEvent` type - invariant.
+- `proposal-builder`, `proposal-diff`, `synthesize-adaptation`, `intent-delta` - shared utilities.
 
 ## Cutover criteria (future sub-slice)
 

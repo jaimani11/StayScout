@@ -1,4 +1,4 @@
-# StayScout Slice A5 — Orchestrator + Streaming Protocol Implementation Plan
+# StayScout Slice A5 - Orchestrator + Streaming Protocol Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 
@@ -8,7 +8,7 @@
 
 **Tests:** Unit tests with `MockModelClient` for the orchestrator (compose, refine, cancellation, failure), plus diff-utility tests. Live route-handler test deferred to A7 manual verification.
 
-**Tech additions:** none — Zod, Vitest, MockModelClient already in.
+**Tech additions:** none - Zod, Vitest, MockModelClient already in.
 
 **Spec reference:** [docs/superpowers/specs/2026-05-08-stayscout-slice-a-design.md](../specs/2026-05-08-stayscout-slice-a-design.md) §2.4, §6, §3.4
 
@@ -18,12 +18,12 @@
 
 ```
 src/orchestrator/
-├── index.ts                 [modify] barrel — exports Orchestrator + helpers
+├── index.ts                 [modify] barrel - exports Orchestrator + helpers
 ├── orchestrator.ts          [new] Orchestrator class with async-generator run()
 ├── intent-delta.ts          [new] computeIntentDelta(prior, next)
 ├── proposal-diff.ts         [new] computeProposalDiff(prior, next)
 ├── proposal-builder.ts      [new] buildProposal(intent, stays) + concierge summary
-└── singleton.ts             [new] getOrchestrator() — process-level singleton
+└── singleton.ts             [new] getOrchestrator() - process-level singleton
 
 src/lib/streaming/
 ├── jsonl-stream.ts          [new] toJsonlStream(iter): ReadableStream<Uint8Array>
@@ -53,7 +53,7 @@ Total: ~14 new files.
 
 ## Task 1: Streaming + observability + session utilities
 
-Three small libs in parallel — none depends on the others.
+Three small libs in parallel - none depends on the others.
 
 - [ ] Create `src/lib/streaming/jsonl-stream.ts`:
   ```ts
@@ -122,7 +122,7 @@ Three small libs in parallel — none depends on the others.
 - [ ] `src/lib/session/anonymous.ts`:
   ```ts
   /**
-   * Anonymous session cookie. Slice A keeps things minimal — a UUID v4
+   * Anonymous session cookie. Slice A keeps things minimal - a UUID v4
    * stored in an HttpOnly cookie. Slice B replaces with a signed cookie
    * once we have real user accounts and need tamper-detection.
    */
@@ -178,7 +178,7 @@ Three small libs in parallel — none depends on the others.
   ] as const;
 
   /**
-   * Structurally diff two TripIntents. Top-level fields only — sub-tree
+   * Structurally diff two TripIntents. Top-level fields only - sub-tree
    * deep-equal is good enough for the UI's "what changed" banner.
    */
   export function computeIntentDelta(prior: TripIntent, next: TripIntent): IntentDelta {
@@ -200,7 +200,7 @@ Three small libs in parallel — none depends on the others.
   import type { ProposalDiff } from '@core/intent-delta';
 
   /**
-   * Diff between two TripProposals — drives the canvas's diff transition
+   * Diff between two TripProposals - drives the canvas's diff transition
    * (cards present in both freeze; removed fade; added materialize; hero
    * cross-fades on swap). All identity tracking is by Stay.id.
    */
@@ -274,7 +274,7 @@ Three small libs in parallel — none depends on the others.
   /**
    * Stitch the ranked stays from the provider into a TripProposal. The
    * hero is the top-ranked stay; up to 3 alternatives follow. Reasoning
-   * highlights are derived from the user's intent (source: 'intent') —
+   * highlights are derived from the user's intent (source: 'intent') -
    * Slice B's RankingAgent will add 'agent'-source chips on top.
    */
   export function buildProposal(args: {
@@ -321,7 +321,7 @@ Three small libs in parallel — none depends on the others.
   ): string {
     const dest = intent.destinations[0]?.name ?? hero.location.region ?? hero.location.country;
     const tags = intent.vibe.tags.slice(0, 2).map(humanizeTag);
-    const tagPart = tags.length > 0 ? ` — ${tags.join(', ')}` : '';
+    const tagPart = tags.length > 0 ? ` - ${tags.join(', ')}` : '';
     return `${dest}${tagPart}. Hero pick plus ${altCount} alternative${altCount === 1 ? '' : 's'}.`;
   }
 
@@ -391,7 +391,7 @@ Three small libs in parallel — none depends on the others.
 
   /**
    * Walks the agent graph for a turn and emits a typed event stream. Slice
-   * A graph is sequential — Intent → Provider.search → buildProposal.
+   * A graph is sequential - Intent → Provider.search → buildProposal.
    * Slice B replaces this class with a LangGraph.js graph; the emitted
    * event shape stays identical so consumers don't change.
    */
@@ -417,7 +417,7 @@ Three small libs in parallel — none depends on the others.
     ): AsyncIterable<OrchestratorEvent> {
       const turnStartedAt = performance.now();
 
-      // Idempotency guard (spec §6.6) — same turnId twice = early exit.
+      // Idempotency guard (spec §6.6) - same turnId twice = early exit.
       if (this.seenTurnIds.has(req.turnId)) {
         yield {
           kind: 'turn.failed',
@@ -452,7 +452,7 @@ Three small libs in parallel — none depends on the others.
 
       const agentTrace: AgentTraceSummary = { agents: [], totalDurationMs: 0 };
 
-      // ============== Step 1 — Intent ==============
+      // ============== Step 1 - Intent ==============
       const intentStepId = stepId(`${req.turnId}-intent`);
       yield {
         kind: 'agent.step.started',
@@ -499,7 +499,7 @@ Three small libs in parallel — none depends on the others.
         yield { kind: 'intent.extracted', turnId: req.turnId, intent };
       }
 
-      // ============== Step 2 — Provider search ==============
+      // ============== Step 2 - Provider search ==============
       const provider = this.providerRouter(intent);
       const searchStepId = stepId(`${req.turnId}-search`);
       yield {
@@ -543,7 +543,7 @@ Three small libs in parallel — none depends on the others.
         yield {
           kind: 'concierge.message',
           turnId: req.turnId,
-          message: "*Couldn't find anything that fits — try broadening the dates?*",
+          message: "*Couldn't find anything that fits - try broadening the dates?*",
           tone: 'apologize',
         };
         yield {
@@ -554,8 +554,8 @@ Three small libs in parallel — none depends on the others.
         return;
       }
 
-      // ============== Step 3 — Compose proposal ==============
-      // Slice A has no separate ranking agent — the provider's order is the
+      // ============== Step 3 - Compose proposal ==============
+      // Slice A has no separate ranking agent - the provider's order is the
       // ranking. Slice B inserts RankingAgent here behind the same step id.
       agentTrace.totalDurationMs = Math.round(performance.now() - turnStartedAt);
       const proposal = buildProposal({
@@ -601,7 +601,7 @@ Three small libs in parallel — none depends on the others.
         ...(req.type === 'refine' ? { tone: 'narrate' as const } : {}),
       };
 
-      // (MoodSnapshotAgent runs here in Slice A6 — non-blocking, post-proposal.)
+      // (MoodSnapshotAgent runs here in Slice A6 - non-blocking, post-proposal.)
 
       yield {
         kind: 'turn.completed',
@@ -1034,7 +1034,7 @@ Three small libs in parallel — none depends on the others.
       const ready = composeEvents.find((e) => e.kind === 'proposal.ready');
       if (!ready || ready.kind !== 'proposal.ready') throw new Error('proposal.ready missing');
 
-      // Now refine — same prior intent (mock returns the same), so the diff
+      // Now refine - same prior intent (mock returns the same), so the diff
       // is empty, but the events should still flow.
       const refineReq = baseRequest({
         type: 'refine',

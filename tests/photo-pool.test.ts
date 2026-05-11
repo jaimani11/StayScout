@@ -16,7 +16,7 @@ describe('photo pool', () => {
   });
 
   it('different slugs in the same category produce diversification, not collapse', () => {
-    // Hashing collisions are probabilistic — the meaningful guarantee
+    // Hashing collisions are probabilistic - the meaningful guarantee
     // is "not all collapse to one photo." Tested with 8 well-spread
     // slugs against a 6-entry pool; expect at least 3 distinct ids.
     const slugs = [

@@ -20,7 +20,7 @@ describe('JsonlLineBuffer', () => {
   });
 
   it('returns the trailing line on flush even without a final newline', () => {
-    // This is the "stream cut off" case — server-side toJsonlStream
+    // This is the "stream cut off" case - server-side toJsonlStream
     // always appends '\n', but a flaky proxy or aborted middleware
     // could drop it. The buffer must not silently lose that last line.
     const b = new JsonlLineBuffer();
@@ -44,7 +44,7 @@ describe('JsonlLineBuffer', () => {
     const c = fullBytes.slice(splitAt);
 
     const b = new JsonlLineBuffer();
-    expect(b.push(a)).toEqual([]); // partial 'é' — no complete line yet
+    expect(b.push(a)).toEqual([]); // partial 'é' - no complete line yet
     expect(b.push(c)).toEqual([full.replace('\n', '')]);
   });
 

@@ -25,14 +25,14 @@ export class InMemoryWebhookEventStore implements WebhookEventStore {
     if (this.seen.has(eventId)) return 'duplicate';
     this.seen.set(eventId, this.order++);
     if (this.seen.size > this.cap) {
-      // Evict the oldest entry — bounded memory in long-running dev.
+      // Evict the oldest entry - bounded memory in long-running dev.
       const oldest = [...this.seen.entries()].sort(([, a], [, b]) => a - b)[0];
       if (oldest) this.seen.delete(oldest[0]);
     }
     return 'new';
   }
 
-  /** Test-only — wipe state. */
+  /** Test-only - wipe state. */
   _reset(): void {
     this.seen.clear();
     this.order = 0;

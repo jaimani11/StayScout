@@ -4,7 +4,7 @@ import { jsonResponse, resolveRouteContext } from '../../../_lib/route-context';
 export const runtime = 'nodejs';
 
 /**
- * POST /api/trips/[tripId]/share — owner-gated. Mints a share slug for
+ * POST /api/trips/[tripId]/share - owner-gated. Mints a share slug for
  * the trip if one doesn't exist; returns the existing slug otherwise.
  * Idempotent. 404 if the trip isn't owned by the caller.
  *
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest, { params }: RouteParams): Promise<R
     if (!slug) {
       return jsonResponse({ error: 'not found' }, { status: 404 }, ctx.setCookie);
     }
-    // Build absolute URL — works behind a proxy because we use the
+    // Build absolute URL - works behind a proxy because we use the
     // request's own host header. NEXT_PUBLIC_APP_URL would be more
     // robust in production; B3 uses the host so dev works zero-config.
     const origin = req.nextUrl.origin;

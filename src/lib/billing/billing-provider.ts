@@ -4,7 +4,7 @@ import type { Entitlement, OwnerKey } from '@core/billing';
  * Single seam between billing logic and the rest of the app.
  *
  * Every UI gate, route handler, and admin view goes through this
- * interface — never the underlying SDK or store directly. The
+ * interface - never the underlying SDK or store directly. The
  * factory (`getBillingSubsystem()`) picks the impl based on env:
  *
  *   - All Stripe vars set → StripeBillingProvider (real Checkout +
@@ -12,7 +12,7 @@ import type { Entitlement, OwnerKey } from '@core/billing';
  *   - Otherwise → MockBillingProvider (every authed user premium,
  *     anon free, fake-checkout flow at `/billing/mock-checkout`).
  *
- * Both impls are fully shipped in C4 — the mock isn't a stub, it's
+ * Both impls are fully shipped in C4 - the mock isn't a stub, it's
  * the keyless-dev default. Tests rely on it.
  */
 export interface BillingProvider {
@@ -33,7 +33,7 @@ export interface BillingProvider {
   createCheckoutSession(args: CreateCheckoutSessionArgs): Promise<{ url: string }>;
 
   /**
-   * Receive a webhook delivery. Always returns — never throws — so
+   * Receive a webhook delivery. Always returns - never throws - so
    * the route handler can map to the right HTTP code without
    * bubbling errors that would trigger Stripe's aggressive retry.
    */

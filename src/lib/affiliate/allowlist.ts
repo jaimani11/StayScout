@@ -1,11 +1,11 @@
 /**
  * Hostname allowlist for the affiliate redirect handler. Any redirect
  * target whose host doesn't match (exact or subdomain) is rejected with
- * 400 — prevents StayScout's redirect endpoint from becoming an open
+ * 400 - prevents StayScout's redirect endpoint from becoming an open
  * redirector usable for phishing.
  *
  * Add a domain here when a new provider lands in B5+. Only add domains
- * that genuinely host booking deep links — don't broaden for tracking
+ * that genuinely host booking deep links - don't broaden for tracking
  * subdomains unless the booking flow actually traverses them.
  */
 export const AFFILIATE_HOST_ALLOWLIST: readonly string[] = [
@@ -24,7 +24,7 @@ export const AFFILIATE_HOST_ALLOWLIST: readonly string[] = [
 /**
  * Validate a candidate redirect URL. Must be:
  *   - parseable as URL
- *   - https:// (protocol allowlist — http drops first-party cookies)
+ *   - https:// (protocol allowlist - http drops first-party cookies)
  *   - hostname exactly matches an allowed domain OR ends with `.<allowed>`
  */
 export function isAllowedAffiliateHost(rawUrl: string): boolean {

@@ -17,7 +17,7 @@ export function TripBoard({
   adaptationNotes?: AdaptationNote[];
 }) {
   const alts = proposal.alternatives.slice(0, 2);
-  // turnId for affiliate-click attribution. We use the current turn —
+  // turnId for affiliate-click attribution. We use the current turn -
   // the proposal we're rendering is the latest one.
   const turnId = useWorkspaceStore((s) => s.currentTurnId);
 

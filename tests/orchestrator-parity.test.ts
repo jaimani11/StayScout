@@ -7,7 +7,7 @@ import type { TripIntent } from '@core/trip-intent';
 import { MockModelClient } from './helpers/mock-model-client';
 
 /**
- * Parity test — runs identical ConciergeRequests through both engines
+ * Parity test - runs identical ConciergeRequests through both engines
  * and asserts the resulting event sequences are equivalent after
  * normalizing for ids and timestamps that are inherently per-run.
  *
@@ -16,7 +16,7 @@ import { MockModelClient } from './helpers/mock-model-client';
  *   - `durationMs` fields → 0 (timing is wall-clock)
  *   - `stepId` fields → step ordinal (1st, 2nd, ...)
  *   - `proposal.generatedAt`, `proposal.agentTrace.*` durations → fixed
- *   - `concierge.message` text — the legacy hand-rolled path emits
+ *   - `concierge.message` text - the legacy hand-rolled path emits
  *      `proposal.reasoning.summary` while LangGraph builds the same
  *      proposal so the summary is identical. Kept as-is.
  *
@@ -86,7 +86,7 @@ function normalize(events: OrchestratorEvent[]): unknown[] {
     if ('stepId' in copy && typeof copy.stepId === 'string') {
       copy.stepId = mapStepId(copy.stepId);
     }
-    // Strip turnId — both engines emit the same one (it's the request's
+    // Strip turnId - both engines emit the same one (it's the request's
     // turnId), but normalizing keeps the diff clean if that ever changes.
     if ('turnId' in copy) copy.turnId = '<turnId>';
 
@@ -126,7 +126,7 @@ function normalize(events: OrchestratorEvent[]): unknown[] {
     }
 
     if ('snapshot' in copy && copy.snapshot && typeof copy.snapshot === 'object') {
-      // mood.snapshot — stable for the same destination but strip
+      // mood.snapshot - stable for the same destination but strip
       // anything timestamp-like defensively.
       const s = copy.snapshot as Record<string, unknown>;
       if ('generatedAt' in s) s.generatedAt = '<generatedAt>';

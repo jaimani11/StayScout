@@ -1,10 +1,10 @@
-// Voice rules — codified taste constraints from spec §5.17 + §8.13.
+// Voice rules - codified taste constraints from spec §5.17 + §8.13.
 // Used by:
 //   * tests/seed.test.ts (fails CI if curated copy violates)
 //   * MoodSnapshotAgent (Slice A6) to validate LLM output before emitting
 //   * Slice B+ taste-governance pipeline
 
-// Banned cliché list. Restrained over expansive — we add words when we
+// Banned cliché list. Restrained over expansive - we add words when we
 // catch them in real outputs, not preemptively.
 export const BANNED_WORDS: readonly string[] = [
   'unforgettable',

@@ -21,7 +21,7 @@ import { VrboProvider } from './vrbo';
 /**
  * Availability-aware registry.
  *
- *   - Mock providers (MockItaly, LLMSynthesized) are always present —
+ *   - Mock providers (MockItaly, LLMSynthesized) are always present -
  *     they're the keyless-dev floor.
  *   - Real providers self-register via their `fromEnv()` factory; if
  *     keys are missing, the factory returns null and the registry
@@ -38,13 +38,13 @@ import { VrboProvider } from './vrbo';
 interface Registry {
   /** All available providers, in priority order (mocks last). */
   all: Provider[];
-  /** Real (env-keyed) providers only — for diagnostics. */
+  /** Real (env-keyed) providers only - for diagnostics. */
   real: Provider[];
-  /** Mock providers — always present. */
+  /** Mock providers - always present. */
   mocks: Provider[];
 }
 
-// Process-global anchor — see comment in src/lib/session/factory.ts.
+// Process-global anchor - see comment in src/lib/session/factory.ts.
 declare global {
   var __stayscoutProviderRegistry: Registry | undefined;
 }
@@ -59,7 +59,7 @@ export function buildProviderRegistry(modelClient?: ModelClient): Registry {
   if (expedia) real.push(expedia);
   const vrbo = VrboProvider.fromEnv();
   if (vrbo) real.push(vrbo);
-  // Future providers slot in here (Hotelbeds, Agoda, ...) — same pattern.
+  // Future providers slot in here (Hotelbeds, Agoda, ...) - same pattern.
 
   const llmProvider = modelClient
     ? new LLMSynthesizedProvider(modelClient)
@@ -70,13 +70,13 @@ export function buildProviderRegistry(modelClient?: ModelClient): Registry {
   return globalThis.__stayscoutProviderRegistry;
 }
 
-/** Test-only — drop the cached registry so env changes take effect. */
+/** Test-only - drop the cached registry so env changes take effect. */
 export function _resetProviderRegistryForTesting(): void {
   globalThis.__stayscoutProviderRegistry = undefined;
 }
 
 /**
- * Diagnostic surface — what real providers are wired right now.
+ * Diagnostic surface - what real providers are wired right now.
  * Feature flags in `getServerFeatures()` use this.
  */
 export function listAvailableRealProviders(): string[] {
@@ -87,7 +87,7 @@ export function listAvailableRealProviders(): string[] {
 
 /**
  * Single-provider router (back-compat). Picks the most-specific
- * available provider for the destination — real providers > mocks
+ * available provider for the destination - real providers > mocks
  * within their region; MockItaly for Italy queries; LLMSynthesized
  * everywhere else.
  */
@@ -97,7 +97,7 @@ export function routeProvider(intent: TripIntent, modelClient?: ModelClient): Pr
 }
 
 /**
- * Fanout list. Returns every provider that can serve the destination —
+ * Fanout list. Returns every provider that can serve the destination -
  * caller can run them in parallel via `searchWithFanout`.
  */
 export function routeProviders(intent: TripIntent, modelClient?: ModelClient): Provider[] {
@@ -110,7 +110,7 @@ export function routeProviders(intent: TripIntent, modelClient?: ModelClient): P
 
   const result: Provider[] = [];
 
-  // Real providers whose capabilities cover this region (or are global —
+  // Real providers whose capabilities cover this region (or are global -
   // `regions` undefined means global).
   for (const p of reg.real) {
     const regions = p.capabilities.regions;
@@ -132,7 +132,7 @@ export function routeProviders(intent: TripIntent, modelClient?: ModelClient): P
 }
 
 /**
- * Production factory — same shape as Slice A, but consults the new
+ * Production factory - same shape as Slice A, but consults the new
  * registry. Mock-safe: with no real-provider keys, behavior is
  * identical to the previous slice.
  */
@@ -148,7 +148,7 @@ export function createDefaultProviderRouter(
  * Run multiple providers in parallel and merge results. One provider's
  * failure doesn't stall the others (Promise.allSettled). Stays are
  * deduped by id (`{providerId}:{nativeId}`) so the same hotel from two
- * sources still surfaces twice if the providerIds differ — the
+ * sources still surfaces twice if the providerIds differ - the
  * proposal builder handles ranking.
  *
  * Slice C will adopt this for true multi-source comparison; B5 ships

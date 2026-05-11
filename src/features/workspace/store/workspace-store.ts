@@ -34,7 +34,7 @@ export interface Turn {
   steps: AgentStep[];
   intent?: TripIntent;
   proposal?: TripProposal;
-  /** Slice F1 — set when the orchestrator chose the opportunity path
+  /** Slice F1 - set when the orchestrator chose the opportunity path
    *  instead of producing a proposal. The Canvas renders SearchOpportunityBoard
    *  when this is present (and no proposal). */
   searchOpportunity?: SearchOpportunity;
@@ -77,7 +77,7 @@ export interface WorkspaceActions {
   closeSavedPanel: () => void;
   /**
    * Push a saved trip onto the workspace as a synthetic settled turn.
-   * The canvas then renders it like any other turn — pin/compare/detail
+   * The canvas then renders it like any other turn - pin/compare/detail
    * already work against a Turn record. Refining a resurfaced trip is
    * a B3.x concern (priorTurn lookup may 404 cross-process).
    */
@@ -229,7 +229,7 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set,
         break;
 
       case 'search.opportunity.ready':
-        // Settle the canvas immediately — no shimmer skeleton waiting
+        // Settle the canvas immediately - no shimmer skeleton waiting
         // for a `proposal.ready` that's never going to come.
         set({ phase: 'settled' });
         updateCurrentTurn(set, get, (turn) => ({
@@ -321,7 +321,7 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set,
 
   resurfaceSavedTrip({ turnId, proposal, intent, proposalRef, bookmarkedAt }) {
     set((s) => {
-      // De-dupe — clicking the same saved trip twice shouldn't stack.
+      // De-dupe - clicking the same saved trip twice shouldn't stack.
       if (s.turns.some((t) => t.turnId === turnId)) {
         return { currentTurnId: turnId, savedPanelOpen: false, phase: 'settled' };
       }

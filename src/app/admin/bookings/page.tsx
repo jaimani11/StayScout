@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 /**
- * Admin booking feed. Sibling to /admin/clicks — same shape, same
+ * Admin booking feed. Sibling to /admin/clicks - same shape, same
  * vocabulary. Operators can see what the booking-agent is doing
  * (drafts, confirmed, canceled, failed) without leaving the console.
  *
@@ -40,7 +40,7 @@ export default async function AdminBookingsPage() {
         const ts = b.confirmedAt ?? b.canceledAt;
         return (
           <span style={{ fontFamily: 'var(--font-geist-mono)', fontSize: '0.7rem' }}>
-            {ts ? new Date(ts).toLocaleString() : '—'}
+            {ts ? new Date(ts).toLocaleString() : '-'}
           </span>
         );
       },
@@ -118,7 +118,7 @@ export default async function AdminBookingsPage() {
     ? `${bookings.length} recent · ${counts.confirmed ?? 0} confirmed · ${counts.canceled ?? 0} canceled${
         (counts.failed ?? 0) > 0 ? ` · ${counts.failed} failed` : ''
       } · provider mode: ${subsystem.kind}${subsystem.liveEnabled ? ' (live flag set; D.x)' : ''}.`
-    : `No bookings recorded yet — try one from a saved trip. Provider mode: ${subsystem.kind}${
+    : `No bookings recorded yet - try one from a saved trip. Provider mode: ${subsystem.kind}${
         subsystem.liveEnabled ? ' (live flag set; D.x)' : ''
       }.`;
 
@@ -128,7 +128,7 @@ export default async function AdminBookingsPage() {
         columns={columns}
         rows={bookings}
         rowKey={(b) => b.id}
-        emptyText="No bookings recorded yet — try one from a saved trip."
+        emptyText="No bookings recorded yet - try one from a saved trip."
       />
     </AdminShell>
   );

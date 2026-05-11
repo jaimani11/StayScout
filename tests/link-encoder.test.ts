@@ -39,7 +39,7 @@ describe('encodeAffiliateLink + decodeAffiliateLink', () => {
   });
 
   it('rejects a non-JSON payload after base64url decode', () => {
-    // Encode the literal string "hello" — valid base64url, invalid JSON.
+    // Encode the literal string "hello" - valid base64url, invalid JSON.
     const id = Buffer.from('hello', 'utf8').toString('base64url');
     expect(decodeAffiliateLink(id)).toBeNull();
   });

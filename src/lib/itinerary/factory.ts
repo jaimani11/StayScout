@@ -9,12 +9,12 @@ import type { ItineraryStore } from './itinerary-store';
 export interface ItinerarySubsystem {
   store: ItineraryStore;
   generator: ItineraryGenerator;
-  /** Surfaced via getServerFeatures() — `curated` (default), `model`
+  /** Surfaced via getServerFeatures() - `curated` (default), `model`
    *  when C3.x ships ModelItineraryGenerator. */
   kind: 'curated' | 'model';
 }
 
-// Process-global anchor — see comment in src/lib/session/factory.ts.
+// Process-global anchor - see comment in src/lib/session/factory.ts.
 declare global {
   var __stayscoutItinerarySubsystem: ItinerarySubsystem | undefined;
 }

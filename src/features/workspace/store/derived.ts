@@ -28,7 +28,7 @@ export function selectStayById(s: WorkspaceState, stayId: string): Stay | null {
 
 /**
  * Locate the Turn whose proposal contains the given stayId. Used by the
- * detail panel's Save Trip CTA — the user opened detail on a stay, but
+ * detail panel's Save Trip CTA - the user opened detail on a stay, but
  * what they bookmark is the entire proposal that produced it.
  */
 export function selectTurnContainingStay(s: WorkspaceState, stayId: string): Turn | null {

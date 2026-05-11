@@ -3,7 +3,7 @@ import type { BookingStore } from './booking-store';
 
 /**
  * Process-local booking store. HMR-safe via globalThis so the dev
- * server doesn't lose state between code reloads — important here
+ * server doesn't lose state between code reloads - important here
  * because losing a confirmation that was just rendered would be
  * extremely disorienting.
  *
@@ -32,12 +32,12 @@ export class InMemoryBookingStore implements BookingStore {
     const existing = this.bookingsById.get(booking.id);
     this.bookingsById.set(booking.id, booking);
     if (!existing) {
-      // First time seeing this booking — append to the owner's list.
+      // First time seeing this booking - append to the owner's list.
       const bucket = this.bookingsByOwner.get(ownerKey) ?? [];
       bucket.push(booking);
       this.bookingsByOwner.set(ownerKey, bucket);
     } else {
-      // Update in place — replace the entry in the owner bucket too.
+      // Update in place - replace the entry in the owner bucket too.
       const bucket = this.bookingsByOwner.get(ownerKey) ?? [];
       const idx = bucket.findIndex((b) => b.id === booking.id);
       if (idx >= 0) bucket[idx] = booking;
@@ -49,7 +49,7 @@ export class InMemoryBookingStore implements BookingStore {
     const found = this.bookingsById.get(args.bookingId);
     if (!found) return null;
     if (found.ownerKind !== args.ownerKind || found.ownerId !== args.ownerId) {
-      // Owner mismatch — treat as not found (defense in depth; routes
+      // Owner mismatch - treat as not found (defense in depth; routes
       // also check, but the store should never leak across owners).
       return null;
     }
@@ -78,7 +78,7 @@ export class InMemoryBookingStore implements BookingStore {
     return all.slice(0, limit);
   }
 
-  /** Test-only — wipe state. */
+  /** Test-only - wipe state. */
   _reset(): void {
     this.drafts.clear();
     this.bookingsById.clear();

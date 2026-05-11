@@ -5,7 +5,7 @@ interface AgentLatencyChartProps {
 }
 
 /**
- * Compact horizontal-bar chart of P50/P95 latency per agent. CSS-only —
+ * Compact horizontal-bar chart of P50/P95 latency per agent. CSS-only -
  * no chart lib, no client component. The widest P95 sets the scale.
  */
 export function AgentLatencyChart({ agentLatency }: AgentLatencyChartProps) {
@@ -20,7 +20,7 @@ export function AgentLatencyChart({ agentLatency }: AgentLatencyChartProps) {
           color: 'var(--ink-tertiary)',
         }}
       >
-        No agent runs yet — start a turn to populate.
+        No agent runs yet - start a turn to populate.
       </p>
     );
   }

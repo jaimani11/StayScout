@@ -12,11 +12,11 @@ export const runtime = 'nodejs';
  *
  * Owner-gated. Body: `{ savedTripId, traveler }`. Returns the
  * structured draft (with idempotencyKey + total + cancellation policy)
- * without calling the provider yet — the user reviews the draft + then
+ * without calling the provider yet - the user reviews the draft + then
  * POSTs to /api/bookings/confirm.
  *
  * 404 if the saved trip doesn't belong to the caller.
- * 401 if the caller is anonymous (Slice D requires auth to book —
+ * 401 if the caller is anonymous (Slice D requires auth to book -
  *   even a "free" booking, since we need a stable owner key for the
  *   confirmation page + admin trail).
  */

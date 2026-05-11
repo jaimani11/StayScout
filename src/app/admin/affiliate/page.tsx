@@ -35,7 +35,7 @@ export default async function AffiliateDebugPage() {
   const features = getServerFeatures();
   const config = getExpediaAffiliateConfig();
 
-  // Sample inputs — fixed so the URLs are reproducible across reloads.
+  // Sample inputs - fixed so the URLs are reproducible across reloads.
   const sampleInputs = {
     destination: 'Tuscany, Italy',
     checkIn: '2026-09-01',
@@ -119,7 +119,7 @@ export default async function AffiliateDebugPage() {
         <ConfigTile
           label="Affiliate label"
           status={config.label ? 'ok' : 'optional'}
-          value={config.label ?? '—'}
+          value={config.label ?? '-'}
           help={
             config.label
               ? 'Sub-channel tag attached to every URL.'
@@ -180,7 +180,7 @@ export default async function AffiliateDebugPage() {
             lineHeight: 1.5,
           }}
         >
-          Both URLs use a fixed sample input — Tuscany, Italy · 2026-09-01 → 2026-09-05 · 2 adults —
+          Both URLs use a fixed sample input - Tuscany, Italy · 2026-09-01 → 2026-09-05 · 2 adults -
           so they&apos;re reproducible across reloads. Click either to verify the affcid round-trip.
         </p>
         <UrlPanel
@@ -226,7 +226,7 @@ export default async function AffiliateDebugPage() {
         >
           Clicking the button below opens the sample tracked URL in a new tab. The redirect should
           land you on Expedia with <code>affcid</code> visible in the address bar. The click is also
-          recorded — visit <code>/admin/clicks</code> to see it.
+          recorded - visit <code>/admin/clicks</code> to see it.
         </p>
         <a
           href={sampleTrackedUrl}
@@ -484,6 +484,6 @@ function resolveVrboStatus(features: ReturnType<typeof getServerFeatures>): 'ok'
   // are surfaced). Read env directly. When that flag lands later this
   // becomes a one-line change.
   const set = !!process.env.VRBO_API_KEY && !!process.env.VRBO_SHARED_SECRET;
-  void features; // silence unused — reserved for future flag
+  void features; // silence unused - reserved for future flag
   return set ? 'ok' : 'missing';
 }

@@ -28,7 +28,7 @@ export const MemoryHintSchema = z.object({
 });
 export type MemoryHint = z.infer<typeof MemoryHintSchema>;
 
-// EscalationPath — interface-only stub for Slice C+ human concierge handoff
+// EscalationPath - interface-only stub for Slice C+ human concierge handoff
 export const EscalationPathSchema = z.object({
   kind: z.literal('concierge-handoff'),
   reason: z.string(),

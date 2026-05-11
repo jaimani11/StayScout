@@ -4,10 +4,10 @@ import { jsonResponse, resolveRouteContext } from '../../../_lib/route-context';
 export const runtime = 'nodejs';
 
 /**
- * POST /api/trips/[tripId]/resurface — owner-gated. Primes the
+ * POST /api/trips/[tripId]/resurface - owner-gated. Primes the
  * SessionStore with a synthetic TurnRecord so refining a resurfaced
  * saved trip works (the orchestrator's `getTurn(priorProposalRef.turnId)`
- * lookup finds it). Idempotent — putTurn overwrites by turnId.
+ * lookup finds it). Idempotent - putTurn overwrites by turnId.
  *
  * Why a separate endpoint instead of doing it on saveTrip: most saved
  * trips never get refined. Lazy-priming on resurface keeps the saveTrip

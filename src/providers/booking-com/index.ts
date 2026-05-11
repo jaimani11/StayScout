@@ -9,7 +9,7 @@ const PROVIDER_ID = providerId('booking-com');
 
 /**
  * Booking.com provider. Self-registers via `BookingComProvider.fromEnv()`
- * — returns null when both required env vars are missing, so the
+ * - returns null when both required env vars are missing, so the
  * registry never sees a half-configured provider.
  *
  * Coverage: global. Booking.com lists hotels in ~220 countries; we
@@ -38,7 +38,7 @@ export class BookingComProvider extends BaseAffiliateProvider {
   }
 
   /**
-   * Construct from env. Returns null when keys are missing — the
+   * Construct from env. Returns null when keys are missing - the
    * registry treats null as "provider unavailable" and skips it.
    */
   static fromEnv(): BookingComProvider | null {

@@ -19,7 +19,7 @@ const POLL_MAX_MS = 15_000;
  *
  * On success: navigate back to the return path (the trip itinerary
  * page that triggered the upgrade), where the gate now passes.
- * On timeout: show a soft message — the webhook may be delayed
+ * On timeout: show a soft message - the webhook may be delayed
  * (Stripe usually delivers in <1s but retries can stall).
  */
 export function PollEntitlement() {
@@ -68,7 +68,7 @@ export function PollEntitlement() {
     state === 'premium'
       ? 'You’re premium. Heading back to your trip…'
       : state === 'timeout'
-        ? 'The webhook is taking longer than usual. Refresh in a moment, or head back — your subscription will catch up.'
+        ? 'The webhook is taking longer than usual. Refresh in a moment, or head back - your subscription will catch up.'
         : state === 'error'
           ? 'We couldn’t reach the entitlement check. Try refreshing.'
           : 'Confirming your subscription with Stripe…';

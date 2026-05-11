@@ -5,7 +5,7 @@ import type { TripIntent } from '@core/trip-intent';
 import { routeForIntent } from '@/orchestrator/route-search';
 
 /**
- * Slice F1 — routeForIntent semantics. The router decides inventory vs
+ * Slice F1 - routeForIntent semantics. The router decides inventory vs
  * opportunity. These tests pin the decision matrix so future provider
  * additions don't accidentally re-enable fake-hotel paths.
  */
@@ -87,7 +87,7 @@ describe('routeForIntent', () => {
     });
     expect(decision.kind).toBe('inventory');
     if (decision.kind !== 'inventory') return;
-    // Real provider only — MockItaly does not join the list when a
+    // Real provider only - MockItaly does not join the list when a
     // real provider already serves the country.
     expect(decision.providers.map((p) => p.id as string)).toEqual(['booking-com']);
   });

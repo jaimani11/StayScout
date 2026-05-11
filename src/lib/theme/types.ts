@@ -1,6 +1,6 @@
 // Shared types and constants for the theme system. Imported by both the
 // server reader (get-server-theme.ts, uses next/headers) and the client
-// provider (theme-provider.tsx). No JSX, no React, no Next imports — safe
+// provider (theme-provider.tsx). No JSX, no React, no Next imports - safe
 // to import from anywhere.
 
 export type ThemeMode = 'dark' | 'light';

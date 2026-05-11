@@ -20,9 +20,9 @@ function getServerSnapshot(): boolean {
 
 /**
  * Returns whether the user has requested reduced motion. SSR-safe via
- * useSyncExternalStore — server returns `false`, client subscribes to
+ * useSyncExternalStore - server returns `false`, client subscribes to
  * matchMedia and re-renders on change. Use this to gate cinematic motion
- * (shimmer, materialize, breathe) — fall back to a 200ms cross-fade when
+ * (shimmer, materialize, breathe) - fall back to a 200ms cross-fade when
  * true. Spec §4.5.
  */
 export function useReducedMotion(): boolean {

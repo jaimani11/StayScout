@@ -12,12 +12,12 @@ import type { MonitoringEvent } from './types';
  *   3. Otherwise: call the checker. If it returns an event, persist it.
  *      Always update the snapshot.
  *
- * The result is the full unacknowledged-event list for the owner —
+ * The result is the full unacknowledged-event list for the owner -
  * not just events generated this call. Reason: the UI badge stays
  * consistent across page reloads even if no new event was generated
  * on this fetch.
  *
- * Per-trip iterations are wrapped in try/catch — a checker failure on
+ * Per-trip iterations are wrapped in try/catch - a checker failure on
  * one trip never stops the others. Same B4/B7 pattern: monitoring is
  * auxiliary; never block the user-visible response.
  */
@@ -49,7 +49,7 @@ export class MonitoringRunner {
     const now = args.now ?? Date.now();
 
     for (const trip of args.trips) {
-      // Owner-mismatch defense — caller already filters, but a paranoid
+      // Owner-mismatch defense - caller already filters, but a paranoid
       // guard here prevents cross-owner state pollution if the API
       // ever passes someone else's trip by mistake.
       if (trip.ownerKind !== args.owner.ownerKind || trip.ownerId !== args.owner.ownerId) {

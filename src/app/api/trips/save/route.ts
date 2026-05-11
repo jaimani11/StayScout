@@ -15,9 +15,9 @@ const SaveTripBodySchema = z.object({
 });
 
 /**
- * POST /api/trips/save — bookmark a proposal for the current owner.
+ * POST /api/trips/save - bookmark a proposal for the current owner.
  * Anonymous sessions own trips by sessionId; authenticated users own
- * by userId. Idempotent on (ownerId, proposalId) — the same proposal
+ * by userId. Idempotent on (ownerId, proposalId) - the same proposal
  * saved twice surfaces the existing row.
  */
 export async function POST(req: NextRequest): Promise<Response> {

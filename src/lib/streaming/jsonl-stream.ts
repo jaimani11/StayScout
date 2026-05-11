@@ -5,7 +5,7 @@
  * controller.error() so consumers see the failure.
  *
  * Stream-level logging is intentionally chatty on errors and quiet on
- * success — operators investigating "stream interrupted" symptoms get
+ * success - operators investigating "stream interrupted" symptoms get
  * a clear line in the dev server logs without per-event noise.
  */
 export function toJsonlStream<T>(iter: AsyncIterable<T>): ReadableStream<Uint8Array> {

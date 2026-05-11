@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { VibeTagSchema } from './trip-intent';
 
 /**
- * Slice F1 — Search opportunity payload.
+ * Slice F1 - Search opportunity payload.
  *
  * Emitted as `search.opportunity.ready` when the orchestrator decides
  * we don't have real or curated inventory for the destination. Instead
@@ -10,7 +10,7 @@ import { VibeTagSchema } from './trip-intent';
  * Expedia/Vrbo/Hotels.com affiliate-search URLs prefilled with the
  * user's intent (dates, occupancy, vibe hints).
  *
- * The UI renders this as `<SearchOpportunityBoard>` — distinct from
+ * The UI renders this as `<SearchOpportunityBoard>` - distinct from
  * `<TripBoard>` (which renders `proposal.ready` with property cards).
  */
 
@@ -25,7 +25,7 @@ export const SearchOpportunityProviderSchema = z.object({
    *  Routed through `/r/[id]` for click attribution. */
   url: z.string().url(),
   /** Optional one-line hint explaining why this provider is a good
-   *  fit for this destination (e.g. "Vrbo is strong here — ski-in
+   *  fit for this destination (e.g. "Vrbo is strong here - ski-in
    *  chalets, lots of rentals."). Omitted when the default tagline
    *  suffices. */
   hint: z.string().max(180).optional(),
@@ -51,7 +51,7 @@ export const SearchOpportunitySchema = z.object({
   /** One per provider, in display order. */
   providers: z.array(SearchOpportunityProviderSchema).min(1).max(5),
   /** One-line "feel of the place" editorial copy from the
-   *  DestinationFlavorAgent. Optional — the UI degrades gracefully
+   *  DestinationFlavorAgent. Optional - the UI degrades gracefully
    *  when absent. */
   flavor: z.string().max(220).optional(),
   /** Hero photo for the destination. Resolved via the destination

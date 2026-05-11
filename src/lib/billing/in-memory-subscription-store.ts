@@ -15,7 +15,7 @@ import type { SubscriptionStore } from './subscription-store';
  *   - byStripeSub: stripeSubscriptionId → Subscription (only set when
  *     the row has a stripeSubscriptionId)
  *
- * In-memory deliberately — Postgres impl lands in C4.x.
+ * In-memory deliberately - Postgres impl lands in C4.x.
  */
 export class InMemorySubscriptionStore implements SubscriptionStore {
   private readonly byOwner = new Map<string, Subscription>();
@@ -29,7 +29,7 @@ export class InMemorySubscriptionStore implements SubscriptionStore {
     const owner = ownerStringKey(record);
 
     // If a previous row had a stripeSubscriptionId different from this
-    // one, drop the old reverse index entry. Defensive — shouldn't
+    // one, drop the old reverse index entry. Defensive - shouldn't
     // happen in normal flow.
     const existing = this.byOwner.get(owner);
     if (
@@ -63,7 +63,7 @@ export class InMemorySubscriptionStore implements SubscriptionStore {
     this.byOwner.set(ownerStringKey(sub), updated);
   }
 
-  /** Test-only — wipe state. */
+  /** Test-only - wipe state. */
   _reset(): void {
     this.byOwner.clear();
     this.byStripeSub.clear();

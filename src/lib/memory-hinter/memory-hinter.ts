@@ -8,7 +8,7 @@ export interface CompletedTurn {
 /**
  * Session-scoped heuristic detector. Slice A pattern: 3+ turns sharing a
  * vibe tag → fire a hint about that preference. Fires at most once per
- * session — once the orchestrator emits the hint, it should call
+ * session - once the orchestrator emits the hint, it should call
  * markFired() so we don't repeat.
  *
  * Slice C replaces this with the real Memory Agent reading from pgvector
@@ -80,7 +80,7 @@ function pickDominant(
   return best;
 }
 
-// Restrained phrasings keyed by vibe tag — never anthropomorphic, never
+// Restrained phrasings keyed by vibe tag - never anthropomorphic, never
 // editorialising. Tags without an entry never fire (better silent than corny).
 const PHRASINGS: Partial<Record<VibeTag, string>> = {
   walkable: 'You seem to prefer walkable destinations.',
@@ -88,7 +88,7 @@ const PHRASINGS: Partial<Record<VibeTag, string>> = {
   slow: 'You seem to gravitate toward slower-paced trips.',
   luxury: 'You consistently lean toward higher-end stays.',
   'family-friendly': 'Family-friendly seems to be a constant for you.',
-  foodie: "Food keeps coming up — you're a foodie traveler.",
+  foodie: "Food keeps coming up - you're a foodie traveler.",
   cultural: 'You consistently include cultural depth in your trips.',
   nature: 'Nature settings recur in your trips.',
   beach: 'Beach destinations seem to be a draw.',

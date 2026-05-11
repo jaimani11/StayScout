@@ -17,7 +17,7 @@ import {
 
 /**
  * Build + compile the StateGraph. Called once per Orchestrator instance
- * — the compiled graph is reused across `run()` invocations. A
+ * - the compiled graph is reused across `run()` invocations. A
  * checkpointer is wired when supplied (Postgres in prod; MemorySaver in
  * mock-mode dev).
  *

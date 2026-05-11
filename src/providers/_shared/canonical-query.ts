@@ -3,12 +3,12 @@ import type { ProviderSearchQuery } from '@core/provider';
 /**
  * Stable string representation of a `ProviderSearchQuery` for use as a
  * cache key. Two queries that semantically match the same search must
- * produce identical strings — order-independent for arrays, JSON-safe.
+ * produce identical strings - order-independent for arrays, JSON-safe.
  *
  * Fields explicitly EXCLUDED from the key:
- *   - `compareSet` — affects ranking, not the search universe; same
+ *   - `compareSet` - affects ranking, not the search universe; same
  *     stays come back regardless.
- *   - `temporalContext` — coarse-grained (season, weekend), invariant
+ *   - `temporalContext` - coarse-grained (season, weekend), invariant
  *     within the cache TTL window.
  *
  * Fields normalized:

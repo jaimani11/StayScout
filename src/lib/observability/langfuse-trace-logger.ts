@@ -22,7 +22,7 @@ import { computeCostUsd } from './costs';
  * is belt + suspenders.
  */
 
-/** Minimal interface we use from the langfuse SDK — saves us from
+/** Minimal interface we use from the langfuse SDK - saves us from
  *  importing the SDK's own types in the keyless build path. */
 interface LangfuseTraceHandle {
   generation(args: {

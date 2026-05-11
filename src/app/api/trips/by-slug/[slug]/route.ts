@@ -5,11 +5,11 @@ import { getSessionStore } from '@lib/session/factory';
 export const runtime = 'nodejs';
 
 /**
- * GET /api/trips/by-slug/[slug] — PUBLIC, no auth. Returns the
+ * GET /api/trips/by-slug/[slug] - PUBLIC, no auth. Returns the
  * sanitized SharedTrip (no ownerId, no rawInput). 400 if the slug is
  * malformed (cheap pre-DB check). 404 if not found.
  *
- * Cache: short edge cache (60s) is OK — slugs are immutable. Owner
+ * Cache: short edge cache (60s) is OK - slugs are immutable. Owner
  * deletes are reflected within the TTL; that's acceptable for share-
  * link UX.
  */

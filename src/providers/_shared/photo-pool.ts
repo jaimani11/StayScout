@@ -1,5 +1,5 @@
 /**
- * Photo pool — hand-curated Unsplash IDs grouped by category.
+ * Photo pool - hand-curated Unsplash IDs grouped by category.
  *
  * Used by `LLMSynthesizedProvider` so model-generated stays pull from
  * a pool rather than every cityscape stay sharing the same image.
@@ -44,7 +44,7 @@ const POOL: Readonly<Record<PhotoCategory, readonly string[]>> = {
     '1473496169904-658ba7c44d8a', // coastal cliffs (also valid for island)
   ],
   mountains: [
-    // 1568901346375-23c9450c58cd removed — Unsplash repurposed it
+    // 1568901346375-23c9450c58cd removed - Unsplash repurposed it
     // and the URL now serves a non-travel image (burger photo).
     '1486870591958-9b9d0d1dda99', // Patagonia jagged ridge
     '1464822759023-fed622ff2c3b', // Swiss valley fog
@@ -128,7 +128,7 @@ export function pickPhotoId(category: PhotoCategory, slug: string): string {
   return pool[idx]!;
 }
 
-/** Test-only helper — exposes the pool sizes for the size-≥5 test. */
+/** Test-only helper - exposes the pool sizes for the size-≥5 test. */
 export function _photoPoolSizes(): Record<PhotoCategory, number> {
   return Object.fromEntries(Object.entries(POOL).map(([k, v]) => [k, v.length])) as Record<
     PhotoCategory,

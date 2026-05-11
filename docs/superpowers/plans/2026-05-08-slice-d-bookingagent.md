@@ -1,10 +1,10 @@
-# Slice D Implementation Plan — BookingAgent (approval-gated)
+# Slice D Implementation Plan - BookingAgent (approval-gated)
 
 > Executed inline, batched, only pausing for real blockers.
 
 **Goal:** Ship the booking machinery end-to-end. From a saved trip, the user clicks "Book this" → BookingAgent produces a structured `BookingDraft` (dates, guest count, total, cancellation policy, traveler placeholder) → an approval modal shows the draft → on confirm, `BookingProvider.book(draft)` creates a `Booking` and the user lands on `/bookings/[bookingId]` with the confirmation. Mock-safe end-to-end via `MockBookingProvider`. Real provider booking + autonomous mode are explicitly **deferred to D.x** (booking touches money + irreversible side effects; the architecture lands here, the live wiring + premium gate land separately).
 
-**Architecture:** A `BookingProvider` interface (`book`, `cancel`, `getBooking`) with one mock impl in Slice D. Two API routes — `POST /api/bookings/draft` (create a draft from a saved trip + traveler info) and `POST /api/bookings/confirm` (idempotently book a draft) — plus `POST /api/bookings/[bookingId]/cancel`. A `BookingStore` (in-memory in Slice D, Postgres in D.x) keyed by booking id + owner. The `BookingAgent` is a thin orchestrator: input is `(savedTrip, traveler, idempotencyKey)`, output is a draft (during planning) or a confirmed `Booking` (after approval). No LLM calls in Slice D — drafts are derived deterministically from the saved-trip's hero stay + the user's traveler info. LLM enrichment (parsing free-text traveler details, resolving conflicts) lands in D.x.
+**Architecture:** A `BookingProvider` interface (`book`, `cancel`, `getBooking`) with one mock impl in Slice D. Two API routes - `POST /api/bookings/draft` (create a draft from a saved trip + traveler info) and `POST /api/bookings/confirm` (idempotently book a draft) - plus `POST /api/bookings/[bookingId]/cancel`. A `BookingStore` (in-memory in Slice D, Postgres in D.x) keyed by booking id + owner. The `BookingAgent` is a thin orchestrator: input is `(savedTrip, traveler, idempotencyKey)`, output is a draft (during planning) or a confirmed `Booking` (after approval). No LLM calls in Slice D - drafts are derived deterministically from the saved-trip's hero stay + the user's traveler info. LLM enrichment (parsing free-text traveler details, resolving conflicts) lands in D.x.
 
 **Tech Stack:** No new deps. Mock-safe by default; real provider booking integrations slot in behind the same `BookingProvider` interface in D.x as separate impls (`BookingComBookingProvider`, etc.).
 
@@ -12,15 +12,15 @@
 
 ## Architectural Tenets (Opus-level)
 
-**1. Approval-gated, every booking, every tier.** Slice D ships *only* the approval-gated path. Even premium users explicitly confirm a draft before any provider call. Autonomous mode is a separate policy decision — it gets its own design pass + premium gate + a clear "you've authorized autonomous" affordance in D.x.
+**1. Approval-gated, every booking, every tier.** Slice D ships *only* the approval-gated path. Even premium users explicitly confirm a draft before any provider call. Autonomous mode is a separate policy decision - it gets its own design pass + premium gate + a clear "you've authorized autonomous" affordance in D.x.
 
-**2. Idempotency on the user's confirm click.** The first thing the agent does on draft creation is mint an `idempotencyKey` and stamp it onto the draft. The confirm endpoint requires it; double-clicks coalesce to a single booking. Mirrors C4's webhook idempotency pattern — same discipline, different actor.
+**2. Idempotency on the user's confirm click.** The first thing the agent does on draft creation is mint an `idempotencyKey` and stamp it onto the draft. The confirm endpoint requires it; double-clicks coalesce to a single booking. Mirrors C4's webhook idempotency pattern - same discipline, different actor.
 
 **3. Provider state is the source of truth.** `BookingProvider.getBooking(id)` is the canonical read. We cache locally in `BookingStore` so the confirmation page is fast, but stale-on-write is acceptable: we re-fetch on display when the booking is < 5 min old (covers "did the provider actually book it" concerns mid-flow).
 
 **4. No card capture in-app.** Slice D never collects credit cards. The `BookingDraft.total` is what *would* be charged; in mock mode the booking just confirms. Real-mode integrations (D.x) hand off to provider Checkout (Booking.com's hosted checkout, Expedia EPS Rapid's payment URL, etc.). PCI scope = zero, matching C4.
 
-**5. Mock-safe + opt-in real.** `MockBookingProvider` is the keyless dev default — every authenticated user can complete the full draft → approve → confirm → view confirmation flow without keys. Real provider booking lands in D.x, gated by the existing `BOOKING_COM_API_KEY` etc. set + a new `STAYSCOUT_LIVE_BOOKING=1` opt-in (default off even with provider keys, because provider keys are also used for the existing search flow).
+**5. Mock-safe + opt-in real.** `MockBookingProvider` is the keyless dev default - every authenticated user can complete the full draft → approve → confirm → view confirmation flow without keys. Real provider booking lands in D.x, gated by the existing `BOOKING_COM_API_KEY` etc. set + a new `STAYSCOUT_LIVE_BOOKING=1` opt-in (default off even with provider keys, because provider keys are also used for the existing search flow).
 
 **6. Bookings tie to saved trips.** Same ownership model as C3 itineraries. A `Booking` references its `SavedTrip` by id; cascade rules: deleting a trip leaves its bookings intact (you don't un-book by un-saving) but flags them as orphaned for admin visibility.
 
@@ -37,34 +37,34 @@
 ## File Structure
 
 **Create:**
-- `src/core/booking.ts` — Zod schemas + types: `BookingDraft`, `Booking`, `BookingStatus`, `CancellationPolicy`, `TravelerInfo`, errors.
-- `src/lib/booking/booking-provider.ts` — `BookingProvider` interface.
-- `src/lib/booking/mock-booking-provider.ts` — `MockBookingProvider`.
-- `src/lib/booking/booking-store.ts` — `BookingStore` interface.
-- `src/lib/booking/in-memory-booking-store.ts` — process-singleton cache.
-- `src/lib/booking/factory.ts` — `getBookingSubsystem()`.
-- `src/lib/booking/index.ts` — barrel.
-- `src/agents/booking-agent.ts` — draft + confirm orchestrator.
-- `src/app/api/bookings/draft/route.ts` — POST owner-gated → `{ draft }`.
-- `src/app/api/bookings/confirm/route.ts` — POST owner-gated → `{ booking }` (idempotent on `draft.idempotencyKey`).
-- `src/app/api/bookings/[bookingId]/cancel/route.ts` — POST owner-gated → `{ booking }` (idempotent).
-- `src/app/bookings/[bookingId]/page.tsx` — confirmation detail page.
-- `src/app/admin/bookings/page.tsx` — admin booking feed.
-- `src/features/bookings/book-this-button.tsx` — CTA on saved-trip rows (client).
-- `src/features/bookings/booking-draft-modal.tsx` — approval modal (client).
-- `src/features/bookings/booking-confirmation-view.tsx` — confirmation page layout.
-- `src/features/admin/booking-status-chip.tsx` — color-coded status pill.
-- `tests/booking-core.test.ts` — schema + helpers (≈5).
-- `tests/mock-booking-provider.test.ts` — provider behavior + idempotency (≈8).
-- `tests/booking-store.test.ts` — round-trip + owner-isolation (≈6).
-- `tests/booking-agent.test.ts` — draft creation, confirm flow, cancellation (≈7).
+- `src/core/booking.ts` - Zod schemas + types: `BookingDraft`, `Booking`, `BookingStatus`, `CancellationPolicy`, `TravelerInfo`, errors.
+- `src/lib/booking/booking-provider.ts` - `BookingProvider` interface.
+- `src/lib/booking/mock-booking-provider.ts` - `MockBookingProvider`.
+- `src/lib/booking/booking-store.ts` - `BookingStore` interface.
+- `src/lib/booking/in-memory-booking-store.ts` - process-singleton cache.
+- `src/lib/booking/factory.ts` - `getBookingSubsystem()`.
+- `src/lib/booking/index.ts` - barrel.
+- `src/agents/booking-agent.ts` - draft + confirm orchestrator.
+- `src/app/api/bookings/draft/route.ts` - POST owner-gated → `{ draft }`.
+- `src/app/api/bookings/confirm/route.ts` - POST owner-gated → `{ booking }` (idempotent on `draft.idempotencyKey`).
+- `src/app/api/bookings/[bookingId]/cancel/route.ts` - POST owner-gated → `{ booking }` (idempotent).
+- `src/app/bookings/[bookingId]/page.tsx` - confirmation detail page.
+- `src/app/admin/bookings/page.tsx` - admin booking feed.
+- `src/features/bookings/book-this-button.tsx` - CTA on saved-trip rows (client).
+- `src/features/bookings/booking-draft-modal.tsx` - approval modal (client).
+- `src/features/bookings/booking-confirmation-view.tsx` - confirmation page layout.
+- `src/features/admin/booking-status-chip.tsx` - color-coded status pill.
+- `tests/booking-core.test.ts` - schema + helpers (≈5).
+- `tests/mock-booking-provider.test.ts` - provider behavior + idempotency (≈8).
+- `tests/booking-store.test.ts` - round-trip + owner-isolation (≈6).
+- `tests/booking-agent.test.ts` - draft creation, confirm flow, cancellation (≈7).
 
 **Modify:**
-- `src/features/workspace/saved-trips/saved-trip-row.tsx` — add "Book this" CTA in the row footer.
-- `src/features/admin/admin-nav.tsx` — add `Bookings` tab.
-- `src/lib/env/get-server-features.ts` — surface `bookings: { kind: 'mock' | 'live'; liveEnabled: boolean }`.
-- `prisma/schema.prisma` — add `Booking` + `BookingDraft` models (schema only; impl in D.x).
-- `README.md` — Slice D status entry + roadmap row.
+- `src/features/workspace/saved-trips/saved-trip-row.tsx` - add "Book this" CTA in the row footer.
+- `src/features/admin/admin-nav.tsx` - add `Bookings` tab.
+- `src/lib/env/get-server-features.ts` - surface `bookings: { kind: 'mock' | 'live'; liveEnabled: boolean }`.
+- `prisma/schema.prisma` - add `Booking` + `BookingDraft` models (schema only; impl in D.x).
+- `README.md` - Slice D status entry + roadmap row.
 
 ---
 
@@ -78,13 +78,13 @@
   - `TravelerInfo { primaryName: string; email: string; guestCount: { adults: number; children: number; infants: number } }`
   - `BookingDraft { id, idempotencyKey, ownerKind, ownerId, savedTripId, stayId, providerId, checkIn, checkOut, nights, traveler, total: { amount, currency }, cancellation: CancellationPolicy, createdAt }`
   - `Booking { id, idempotencyKey, ownerKind, ownerId, savedTripId, stayId, providerId, providerBookingRef, checkIn, checkOut, nights, traveler, total, cancellation, status, confirmedAt, canceledAt? }`
-- [ ] Zod schemas for all of them (round-trip safe — dates as ISO strings on the wire).
+- [ ] Zod schemas for all of them (round-trip safe - dates as ISO strings on the wire).
 - [ ] Helpers:
-  - `mintIdempotencyKey()` — `bk_<uuid>`.
-  - `mintBookingId()` — `bok_<uuid>`.
-  - `isCancelable(booking, now)` — true when status === 'confirmed' AND (cancellation.kind !== 'non-refundable' OR free-until > now).
+  - `mintIdempotencyKey()` - `bk_<uuid>`.
+  - `mintBookingId()` - `bok_<uuid>`.
+  - `isCancelable(booking, now)` - true when status === 'confirmed' AND (cancellation.kind !== 'non-refundable' OR free-until > now).
 - [ ] Errors:
-  - `BookingError` — typed (`unknown-draft`, `already-confirmed`, `provider-error`, `not-cancelable`, `not-owner`, `idempotency-collision`).
+  - `BookingError` - typed (`unknown-draft`, `already-confirmed`, `provider-error`, `not-cancelable`, `not-owner`, `idempotency-collision`).
 - [ ] Tests (`tests/booking-core.test.ts`, ~5):
   - Schema parse round-trip for `BookingDraft` + `Booking`.
   - `isCancelable` truth table (free-until past → false, non-refundable → false, free-until future → true, status=canceled → false, status=draft → false).
@@ -144,7 +144,7 @@
   - listByOwner honors limit.
   - listAll spans owners.
   - listAll honors limit.
-- [ ] `factory.ts`: `getBookingSubsystem(): { provider, store, kind }`. Mock provider only in Slice D — D.x adds the env-driven switch.
+- [ ] `factory.ts`: `getBookingSubsystem(): { provider, store, kind }`. Mock provider only in Slice D - D.x adds the env-driven switch.
 - [ ] `index.ts`: barrel.
 - [ ] Verify: `pnpm test tests/booking-store.test.ts`.
 
@@ -167,14 +167,14 @@
   };
   ```
 - [ ] `draftBooking`:
-  - Pull dates: `savedTrip.proposalSummary.checkIn` + `checkOut` (existing fields). If absent (compose with no specific dates), use `today + 30 days` for checkIn + `+ nights` for checkOut as a placeholder. The approval modal lets the user override before confirm — D.x.
+  - Pull dates: `savedTrip.proposalSummary.checkIn` + `checkOut` (existing fields). If absent (compose with no specific dates), use `today + 30 days` for checkIn + `+ nights` for checkOut as a placeholder. The approval modal lets the user override before confirm - D.x.
   - Compute total: `pricing.pricePerNight.amount * nights` (currency from pricing). If `totalForStay` exists, use it.
   - Cancellation policy: defaults to `free-until: checkIn - 7 days` (mock-safe friendly default). Real providers will return their own.
   - Mint `idempotencyKey` + `id`, persist via `store.putDraft`.
 - [ ] `confirmBooking`:
   - `store.getDraft(idempotencyKey)` → 404 if missing.
   - Check `draft.ownerKind/ownerId` matches `ownerKey` → throw `BookingError('not-owner')` otherwise.
-  - Call `provider.book(draft)`. The provider is idempotent on the draft's key — so a re-confirm returns the same `Booking`.
+  - Call `provider.book(draft)`. The provider is idempotent on the draft's key - so a re-confirm returns the same `Booking`.
   - `store.putBooking(booking)` → return.
 - [ ] `cancelBooking`:
   - `store.getBooking({ owner, bookingId })` → 404 if missing/not-owned.
@@ -205,7 +205,7 @@
   - Owner-gated. Optional body: `{ reason }`.
   - `BookingAgent.cancelBooking({ ownerKey, bookingId })`.
   - 404 unknown, 409 not-cancelable.
-- [ ] No dedicated route tests — the agent + provider tests cover the substantive logic. Routes are thin glue (matches the C4 / C5 convention).
+- [ ] No dedicated route tests - the agent + provider tests cover the substantive logic. Routes are thin glue (matches the C4 / C5 convention).
 
 ### Task 6: User-facing UI
 
@@ -221,7 +221,7 @@
 - [ ] `src/features/bookings/booking-confirmation-view.tsx`:
   - Server component layout for the confirmation page.
   - Renders: header "Booking confirmed" + ✓ glyph, hero stay name + dates, providerBookingRef, total, cancellation policy detail, traveler summary.
-  - "Cancel booking" button (if `isCancelable`) — small client component that POSTs `/api/bookings/[bookingId]/cancel` and re-renders.
+  - "Cancel booking" button (if `isCancelable`) - small client component that POSTs `/api/bookings/[bookingId]/cancel` and re-renders.
 - [ ] `src/app/bookings/[bookingId]/page.tsx`:
   - Server component, owner-gated via `getServerAuth + ownerOf`.
   - `getBookingSubsystem().store.getBooking({owner, bookingId})` → 404 if not owned.
@@ -239,7 +239,7 @@
   - `<AdminShell section="bookings">` (need to add `'bookings'` to `AdminSection` type + AdminNav links list).
   - `<DataTable>` columns: time (confirmedAt or createdAt for drafts), owner (OwnerLink), stay (truncated), provider, dates, total, status (chip), actions (link to `/bookings/[id]`).
 - [ ] Update `src/features/admin/admin-nav.tsx` to add `bookings` link.
-- [ ] Update `requireAdmin`-aware places only — no other admin-page changes.
+- [ ] Update `requireAdmin`-aware places only - no other admin-page changes.
 
 ### Task 8: Schema + features + pipeline + changelog + slice-d tag
 
@@ -279,18 +279,18 @@
 - [ ] Update `src/lib/env/get-server-features.ts` to surface `bookings: { kind: 'mock' | 'live'; liveEnabled: boolean }` (false in Slice D since live is deferred).
 - [ ] `pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm build`. Fix anything that flares.
 - [ ] Write `docs/superpowers/changelogs/2026-05-08-slice-d.md` matching the C-series format.
-- [ ] Update `README.md` — Slice D status entry, roadmap row, `slice-d` in tags list.
+- [ ] Update `README.md` - Slice D status entry, roadmap row, `slice-d` in tags list.
 - [ ] Tag `slice-d`. Commit at logical milestones.
 
 ---
 
 ## What stays unchanged
 
-- `OrchestratorEvent` — bookings are out-of-band from the turn flow.
-- Intent agent, providers, redirect, share, persistence, memory, monitoring, itinerary, billing — all preserved.
-- Public APIs of `SessionStore`, `MemoryStore`, `BillingProvider` — none touched.
+- `OrchestratorEvent` - bookings are out-of-band from the turn flow.
+- Intent agent, providers, redirect, share, persistence, memory, monitoring, itinerary, billing - all preserved.
+- Public APIs of `SessionStore`, `MemoryStore`, `BillingProvider` - none touched.
 - Voice + design vocabulary unchanged.
-- Mock-safe end-to-end remains the invariant — bookings work without keys.
+- Mock-safe end-to-end remains the invariant - bookings work without keys.
 
 ## Out of Slice D scope (deferred to D.x)
 
@@ -301,7 +301,7 @@
 - **Modifications.** Change dates, change guest count, change room type. D.x territory.
 - **Group / multi-stay bookings.** Single hero stay only in Slice D. Multi-leg itineraries become separate bookings in D.x.
 - **Postgres `BookingStore` impl.** Schema lands in Slice D; impl when we have a DB to integration-test against.
-- **Email confirmation.** No transactional email in Slice D — the confirmation page is the only acknowledgment. Resend / Postmark wiring lands later.
+- **Email confirmation.** No transactional email in Slice D - the confirmation page is the only acknowledgment. Resend / Postmark wiring lands later.
 - **Refund settlement.** Mock cancellations are "fully refundable in dev." Real providers vary; D.x handles per-provider refund semantics.
 - **Cron-based booking-status reconciliation.** A real provider booking can be modified out-of-band (overbooking, force-canceled). A periodic reconciler that polls `provider.getBooking(id)` for any non-terminal booking lands in D.x.
 - **Rate limiting on `/api/bookings/confirm`.** Slice D relies on the idempotencyKey to coalesce double-clicks; production-grade abuse protection (per-IP rate limit) is D.x.
@@ -311,5 +311,5 @@
 | Vars | Provider | Behavior |
 |---|---|---|
 | (none) | Mock | Authed user can complete the full draft → approve → confirm flow. Bookings persist in-process; restart clears. |
-| (Slice D shipped, real-mode deferred) | Mock | Same — `STAYSCOUT_LIVE_BOOKING` is unread until D.x. Provider keys for search remain unrelated. |
+| (Slice D shipped, real-mode deferred) | Mock | Same - `STAYSCOUT_LIVE_BOOKING` is unread until D.x. Provider keys for search remain unrelated. |
 | (D.x: real-mode flag + provider keys set) | Live (per provider) | Real Checkout handoff; webhook for booking-status updates; periodic reconciler. |

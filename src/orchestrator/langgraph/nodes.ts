@@ -43,7 +43,7 @@ export interface GraphDeps {
   moodSnapshotAgent: Agent<MoodSnapshotAgentInput, MoodSnapshot>;
   destinationFlavorAgent: Agent<DestinationFlavorAgentInput, DestinationFlavor | null>;
   providerRouter: (intent: TripIntent) => Provider;
-  /** Slice F1 — route decision after intent extraction. */
+  /** Slice F1 - route decision after intent extraction. */
   routeDecider: (intent: TripIntent) => RouteDecision;
   sessionStore: SessionStore;
   getHinter: (sessionId: string) => MemoryHinter;
@@ -51,7 +51,7 @@ export interface GraphDeps {
   markSessionSeen: (sessionId: string) => void;
   hasSeenTurn: (turnId: string) => boolean;
   markTurnSeen: (turnId: string) => void;
-  /** Slice C1 — optional memory subsystem. Same opt-in shape as the
+  /** Slice C1 - optional memory subsystem. Same opt-in shape as the
    *  legacy Orchestrator: when null, the graph uses only the in-session
    *  MemoryHinter. When supplied, retrieval runs before intent + the
    *  recorder fires after turn.completed. */
@@ -62,7 +62,7 @@ export interface GraphDeps {
 function readRuntime(config: LangGraphRunnableConfig): RuntimeContext {
   const ctx = config.configurable?.[RUNTIME_CONTEXT_KEY] as RuntimeContext | undefined;
   if (!ctx) {
-    throw new Error('LangGraph node missing RuntimeContext — runner did not wire emit/signal');
+    throw new Error('LangGraph node missing RuntimeContext - runner did not wire emit/signal');
   }
   return ctx;
 }
@@ -231,7 +231,7 @@ export function makeIntentNode(deps: GraphDeps) {
       emit({ kind: 'intent.extracted', turnId: req.turnId, intent });
     }
 
-    // Slice F1 — compute the route decision here so `routeAfterIntent`
+    // Slice F1 - compute the route decision here so `routeAfterIntent`
     // (a pure router function) can branch without re-running deciders.
     const route = deps.routeDecider(intent);
     return { intent, agentTrace, route };
@@ -241,12 +241,12 @@ export function makeIntentNode(deps: GraphDeps) {
 // ============== Opportunity (F1) ==============
 
 /**
- * Slice F1 — opportunity branch node.
+ * Slice F1 - opportunity branch node.
  *
  * Runs when the route decider returns `{ kind: 'opportunity', ... }`.
  * Best-effort calls DestinationFlavorAgent (decorative; never fails the
  * turn), then builds + emits a SearchOpportunity. Skips search/compose/
- * mood/memory-hint — those are tied to real inventory.
+ * mood/memory-hint - those are tied to real inventory.
  *
  * Persistence is handled by the complete node (it already persists when
  * `state.intent` is set, with optional `proposal`).
@@ -264,7 +264,7 @@ export function makeOpportunityNode(deps: GraphDeps) {
       emit({
         kind: 'concierge.message',
         turnId: req.turnId,
-        message: "*Tell me where you'd like to go — a city, region, or country.*",
+        message: "*Tell me where you'd like to go - a city, region, or country.*",
         tone: 'apologize',
       });
       return { softEnded: true };
@@ -295,7 +295,7 @@ export function makeOpportunityNode(deps: GraphDeps) {
         agentCtx,
       );
     } catch (err) {
-      // Decorative — never fails the turn.
+      // Decorative - never fails the turn.
       console.warn('[langgraph] destination flavor threw', {
         error: err instanceof Error ? err.message : String(err),
       });
@@ -383,7 +383,7 @@ export function makeSearchNode(deps: GraphDeps) {
       emit({
         kind: 'concierge.message',
         turnId: req.turnId,
-        message: "*Couldn't find anything that fits — try broadening the dates?*",
+        message: "*Couldn't find anything that fits - try broadening the dates?*",
         tone: 'apologize',
       });
       return { searchResult, agentTrace, softEnded: true };
@@ -528,7 +528,7 @@ export function makeMemoryHintNode(deps: GraphDeps) {
       emit({
         kind: 'concierge.memory.hint',
         turnId: req.turnId,
-        message: `Remembered from earlier — ${top.content}`,
+        message: `Remembered from earlier - ${top.content}`,
         signalKey: 'memory-retrieval',
         confidence: clampUnit(top.score),
       });
@@ -585,7 +585,7 @@ export function makeCompleteNode(deps: GraphDeps) {
         completedAt: Date.now(),
       });
 
-      // Slice C1 — record memories asynchronously. Recorder catches
+      // Slice C1 - record memories asynchronously. Recorder catches
       // its own failures internally; never blocks the user.
       if (deps.memoryRecorder) {
         void deps.memoryRecorder.observeTurn({
@@ -602,7 +602,7 @@ export function makeCompleteNode(deps: GraphDeps) {
 
 // ============== Routers ==============
 // Routers return abstract keys ('next', 'end', ...) that the graph maps
-// to actual node names — keeps node renames isolated from this file.
+// to actual node names - keeps node renames isolated from this file.
 
 export function routeAfterBootstrap(state: GraphState): 'next' | 'end' {
   return state.hardEnded ? 'end' : 'next';

@@ -4,25 +4,25 @@ const STEPS = [
   {
     eyebrow: '01',
     headline: 'You write a sentence.',
-    body: 'No filters, no dropdowns. Tell the concierge in your own words — destination, dates, who, vibe. The Intent Agent turns it into structured trip context the rest of the system reasons against.',
+    body: 'No filters, no dropdowns. Tell the concierge in your own words - destination, dates, who, vibe. The Intent Agent turns it into structured trip context the rest of the system reasons against.',
     visual: 'intent',
   },
   {
     eyebrow: '02',
     headline: 'Specialized agents do the work.',
-    body: 'Named agents run in sequence — read your trip, search inventory, rank by your signals, compose a vibe. Each step is visible. Slice B brings real provider integrations behind the same wire.',
+    body: 'Named agents run in sequence - read your trip, search inventory, rank by your signals, compose a vibe. Each step is visible. Slice B brings real provider integrations behind the same wire.',
     visual: 'agents',
   },
   {
     eyebrow: '03',
     headline: 'You stay in control.',
-    body: 'A curated proposal — hero pick, alternatives, reasoning chips. Refine in plain English. Pin to compare. The system never books on your behalf in Slice A.',
+    body: 'A curated proposal - hero pick, alternatives, reasoning chips. Refine in plain English. Pin to compare. The system never books on your behalf in Slice A.',
     visual: 'trip-board',
   },
 ] as const;
 
 /**
- * Below-fold "How It Works" — three sticky-scroll steps. RSC for SEO and
+ * Below-fold "How It Works" - three sticky-scroll steps. RSC for SEO and
  * fast first-paint. Cool-blue bloom layered behind to break the dark
  * monotony of the workspace fold above.
  */

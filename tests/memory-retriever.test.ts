@@ -46,7 +46,7 @@ describe('MemoryRetriever', () => {
       rawInput: 'family Italy walkable slow',
       owner: { ownerKind: 'session', ownerId: 'anon_t' },
     });
-    // Either null (below floor) or empty entries — both acceptable.
+    // Either null (below floor) or empty entries - both acceptable.
     if (result) expect(result.entries.length).toBe(0);
     else expect(result).toBeNull();
   });
@@ -92,7 +92,7 @@ describe('MemoryRetriever', () => {
     expect(result?.entries.length).toBe(2);
   });
 
-  it("isolates by owner — does not retrieve another owner's memories", async () => {
+  it("isolates by owner - does not retrieve another owner's memories", async () => {
     const { recorder, retriever } = makeRetrieverWithSeed('', intent);
     await recorder.observeTurn({
       turnId: 't_alice',

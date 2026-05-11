@@ -1,7 +1,7 @@
 /**
  * Expedia affiliate URL builder.
  *
- * Affiliate links are URL-pattern generators — no API call is made.
+ * Affiliate links are URL-pattern generators - no API call is made.
  * They work for any destination Expedia indexes and they're
  * independent of Rapid API inventory access (which is a separate
  * partner approval). Anyone with an Expedia Creator Platform
@@ -9,13 +9,13 @@
  *
  * Two link shapes:
  *
- *   1. Destination-level search — used when we don't have a direct
+ *   1. Destination-level search - used when we don't have a direct
  *      Expedia property id. Lands the user on Expedia's hotel-search
  *      results for the right destination + dates + occupancy. Works
  *      for curated listings (mock-italy), AI-synthesized listings
  *      (LLM-synthesized), and anything else.
  *
- *   2. Property-level deeplink — used when we know the Expedia
+ *   2. Property-level deeplink - used when we know the Expedia
  *      property id (Rapid response, or a hand-mapped table). Skips
  *      the search results and lands on the property page directly.
  *
@@ -24,7 +24,7 @@
  *
  * Mock-safe: when `EXPEDIA_AFFILIATE_CID` is unset, the URL still
  * resolves to a usable Expedia.com search; tracking just doesn't
- * attribute to anyone. The CTA continues to work — honest behavior,
+ * attribute to anyone. The CTA continues to work - honest behavior,
  * no broken state.
  *
  * Disclosure: every UI surface that emits a built URL must also
@@ -51,14 +51,14 @@ const DEFAULT_SITE_ID = 1;
 
 /**
  * Read the affiliate config from env. Reads `NEXT_PUBLIC_*` vars so
- * client and server resolve the same URL — the affcid + label + base
+ * client and server resolve the same URL - the affcid + label + base
  * URL aren't secret (they ship in every outbound link), and Next.js
  * only bundles `NEXT_PUBLIC_*` to the client. The non-prefixed names
  * are accepted server-side too as a fallback for ops setups that
  * already use the shorter form.
  *
  * Called per-render rather than cached so a config flip picks up
- * immediately. The cost is negligible — four env reads.
+ * immediately. The cost is negligible - four env reads.
  */
 export function getExpediaAffiliateConfig(): ExpediaAffiliateConfig {
   const cidRaw = (
@@ -91,18 +91,18 @@ export function getExpediaAffiliateConfig(): ExpediaAffiliateConfig {
 }
 
 export interface DestinationSearchInput {
-  /** Free-text destination — typically `intent.destinations[0].name`
+  /** Free-text destination - typically `intent.destinations[0].name`
    *  ("Tuscany", "Tokyo", "Lisbon"). Expedia's destination resolver
    *  handles fuzzy strings. */
   destination: string;
   /** ISO `YYYY-MM-DD`. Required for the search to feel useful. When
    *  the user's intent is unspecified, the caller should synthesize
-   *  a sensible window (e.g. today + 30, +5 nights — same fallback
+   *  a sensible window (e.g. today + 30, +5 nights - same fallback
    *  the booking-agent uses). */
   checkIn: string;
   checkOut: string;
   adults: number;
-  /** Children ages — Expedia wants ages, not just count. Default 8
+  /** Children ages - Expedia wants ages, not just count. Default 8
    *  per child when ages aren't known (matches the booking-agent
    *  fallback so child counts don't accidentally affect occupancy). */
   childrenAges?: number[];
@@ -163,7 +163,7 @@ export interface PropertyDeeplinkInput {
 /**
  * Build a property-level Expedia deeplink. Used when we have a real
  * Expedia property id (Rapid response, or a curated mapping table).
- * Falls back to the search URL if no property id is supplied — the
+ * Falls back to the search URL if no property id is supplied - the
  * caller can then surface a destination-level CTA without changing
  * shape.
  */

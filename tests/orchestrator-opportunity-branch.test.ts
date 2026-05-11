@@ -8,7 +8,7 @@ import { Orchestrator } from '@/orchestrator/orchestrator';
 import { MockModelClient } from './helpers/mock-model-client';
 
 /**
- * Slice F1 — end-to-end orchestrator behavior.
+ * Slice F1 - end-to-end orchestrator behavior.
  *
  * The screenshot from a live run showed "Searched StayScout Preview"
  * firing for an Austria prompt, indicating the legacy provider-search
@@ -18,7 +18,7 @@ import { MockModelClient } from './helpers/mock-model-client';
  *       module graph), or
  *   (b) my routing decision falls through to the legacy path.
  *
- * This test asserts (b) is NOT true — that with a stub IntentAgent
+ * This test asserts (b) is NOT true - that with a stub IntentAgent
  * returning Austria, the actual `Orchestrator.run()` emits
  * `search.opportunity.ready` and never emits `provider.search.completed`.
  */
@@ -98,7 +98,7 @@ async function collect(stream: AsyncIterable<OrchestratorEvent>): Promise<Orches
   return out;
 }
 
-describe('Orchestrator F1 routing — end-to-end', () => {
+describe('Orchestrator F1 routing - end-to-end', () => {
   it('Austria → opportunity branch (search.opportunity.ready, no provider.search.completed)', async () => {
     const orch = new Orchestrator({
       modelClient: new MockModelClient(),

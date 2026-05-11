@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic';
 
 /**
  * Most-recent affiliate clicks across the install. Powers the operator's
- * eye on the redirect funnel — which providers are getting taps, which
+ * eye on the redirect funnel - which providers are getting taps, which
  * stays, which sessions converted. Linked back to the per-owner view.
  */
 export default async function AdminClicksPage() {
@@ -76,7 +76,7 @@ export default async function AdminClicksPage() {
       key: 'turn',
       label: 'Turn',
       render: (c) => {
-        if (!c.turnId) return '—';
+        if (!c.turnId) return '-';
         const tail = c.turnId.length > 14 ? `…${c.turnId.slice(-12)}` : c.turnId;
         return (
           <Link
@@ -104,7 +104,7 @@ export default async function AdminClicksPage() {
         columns={columns}
         rows={clicks}
         rowKey={(c) => c.id}
-        emptyText="No clicks recorded yet — go save a trip and tap a hero card."
+        emptyText="No clicks recorded yet - go save a trip and tap a hero card."
       />
     </AdminShell>
   );

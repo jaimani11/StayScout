@@ -1,8 +1,8 @@
-# Slice C3 Implementation Plan — ItineraryAgent (multi-day plans)
+# Slice C3 Implementation Plan - ItineraryAgent (multi-day plans)
 
 > Executed inline, batched, only pausing for real blockers.
 
-**Goal:** Saved trips can be expanded into a day-by-day itinerary — activities, meals, transit, sequenced morning → late evening. The saved-trips panel grows a "Plan day-by-day" link; clicking it opens a server-rendered itinerary page at `/trips/[tripId]/itinerary`. Mock-safe end-to-end via curated 3-day itineraries for the 7 Italian destinations + a generic synthesized fallback.
+**Goal:** Saved trips can be expanded into a day-by-day itinerary - activities, meals, transit, sequenced morning → late evening. The saved-trips panel grows a "Plan day-by-day" link; clicking it opens a server-rendered itinerary page at `/trips/[tripId]/itinerary`. Mock-safe end-to-end via curated 3-day itineraries for the 7 Italian destinations + a generic synthesized fallback.
 
 **Architecture:** A new `Itinerary` type (Day → Slot, where Slot is one of Activity / Meal / Transit / Rest). An `ItineraryGenerator` interface with two impls: `CuratedItineraryGenerator` (lookup-based; the C3 demo path) and `ModelItineraryGenerator` (live model + activity-provider context; lands in C3.x once we have Viator wired). An `ItineraryStore` caches generated itineraries per `tripId` so revisiting the page doesn't regenerate. A new owner-gated route `/trips/[tripId]/itinerary` renders the view. Saved-trip rows + the resurfaced canvas hero gain a "Plan day-by-day" CTA linking to the page.
 
@@ -12,7 +12,7 @@
 
 ## Architectural Tenets (Opus-level)
 
-**1. Itineraries are tied to saved trips.** The user must save a trip before planning a day-by-day. Reason: the day-by-day is a richer commitment than the initial "what does my trip look like" — if it's worth planning out, it's worth saving. Also gives a stable URL (`/trips/[tripId]/itinerary`) without needing share-slug semantics.
+**1. Itineraries are tied to saved trips.** The user must save a trip before planning a day-by-day. Reason: the day-by-day is a richer commitment than the initial "what does my trip look like" - if it's worth planning out, it's worth saving. Also gives a stable URL (`/trips/[tripId]/itinerary`) without needing share-slug semantics.
 
 **2. The shape is editorial, not booking.** Itinerary slots are descriptive ("a slow walk from the Boboli Garden"), not transactional ("3pm reservation at X"). Reason: a 3-day plan you can adjust is far more useful than a rigid 3-day schedule the model will get wrong on dates/availability. C3.x layers Viator activity search to add bookable items to specific slots; the editorial frame stays.
 
@@ -31,24 +31,24 @@
 ## File Structure
 
 **Create:**
-- `src/core/itinerary.ts` — Zod schemas + types for `Itinerary`, `ItineraryDay`, `ItinerarySlot`
-- `src/lib/itinerary/generator.ts` — interface + `CuratedItineraryGenerator` + `SynthesizedItineraryGenerator`
-- `src/lib/itinerary/itinerary-store.ts` — interface
-- `src/lib/itinerary/in-memory-itinerary-store.ts` — process-local cache
-- `src/lib/itinerary/factory.ts` — `getItinerarySubsystem()`
-- `src/lib/itinerary/index.ts` — barrel
-- `src/lib/curation/itineraries.ts` — `CURATED_ITINERARIES: Record<slug, Itinerary>` (7 destinations × 3 days)
-- `src/app/trips/[tripId]/itinerary/page.tsx` — server-rendered itinerary page
-- `src/features/itinerary/itinerary-view.tsx` — visual layout (day blocks, slot cards)
-- `src/features/itinerary/slot-card.tsx` — individual slot
-- `tests/itinerary-curation.test.ts` — every curated entry passes voice lint + has well-formed days
-- `tests/itinerary-generator.test.ts` — curated lookup vs synthesized fallback
-- `tests/itinerary-store.test.ts` — round-trip + owner isolation
+- `src/core/itinerary.ts` - Zod schemas + types for `Itinerary`, `ItineraryDay`, `ItinerarySlot`
+- `src/lib/itinerary/generator.ts` - interface + `CuratedItineraryGenerator` + `SynthesizedItineraryGenerator`
+- `src/lib/itinerary/itinerary-store.ts` - interface
+- `src/lib/itinerary/in-memory-itinerary-store.ts` - process-local cache
+- `src/lib/itinerary/factory.ts` - `getItinerarySubsystem()`
+- `src/lib/itinerary/index.ts` - barrel
+- `src/lib/curation/itineraries.ts` - `CURATED_ITINERARIES: Record<slug, Itinerary>` (7 destinations × 3 days)
+- `src/app/trips/[tripId]/itinerary/page.tsx` - server-rendered itinerary page
+- `src/features/itinerary/itinerary-view.tsx` - visual layout (day blocks, slot cards)
+- `src/features/itinerary/slot-card.tsx` - individual slot
+- `tests/itinerary-curation.test.ts` - every curated entry passes voice lint + has well-formed days
+- `tests/itinerary-generator.test.ts` - curated lookup vs synthesized fallback
+- `tests/itinerary-store.test.ts` - round-trip + owner isolation
 
 **Modify:**
-- `src/features/workspace/saved-trips/saved-trip-row.tsx` — add "Plan day-by-day" link
-- `src/features/workspace/saved-trips/saved-trips-panel.tsx` — pass through the link
-- `src/lib/env/get-server-features.ts` — surface `itineraryGenerator: 'curated' | 'model'` for `/admin`
+- `src/features/workspace/saved-trips/saved-trip-row.tsx` - add "Plan day-by-day" link
+- `src/features/workspace/saved-trips/saved-trips-panel.tsx` - pass through the link
+- `src/lib/env/get-server-features.ts` - surface `itineraryGenerator: 'curated' | 'model'` for `/admin`
 
 ---
 
@@ -93,12 +93,12 @@
 
 - [ ] `itinerary-view.tsx`: full-bleed layout with hero (destination + dates summary), then 3 day blocks. Each day block: theme line + slot column.
 - [ ] `slot-card.tsx`: chip for kind (activity/meal/transit/rest) + start hint + title (Fraunces) + detail (italic Fraunces) + tags.
-- [ ] Visual polish: same vocabulary as the canvas/destination pages — surface-elevated cards on the dark base.
+- [ ] Visual polish: same vocabulary as the canvas/destination pages - surface-elevated cards on the dark base.
 
 ### Task 6: CTA wiring
 
 - [ ] Saved-trip row gains a small "Plan day-by-day" link (Link to `/trips/[tripId]/itinerary`). Lives below the hero name; doesn't conflict with existing Share/Remove buttons.
-- [ ] No other workspace surface change in C3 — the canvas + detail panel keep their existing affordances.
+- [ ] No other workspace surface change in C3 - the canvas + detail panel keep their existing affordances.
 
 ### Task 7: Pipeline + changelog + slice-c3 tag
 
@@ -110,13 +110,13 @@
 
 ## What stays unchanged
 
-- `OrchestratorEvent` shape — no new event kinds; itineraries are out-of-band from the turn flow.
-- LangGraph engine — untouched.
-- Auth / persistence / share / redirect / providers / monitoring / memory — all preserved.
+- `OrchestratorEvent` shape - no new event kinds; itineraries are out-of-band from the turn flow.
+- LangGraph engine - untouched.
+- Auth / persistence / share / redirect / providers / monitoring / memory - all preserved.
 
 ## Out of C3 scope (deferred to C3.x)
 
-- `ModelItineraryGenerator` — live model + activity-provider context for non-curated destinations. Lands when Viator/GetYourGuide is wired.
+- `ModelItineraryGenerator` - live model + activity-provider context for non-curated destinations. Lands when Viator/GetYourGuide is wired.
 - Editing slots (drag-and-drop, manual swaps).
 - Sharing an itinerary (separate share-slug surface).
 - Stripe gate (C4 will lock the CTA behind premium for non-curated destinations).

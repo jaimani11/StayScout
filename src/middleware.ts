@@ -11,7 +11,7 @@ import { resolveSession, SESSION_COOKIE } from '@lib/session/anonymous';
  * downstream route handlers see the same id via `cookies()` /
  * `getServerAuth()`. Without that propagation, the route would re-
  * mint a different uuid (each `resolveSession(null)` call returns
- * a fresh one) — owner attribution would diverge from the cookie
+ * a fresh one) - owner attribution would diverge from the cookie
  * the client receives, and trips saved on request 1 would be
  * invisible on request 2.
  *
@@ -22,7 +22,7 @@ import { resolveSession, SESSION_COOKIE } from '@lib/session/anonymous';
  *      outbound response (so the client persists it).
  *
  *   2. Delegate to Clerk's middleware when auth is configured.
- *      Otherwise NextResponse.next() — keeps Clerk completely off
+ *      Otherwise NextResponse.next() - keeps Clerk completely off
  *      the keyless build path. The dynamic import ensures Clerk's
  *      runtime isn't evaluated in keyless builds.
  */

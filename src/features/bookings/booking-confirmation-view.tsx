@@ -6,7 +6,7 @@ import { CancelBookingButton } from './cancel-booking-button';
 
 interface BookingConfirmationViewProps {
   booking: Booking;
-  /** From the SavedTrip we drafted against — gives the page a hero name + destination. */
+  /** From the SavedTrip we drafted against - gives the page a hero name + destination. */
   destinationName: string;
   heroStayName: string;
 }
@@ -203,10 +203,10 @@ export function BookingConfirmationView({
           }}
         >
           {booking.status === 'confirmed'
-            ? 'This page is your confirmation — bookmark it, or keep the provider reference handy for check-in.'
+            ? 'This page is your confirmation - bookmark it, or keep the provider reference handy for check-in.'
             : booking.status === 'canceled'
               ? 'Refund timing depends on the cancellation policy above.'
-              : 'You can try again from the saved-trips panel — drafts are not double-charged.'}
+              : 'You can try again from the saved-trips panel - drafts are not double-charged.'}
         </p>
       </footer>
     </main>

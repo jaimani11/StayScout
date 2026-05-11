@@ -11,7 +11,7 @@ import type {
 import type { TemporalContext } from './temporal';
 import type { FreshnessInfo } from './trust';
 
-// Capabilities are runtime data, so they get a Zod schema too — useful for
+// Capabilities are runtime data, so they get a Zod schema too - useful for
 // a future ProviderRegistry that validates third-party providers.
 export const ProviderCapabilitiesSchema = z.object({
   realtime: z.boolean(),
@@ -23,11 +23,11 @@ export const ProviderCapabilitiesSchema = z.object({
 export type ProviderCapabilities = z.infer<typeof ProviderCapabilitiesSchema>;
 
 export const ProviderBadgeSchema = z.object({
-  // - 'live'           — real-time partner availability (Expedia, Vrbo, Booking.com)
-  // - 'preview'        — AI-synthesized listing, no live availability
-  // - 'closest-match'  — supplied results don't exactly match query
-  // - 'curated'        — hand-picked dataset (mock-italy)
-  // - 'wholesaler'     — aggregator surface (Hotelbeds-class)
+  // - 'live'           - real-time partner availability (Expedia, Vrbo, Booking.com)
+  // - 'preview'        - AI-synthesized listing, no live availability
+  // - 'closest-match'  - supplied results don't exactly match query
+  // - 'curated'        - hand-picked dataset (mock-italy)
+  // - 'wholesaler'     - aggregator surface (Hotelbeds-class)
   kind: z.enum(['live', 'preview', 'closest-match', 'curated', 'wholesaler']),
   label: z.string(),
 });
@@ -48,7 +48,7 @@ export interface ProviderSearchQuery {
   preferences?: TripPreferences;
   filters?: ProviderFilters;
   limit?: number;
-  compareSet?: string[]; // StayId list — ranking-aware comparison seam
+  compareSet?: string[]; // StayId list - ranking-aware comparison seam
   temporalContext?: TemporalContext; // populated by Slice B
 }
 

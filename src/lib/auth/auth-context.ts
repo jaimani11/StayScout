@@ -13,7 +13,7 @@ export const AuthContext = createContext<AuthState | null>(null);
 export function useAuth(): AuthState {
   const ctx = useContext(AuthContext);
   if (!ctx) {
-    // Tolerant fallback — components imported in places where the provider
+    // Tolerant fallback - components imported in places where the provider
     // isn't mounted (e.g. unit tests) get a stable anonymous state rather
     // than a crash.
     return { kind: 'anonymous', sessionId: 'unprovided' };

@@ -6,7 +6,7 @@ import type { BookingStore } from './booking-store';
 /**
  * Slice D ships only `MockBookingProvider`. D.x adds the env-driven
  * switch to real providers (BookingComBookingProvider etc.) behind
- * the same `BookingProvider` interface — and crucially, behind a
+ * the same `BookingProvider` interface - and crucially, behind a
  * separate `STAYSCOUT_LIVE_BOOKING=1` opt-in flag (provider keys
  * alone are not enough, since those keys are also used by the
  * existing search flow).
@@ -17,13 +17,13 @@ export interface BookingSubsystem {
   /** 'mock' in Slice D. D.x surfaces 'live' when the opt-in fires. */
   kind: 'mock' | 'live';
   /** True iff `STAYSCOUT_LIVE_BOOKING=1` is set. False in Slice D
-   *  even if true — the architecture seam is here, the live wiring
+   *  even if true - the architecture seam is here, the live wiring
    *  lands in D.x. Surfaced on /admin so operators can see "live
    *  is configured but not active." */
   liveEnabled: boolean;
 }
 
-// Process-global anchor — module-local `_cached` produced two
+// Process-global anchor - module-local `_cached` produced two
 // subsystems in Next dev (API route + server component) which meant
 // MockBookingProvider's internal `bookingsByKey` Map diverged across
 // contexts. Bookings made in one couldn't be seen by the other.
@@ -38,7 +38,7 @@ export function getBookingSubsystem(): BookingSubsystem {
   const liveEnabled = process.env.STAYSCOUT_LIVE_BOOKING === '1';
   if (liveEnabled) {
     console.warn(
-      '[booking] STAYSCOUT_LIVE_BOOKING is set but real provider booking lands in D.x — using MockBookingProvider for now.',
+      '[booking] STAYSCOUT_LIVE_BOOKING is set but real provider booking lands in D.x - using MockBookingProvider for now.',
     );
   }
   globalThis.__stayscoutBookingSubsystem = { provider, store, kind: 'mock', liveEnabled };

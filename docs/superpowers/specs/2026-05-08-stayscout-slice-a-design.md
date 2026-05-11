@@ -1,7 +1,7 @@
-# StayScout AI — Slice A Design
+# StayScout AI - Slice A Design
 
 **Document type:** Design specification
-**Project:** StayScout AI — AI-native travel discovery & booking orchestration platform
+**Project:** StayScout AI - AI-native travel discovery & booking orchestration platform
 **Slice:** A · Cinematic Foundation
 **Date:** 2026-05-08
 **Status:** Approved (sections 1–7), pending user review of full document
@@ -20,20 +20,20 @@ StayScout AI is a multi-agent travel orchestration platform that sits above exis
 
 The platform owns no inventory. It aggregates, reasons, ranks, orchestrates, recommends, monitors, learns, and monetizes via affiliate flows.
 
-This document specifies **Slice A** — the cinematic foundation. Slice A is the first of four planned slices:
+This document specifies **Slice A** - the cinematic foundation. Slice A is the first of four planned slices:
 
-- **Slice A** — cinematic frontend + conversational experience + Intent + MoodSnapshot agents + mock+synthesized provider layer + refine flow + compare seam
-- **Slice B** — Postgres + auth + multi-agent orchestrator (LangGraph) + real provider integrations + observability + affiliate infrastructure + programmatic SEO
-- **Slice C** — pgvector memory + monitoring + itinerary agent + admin panel + premium tier + PWA mobile
-- **Slice D** — autonomous booking (approval-gated → autonomous) + trip protection + advanced monitoring rules
+- **Slice A** - cinematic frontend + conversational experience + Intent + MoodSnapshot agents + mock+synthesized provider layer + refine flow + compare seam
+- **Slice B** - Postgres + auth + multi-agent orchestrator (LangGraph) + real provider integrations + observability + affiliate infrastructure + programmatic SEO
+- **Slice C** - pgvector memory + monitoring + itinerary agent + admin panel + premium tier + PWA mobile
+- **Slice D** - autonomous booking (approval-gated → autonomous) + trip protection + advanced monitoring rules
 
-The architecture in this document is designed so Slices B–D are **additive** — new files in existing folders, no protocol or UI refactors.
+The architecture in this document is designed so Slices B–D are **additive** - new files in existing folders, no protocol or UI refactors.
 
 ### 0.1 Slice A North Star
 
 > *"If an investor, traveler, or partner used this for two minutes, they would immediately understand the vision and emotionally feel the future of AI-native travel orchestration."*
 
-Slice A optimizes for **emotional feel, UX quality, trust, polish, cinematic interaction quality, and believable AI orchestration** — not for full production travel infrastructure. The believability of the demo is the highest-leverage thing in the whole slice.
+Slice A optimizes for **emotional feel, UX quality, trust, polish, cinematic interaction quality, and believable AI orchestration** - not for full production travel infrastructure. The believability of the demo is the highest-leverage thing in the whole slice.
 
 ---
 
@@ -45,10 +45,10 @@ All decisions made during brainstorming, in one table:
 |---|---|---|
 | Aesthetic | **B · Cinematic Dark** primary + **C-derived warm boutique** light mode | Distinctive vs every existing travel site (which are all warm-light); dual-mode preserves both moods |
 | Conversation pattern | **3 · Split chat sidebar + spatial canvas** | Most "concierge"-like; supports multi-stay future |
-| Entry model | **E3 · Hybrid** — workspace at fold + marketing below | Removes click between marketing and product; transforms on engagement |
-| Canvas layout | **CB · Trip Board** — hero + alternatives + reasoning | A concierge hands you a *proposal*, not a search result list |
-| Streaming UX | **SC · Combined** — agent steps in chat + shimmer in canvas | Both regions of screen alive; named-agent step list IS the multi-agent vision |
-| Mock data | **Hybrid** (1c) — curated Italy + LLM-synthesized fallback with preview badge | Believability for primary demo path, breadth for fallback |
+| Entry model | **E3 · Hybrid** - workspace at fold + marketing below | Removes click between marketing and product; transforms on engagement |
+| Canvas layout | **CB · Trip Board** - hero + alternatives + reasoning | A concierge hands you a *proposal*, not a search result list |
+| Streaming UX | **SC · Combined** - agent steps in chat + shimmer in canvas | Both regions of screen alive; named-agent step list IS the multi-agent vision |
+| Mock data | **Hybrid** (1c) - curated Italy + LLM-synthesized fallback with preview badge | Believability for primary demo path, breadth for fallback |
 | Auth scope | **Anonymous session** (cookie-bound) | Removes friction; persists state without user model |
 | Provider abstraction | **Build now**, ship one mock + one synthesized impl | Two-file pattern; real providers slot in cleanly |
 | LLM provider | **Claude only** (haiku-4-5 for streaming intent, sonnet-4-6 for richer reasoning) | Existing API access; prompt caching strong; structured outputs solid |
@@ -64,15 +64,15 @@ All decisions made during brainstorming, in one table:
 
 ### 2.1 Runtime topology
 
-Single Next.js 15 App Router app on **Node runtime** (not Edge — we want `fs` for the curated seed and don't need Edge's cold-start profile yet), deployed to Vercel.
+Single Next.js 15 App Router app on **Node runtime** (not Edge - we want `fs` for the curated seed and don't need Edge's cold-start profile yet), deployed to Vercel.
 
 ### 2.2 Layered structure
 
-ESLint-enforced boundaries via `eslint-plugin-boundaries`. Folders map 1:1 to future Turborepo packages — when monorepo split is wanted, it's a `git mv` and a `package.json` per folder.
+ESLint-enforced boundaries via `eslint-plugin-boundaries`. Folders map 1:1 to future Turborepo packages - when monorepo split is wanted, it's a `git mv` and a `package.json` per folder.
 
 ```
 src/
-  core/           types & contracts only — no runtime, no React, no Next imports
+  core/           types & contracts only - no runtime, no React, no Next imports
   agents/         Agent implementations             ← deps: core, lib
   providers/      Provider implementations          ← deps: core, lib
   orchestrator/   Orchestrator + event stream      ← deps: core, agents, providers, lib
@@ -80,7 +80,7 @@ src/
                   quality (taste lint), curation (curated moods/voice templates),
                   evaluation (interfaces) ← deps: core
   features/       UI features by domain (landing, workspace, shared) ← deps: anything except app
-  app/            Next.js routes — thin glue only   ← deps: anything
+  app/            Next.js routes - thin glue only   ← deps: anything
   styles/         design tokens, globals
 ```
 
@@ -88,9 +88,9 @@ Allowed import direction: `app → features → orchestrator → agents/provider
 
 ### 2.3 Server / client split
 
-- `/` page — RSC for marketing sections (How It Works, Featured Stays, Why StayScout, Footer). Single Client boundary at the workspace shell so marketing stays static-fast.
-- Workspace — fully client-side (Zustand state, streaming consumer, Framer Motion). One client component at the root; everything below it.
-- `/api/concierge` — Node runtime route handler. Returns `Response` with a `ReadableStream<Uint8Array>` of JSONL events.
+- `/` page - RSC for marketing sections (How It Works, Featured Stays, Why StayScout, Footer). Single Client boundary at the workspace shell so marketing stays static-fast.
+- Workspace - fully client-side (Zustand state, streaming consumer, Framer Motion). One client component at the root; everything below it.
+- `/api/concierge` - Node runtime route handler. Returns `Response` with a `ReadableStream<Uint8Array>` of JSONL events.
 
 ### 2.4 Request flow
 
@@ -137,7 +137,7 @@ type TripIntent = {
   duration: { nights: number; flexible: boolean };
   travelers: { adults; children; infants; groupKind? };
   budget: BudgetIntent;                 // total | per-night | unspecified, with flexibility
-  vibe: { tags: VibeTag[] };            // closed taxonomy union — no string drift
+  vibe: { tags: VibeTag[] };            // closed taxonomy union - no string drift
   preferences: { amenities; avoid; transportation?; accessibility? };
   caveats: string[];                    // "no tourist traps", "wife is gluten-free"
   rawInput: string;                     // original text always preserved
@@ -145,7 +145,7 @@ type TripIntent = {
 };
 ```
 
-`VibeTag` is a closed string union (`'luxury' | 'walkable' | 'family-friendly' | …`). Future enrichment fields (pace, luxury tolerance, social vs private style, food priority, spontaneity vs structure) are added as additional optional fields on `TripIntent` in Slice B/C — additive, not replacing.
+`VibeTag` is a closed string union (`'luxury' | 'walkable' | 'family-friendly' | …`). Future enrichment fields (pace, luxury tolerance, social vs private style, food priority, spontaneity vs structure) are added as additional optional fields on `TripIntent` in Slice B/C - additive, not replacing.
 
 #### `Stay`
 
@@ -212,7 +212,7 @@ Slice A ships:
 - `IntentAgent: Agent<{ rawInput; priorIntent? }, TripIntent>`
 - `MoodSnapshotAgent: Agent<{ destination }, MoodSnapshot>`
 
-Slice B+ adds `SearchAgent`, `RankingAgent`, `WeatherAgent`, `EventEnrichmentAgent`, `MemoryAgent`, `ItineraryAgent`, `MonitoringAgent`, `BookingAgent` — all conforming to the same interface.
+Slice B+ adds `SearchAgent`, `RankingAgent`, `WeatherAgent`, `EventEnrichmentAgent`, `MemoryAgent`, `ItineraryAgent`, `MonitoringAgent`, `BookingAgent` - all conforming to the same interface.
 
 ### 3.3 Provider interface
 
@@ -249,15 +249,15 @@ interface ProviderSearchQuery {
 
 interface ProviderSearchResult {
   stays: Stay[];
-  badges: ProviderBadge[];              // 'preview' for synthesized — auto UI surface
+  badges: ProviderBadge[];              // 'preview' for synthesized - auto UI surface
   pagination?: { cursor?: string; hasMore: boolean };
   freshness: FreshnessInfo;             // {fetchedAt, dataMaxAgeMs, priceMaxAgeMs?, source: 'live'|'cached'|'synthesized'}
 }
 ```
 
-A real provider (e.g., `BookingComProvider`) is one folder with three files: `index.ts`, `mapper.ts`, `affiliate-attribution.ts` (Slice B). The Provider interface is sacred — every real-world inventory source must fit through it (with sibling `FlightProvider`, `ActivityProvider` interfaces for fundamentally different domains).
+A real provider (e.g., `BookingComProvider`) is one folder with three files: `index.ts`, `mapper.ts`, `affiliate-attribution.ts` (Slice B). The Provider interface is sacred - every real-world inventory source must fit through it (with sibling `FlightProvider`, `ActivityProvider` interfaces for fundamentally different domains).
 
-### 3.4 `OrchestratorEvent` — the wire format
+### 3.4 `OrchestratorEvent` - the wire format
 
 Discriminated union by `kind`. The Zustand store has one reducer that pattern-matches.
 
@@ -320,7 +320,7 @@ interface ModelClient {
 }
 ```
 
-Slice A impl: `AnthropicModelClient` with prompt caching enabled. Slice B can add `RoutedModelClient` selecting Claude/OpenAI/Gemini per agent — agents stay unchanged because they only depend on the interface.
+Slice A impl: `AnthropicModelClient` with prompt caching enabled. Slice B can add `RoutedModelClient` selecting Claude/OpenAI/Gemini per agent - agents stay unchanged because they only depend on the interface.
 
 ### 3.6 Supporting types
 
@@ -387,7 +387,7 @@ The system is built around two non-negotiable feel goals: **calm** and **alive**
 
 ### 4.1 Colors
 
-CSS custom properties in `src/styles/tokens.css`, exposed via Tailwind v4 `@theme`. Intentionally *not* a lazy inversion — each mode owns a different accent character.
+CSS custom properties in `src/styles/tokens.css`, exposed via Tailwind v4 `@theme`. Intentionally *not* a lazy inversion - each mode owns a different accent character.
 
 | Token | Dark (cinematic) | Light (boutique sunset) |
 |---|---|---|
@@ -404,9 +404,9 @@ CSS custom properties in `src/styles/tokens.css`, exposed via Tailwind v4 `@them
 | `--bloom-warm` | `radial-gradient(ellipse 80% 60% at 70% 20%, rgba(212 165 116 / .14), transparent 60%)` | `radial-gradient(...) terracotta @ 8%` |
 | `--bloom-cool` | `radial-gradient(ellipse 60% 50% at 20% 90%, rgba(80 120 200 / .10), transparent 60%)` | `radial-gradient(...) olive @ 6%` |
 
-The bloom tokens are the secret weapon of dark mode — they replace shadows as the elevation language. Every "luxe" surface in the dark workspace gets a `--bloom-warm` overlay; cards never use box-shadows alone.
+The bloom tokens are the secret weapon of dark mode - they replace shadows as the elevation language. Every "luxe" surface in the dark workspace gets a `--bloom-warm` overlay; cards never use box-shadows alone.
 
-**Fixed boutique-light tokens** — the "Featured stays" marketing section (5.12) needs to keep its boutique-light identity regardless of global theme. Defined as a separate, theme-independent token set:
+**Fixed boutique-light tokens** - the "Featured stays" marketing section (5.12) needs to keep its boutique-light identity regardless of global theme. Defined as a separate, theme-independent token set:
 
 ```css
 --featured-bg:           #F4EFE6;       /* always cream */
@@ -424,9 +424,9 @@ In global dark mode these create a deliberate cream "exhale" mid-page (the light
 
 Three families via `next/font` (no FOUT, self-hosted):
 
-- **Fraunces** — variable, opsz 9-144, wght 300-500, italic. Display, hero stay names, AI message body, proposal summary.
-- **Inter** — variable. UI, navigation, chat user messages, prices, metadata.
-- **Geist Mono** — agent IDs, step counters, technical labels. Sparing.
+- **Fraunces** - variable, opsz 9-144, wght 300-500, italic. Display, hero stay names, AI message body, proposal summary.
+- **Inter** - variable. UI, navigation, chat user messages, prices, metadata.
+- **Geist Mono** - agent IDs, step counters, technical labels. Sparing.
 
 Scale (`src/styles/tokens.css`):
 
@@ -442,7 +442,7 @@ label        0.75rem / 1.40 / 0.08em ↑ Inter 500 caps     section eyebrows
 mono         0.8125rem / 1.50          Geist Mono 400     agent IDs
 ```
 
-Italics reserved as accent — never for emphasis-as-default. They mark concierge voice (*"Tuscany & Umbria — slower, fewer crowds"*) and AI-attributed reasoning chips.
+Italics reserved as accent - never for emphasis-as-default. They mark concierge voice (*"Tuscany & Umbria - slower, fewer crowds"*) and AI-attributed reasoning chips.
 
 ### 4.3 Spacing & radii
 
@@ -452,7 +452,7 @@ Radii: `sm 6 · md 10 · lg 14 · xl 18 · 2xl 22 · full 9999`. Cards default `
 
 ### 4.4 Elevation
 
-Dark mode — bloom + ambient ring, not shadows:
+Dark mode - bloom + ambient ring, not shadows:
 
 ```
 --elev-card-dark:   0 8px 24px -8px rgb(0 0 0 / .50),
@@ -462,7 +462,7 @@ Dark mode — bloom + ambient ring, not shadows:
                     inset 0 1px 0 rgb(255 255 255 / .06);
 ```
 
-Light mode — 4-stop shadow scale (`sm/md/lg/hero`) with cool-tinted alphas.
+Light mode - 4-stop shadow scale (`sm/md/lg/hero`) with cool-tinted alphas.
 
 ### 4.5 Motion
 
@@ -482,20 +482,20 @@ Tokens in `src/styles/tokens.css`:
 
 Six named motion patterns ship as Framer Motion variants in `src/features/shared/motion/`:
 
-1. `fadeUp` — opacity 0→1, y 12→0
-2. `materialize` — opacity 0→1, scale 0.96→1, filter blur(8px)→blur(0) — for stay cards landing on canvas after shimmer
-3. `shimmer` — background-position cycle, infinite linear 1600ms
-4. `glow-pulse` — box-shadow expand-fade, infinite 2000ms — active agent step indicator
-5. `stagger-children` — 60ms between siblings
-6. `breathe` — scale 1↔1.005, infinite 5s — hero stay subtle aliveness
+1. `fadeUp` - opacity 0→1, y 12→0
+2. `materialize` - opacity 0→1, scale 0.96→1, filter blur(8px)→blur(0) - for stay cards landing on canvas after shimmer
+3. `shimmer` - background-position cycle, infinite linear 1600ms
+4. `glow-pulse` - box-shadow expand-fade, infinite 2000ms - active agent step indicator
+5. `stagger-children` - 60ms between siblings
+6. `breathe` - scale 1↔1.005, infinite 5s - hero stay subtle aliveness
 
 `prefers-reduced-motion` collapses 3, 5, 6 to a single 200ms fade. Non-negotiable.
 
-### 4.6 Glass / blur — codified rules
+### 4.6 Glass / blur - codified rules
 
 Glass is rare and earned. Used only for: chat input pill, docked input, "Preview" badges on synthesized stays, agent-step-status floating row.
 
-Always: `backdrop-filter: blur(12px) saturate(1.4)`, paired with `--border-emphasis` and an inner highlight. **Never glass over flat color** — must be over a bloom or photo.
+Always: `backdrop-filter: blur(12px) saturate(1.4)`, paired with `--border-emphasis` and an inner highlight. **Never glass over flat color** - must be over a bloom or photo.
 
 ### 4.7 Photo treatment
 
@@ -507,7 +507,7 @@ Always: `backdrop-filter: blur(12px) saturate(1.4)`, paired with `--border-empha
 
 ### 4.8 Icons
 
-Lucide for utility (search, refresh, close, chevrons, send). One custom SVG sparkle (`✦`) is the AI/concierge motif — appears in chat input, AI message prefix, agent step bullets, docked-input symbol. All icons use `currentColor` and inherit `--ink-secondary` by default.
+Lucide for utility (search, refresh, close, chevrons, send). One custom SVG sparkle (`✦`) is the AI/concierge motif - appears in chat input, AI message prefix, agent step bullets, docked-input symbol. All icons use `currentColor` and inherit `--ink-secondary` by default.
 
 ### 4.9 Component primitives
 
@@ -533,22 +533,22 @@ Together they're the single page at `/`.
 - Background: `--surface-base` + `--bloom-warm` + `--bloom-cool` composited. Single ambient surface, not a "page with sections."
 - Split: 38% chat sidebar / 62% canvas. 1px hairline divider in `--border-subtle`.
 
-### 5.2 Chat sidebar — three states
+### 5.2 Chat sidebar - three states
 
-1. **Greeting** — Time-aware ("Good evening. Where to *next?*" — `display-sm` Fraunces, italic on "next") + 3 suggestion chips (static in Slice A; personalized from memory in Slice C).
-2. **Active turn** — User message → agent step list (5.3). The step list IS the AI's "typing" indicator. **No bouncing dots, no typing dots, no avatar.**
-3. **Resolved turn** — User message → collapsed step summary ("*Composed in 2.4s · 3 agents*", expandable for transparency) → concierge summary message in Fraunces italic.
+1. **Greeting** - Time-aware ("Good evening. Where to *next?*" - `display-sm` Fraunces, italic on "next") + 3 suggestion chips (static in Slice A; personalized from memory in Slice C).
+2. **Active turn** - User message → agent step list (5.3). The step list IS the AI's "typing" indicator. **No bouncing dots, no typing dots, no avatar.**
+3. **Resolved turn** - User message → collapsed step summary ("*Composed in 2.4s · 3 agents*", expandable for transparency) → concierge summary message in Fraunces italic.
 
 Older turns recede to opacity 0.7. Auto-scroll keeps the active turn pinned.
 
-Input bar fixed bottom, glass pill, sparkle prefix, send arrow. `Enter` sends, `Shift+Enter` newline. Focus state is a subtle gold outline glow — no harsh focus ring.
+Input bar fixed bottom, glass pill, sparkle prefix, send arrow. `Enter` sends, `Shift+Enter` newline. Focus state is a subtle gold outline glow - no harsh focus ring.
 
 **Voice rules** (`src/lib/quality/voice.ts` enforces):
 - Concierge speaks in fragments and italics, not paragraphs and exclamations
 - Banned words: *unforgettable, experience, hidden gem, discover, journey*
-- Microcopy template: *"Tuscany & Umbria — slower, fewer crowds, walkable hill towns."* Never *"Hey there, great choice!"*
+- Microcopy template: *"Tuscany & Umbria - slower, fewer crowds, walkable hill towns."* Never *"Hey there, great choice!"*
 
-### 5.3 Agent step list — the streaming UX
+### 5.3 Agent step list - the streaming UX
 
 Each step row:
 - Left: status indicator. Empty ring → gold ring + `glow-pulse` (active) → solid gold + check (done).
@@ -558,18 +558,18 @@ Each step row:
 
 Steps enter with `fadeUp`, stagger 60ms. **No animated chevrons, no spinners, no robot icons.** The pulsing gold ring is the only motion.
 
-### 5.4 Canvas — empty state ("Featured today")
+### 5.4 Canvas - empty state ("Featured today")
 
 Pre-turn state. **Curated, not decorative.**
 
 - One large hero stay (daily-rotated from curated Italy seed), full-bleed within canvas
 - Caption in Fraunces italic: *"Tuscany, today"*
 - Three smaller thumbnails below
-- Subtle prompt at canvas top: *"Tell me about your trip — or start with one of these."*
+- Subtle prompt at canvas top: *"Tell me about your trip - or start with one of these."*
 
 In Slice A the rotation is by `Date.now()` quantized to a daily bucket over the curated set. Slice C personalizes from memory.
 
-### 5.5 Canvas — shimmer state
+### 5.5 Canvas - shimmer state
 
 Triggered by `proposal.shimmering` event. The Trip Board *layout grid* materializes empty, with shimmer placeholders, **before the cards exist**:
 
@@ -577,9 +577,9 @@ Triggered by `proposal.shimmering` event. The Trip Board *layout grid* materiali
 - 2 alternative placeholders (16:10, `xl` radius)
 - Reasoning strip placeholder
 
-Each shimmer is a warm-gold gradient sweep over `--surface-elevated`, 1600ms cycle. Layout matches eventual content exactly — **zero layout shift** when real cards arrive.
+Each shimmer is a warm-gold gradient sweep over `--surface-elevated`, 1600ms cycle. Layout matches eventual content exactly - **zero layout shift** when real cards arrive.
 
-### 5.6 Canvas — Trip Board: the materialization moment
+### 5.6 Canvas - Trip Board: the materialization moment
 
 The single highest-leverage interaction in the product. Choreography is frame-precise:
 
@@ -597,7 +597,7 @@ T+210ms   Alternative card 2 starts
 T+400ms   Reasoning chip strip slides up (fadeUp, 350ms)
 T+600ms   Hero begins breathe loop (scale 1↔1.005, 5s)
 T+600ms   Concierge summary message in chat (fadeUp)
-T+~700ms  Settled — Trip Board is alive
+T+~700ms  Settled - Trip Board is alive
 T+~1000ms (post) MoodSnapshotAgent emits → mood text fades onto hero card
 ```
 
@@ -616,12 +616,12 @@ T+~1000ms (post) MoodSnapshotAgent emits → mood text fades onto hero card
 
 **Reasoning strip** (full-width below cards):
 - Eyebrow `Why these` in Inter `label`
-- Chips: closed pills with provenance distinction — chips from user intent in `--ink-secondary`, chips from AI in `--accent-primary`. Visual difference between user-said and AI-inferred is the whole point.
+- Chips: closed pills with provenance distinction - chips from user intent in `--ink-secondary`, chips from AI in `--accent-primary`. Visual difference between user-said and AI-inferred is the whole point.
 - Last chip shows total cost in Fraunces gold.
 
 ### 5.7 Refine flow
 
-When the user types a follow-up ("less touristy", "smaller villas"), it's a **refine turn** (Section 6.4) — not a fresh compose. The Trip Board does a **diff transition**, not a fresh materialize:
+When the user types a follow-up ("less touristy", "smaller villas"), it's a **refine turn** (Section 6.4) - not a fresh compose. The Trip Board does a **diff transition**, not a fresh materialize:
 
 - Cards present in both old and new proposals stay fixed (no animation)
 - Removed cards fade out (250ms)
@@ -648,7 +648,7 @@ interface MemoryHinter {
 }
 ```
 
-Slice A heuristic: 3+ turns within session sharing a `vibe.tag` triggers hint *"You seem to prefer slower, walkable destinations."* Fired at most once per session via `concierge.memory.hint` event. Slice C replaces with cross-session Memory Agent — same event shape.
+Slice A heuristic: 3+ turns within session sharing a `vibe.tag` triggers hint *"You seem to prefer slower, walkable destinations."* Fired at most once per session via `concierge.memory.hint` event. Slice C replaces with cross-session Memory Agent - same event shape.
 
 ### 5.10 Detail view
 
@@ -657,33 +657,33 @@ Click any stay card → side panel slides in from right (350ms ease-emphasized),
 - Name, location, price
 - Description (1–2 short paragraphs)
 - Amenity chips
-- Single primary CTA: gold pill `Continue to Booking →` opens placeholder confirmation modal with honest *"Slice A demo — booking redirect lives in Slice B."*
+- Single primary CTA: gold pill `Continue to Booking →` opens placeholder confirmation modal with honest *"Slice A demo - booking redirect lives in Slice B."*
 - Inline disclosure: *"StayScout earns affiliate commission on bookings. Prices identical."*
 - Closes via Esc / click-outside / X
 
-### 5.11 Marketing — How It Works
+### 5.11 Marketing - How It Works
 
 Three steps, sticky-scroll narrative (each ~80vh, scroll-driven `whileInView` with `once: true`):
 
-1. **Describe** — Illustration: chat-input pill morphs into structured `TripIntent` fields appearing one at a time. Headline: *"You write a sentence."*
-2. **The concierge composes** — Illustration: three agent rows progressing in sequence. Headline: *"Specialized agents do the work."*
-3. **You confirm** — Illustration: static Trip Board hero card. Headline: *"You stay in control."*
+1. **Describe** - Illustration: chat-input pill morphs into structured `TripIntent` fields appearing one at a time. Headline: *"You write a sentence."*
+2. **The concierge composes** - Illustration: three agent rows progressing in sequence. Headline: *"Specialized agents do the work."*
+3. **You confirm** - Illustration: static Trip Board hero card. Headline: *"You stay in control."*
 
 Cool blue ambient bloom in this section to break visual monotony.
 
-### 5.12 Marketing — Featured stays (light-mode break)
+### 5.12 Marketing - Featured stays (light-mode break)
 
-4–6 editorial cards in **warm boutique-light palette** using the fixed `--featured-*` token set (4.1) — cream base, olive + clay accents — regardless of global theme. Intentionally different mood from the dark workspace above. Acts as preview of light mode and a visual exhale.
+4–6 editorial cards in **warm boutique-light palette** using the fixed `--featured-*` token set (4.1) - cream base, olive + clay accents - regardless of global theme. Intentionally different mood from the dark workspace above. Acts as preview of light mode and a visual exhale.
 
 Headline: *"Hand-selected by the concierge."* Background gradient transitions from `--surface-base` (the global theme's base) into `--featured-bg` over the 80vh between this and the previous section. In dark mode this produces the cream "exhale" break; in light mode it produces a subtle warmth shift, still reading as a section.
 
-### 5.13 Marketing — Why StayScout
+### 5.13 Marketing - Why StayScout
 
 Three calm tiles, two-column layout:
 
-1. **Specialized agents, not a chatbot.** — Multi-agent architecture copy + small named-agents visual.
-2. **Honest about how we make money.** — Affiliate disclosure copy.
-3. **Memory that improves with you.** — Preference learning copy (Slice C feature; tile sets expectation early).
+1. **Specialized agents, not a chatbot.** - Multi-agent architecture copy + small named-agents visual.
+2. **Honest about how we make money.** - Affiliate disclosure copy.
+3. **Memory that improves with you.** - Preference learning copy (Slice C feature; tile sets expectation early).
 
 ### 5.14 Footer
 
@@ -704,12 +704,12 @@ Slice B does the proper thumb-first redesign.
 ### 5.17 Voice & taste rules (codified)
 
 `src/lib/quality/` enforces:
-- `banned-words.ts` — shared cliché list (`unforgettable`, `experience`, `hidden gem`, `discover`, `journey`, `magical`, `unique`, `breathtaking`, `must-see`, `bucket-list`)
-- `taste-lint.ts` — runs in CI on:
+- `banned-words.ts` - shared cliché list (`unforgettable`, `experience`, `hidden gem`, `discover`, `journey`, `magical`, `unique`, `breathtaking`, `must-see`, `bucket-list`)
+- `taste-lint.ts` - runs in CI on:
   - Curated stay descriptions (`src/providers/mock-italy/data/stays/*.ts`)
   - Curated mood snapshots (`src/lib/curation/moods.ts`)
   - All static UI microcopy
-- `mood-lint.ts` — used live by `MoodSnapshotAgent` to validate LLM output before emitting; on fail, retry once with stricter prompt; on second fail, suppress mood for that destination ("better silent than corny")
+- `mood-lint.ts` - used live by `MoodSnapshotAgent` to validate LLM output before emitting; on fail, retry once with stricter prompt; on second fail, suppress mood for that destination ("better silent than corny")
 
 ### 5.18 Slice A explicit non-goals
 
@@ -717,9 +717,9 @@ Slice B does the proper thumb-first redesign.
 - No user accounts
 - No Stripe / payments / real bookings
 - No real provider integrations
-- No itinerary view (single Trip Board only — no multi-day, no flights, no activities)
+- No itinerary view (single Trip Board only - no multi-day, no flights, no activities)
 - No admin panel, no observability dashboard, no traces UI
-- No SEO programmatic pages — only `/`
+- No SEO programmatic pages - only `/`
 - No human concierge escalation (interface stub only)
 - No PWA / push notifications
 
@@ -729,7 +729,7 @@ Slice B does the proper thumb-first redesign.
 
 ### 6.1 Wire format
 
-POST `/api/concierge`, response `Content-Type: application/x-ndjson` — newline-delimited JSON, one `OrchestratorEvent` per line, flushed eagerly.
+POST `/api/concierge`, response `Content-Type: application/x-ndjson` - newline-delimited JSON, one `OrchestratorEvent` per line, flushed eagerly.
 
 ```ts
 type ConciergeRequest = {
@@ -794,7 +794,7 @@ turn.completed
 ```
 
 Two key UI differences vs compose:
-1. Canvas does *not* shimmer — existing cards stay visible with subtle ripple while AI thinks
+1. Canvas does *not* shimmer - existing cards stay visible with subtle ripple while AI thinks
 2. `proposal.evolved` arrives → Trip Board does diff transition (cards present in both freeze, removed fade, added materialize, hero swap cross-fade)
 
 ### 6.4 Cancellation
@@ -847,8 +847,8 @@ Single source of truth: Zustand store has one reducer pattern-matching `event.ki
 
 Three rules:
 
-1. **Shimmer/refining states paint immediately** on event arrival — never an intermediate "loading…" string
-2. **Reducer never sets `proposal = null` mid-turn** — explicit phases: `idle → composing → shimmering → ready` and `settled → refining → evolved → settled`
+1. **Shimmer/refining states paint immediately** on event arrival - never an intermediate "loading…" string
+2. **Reducer never sets `proposal = null` mid-turn** - explicit phases: `idle → composing → shimmering → ready` and `settled → refining → evolved → settled`
 3. **Layout grid for Trip Board renders the moment shimmering begins**, with placeholders at exact final dimensions. Cards mutate in place; grid never reflows.
 
 ### 6.10 Failure & degradation
@@ -858,10 +858,10 @@ Three classes:
 | Failure | Behavior |
 |---|---|
 | Provider timeout | Drop provider's results, emit `agent.step.failed { recoverable: true }` for that provider, continue with remaining (`turn.completed.partial.degradedComponents`) |
-| Provider 0 stays for known destination | Soft failure; emit `concierge.message { tone: 'apologize', message: '*Couldn't find anything that fits — try broadening the dates?*' }` |
+| Provider 0 stays for known destination | Soft failure; emit `concierge.message { tone: 'apologize', message: '*Couldn't find anything that fits - try broadening the dates?*' }` |
 | Provider throws | Same as timeout; classified `recoverable` if any other provider returned, `non-recoverable` (turn.failed) if not |
 
-Sub-agent failures (Mood, MemoryHinter) are **always** `recoverable: true` — proposal ships without them. **Trip Board never blocks on optional polish.**
+Sub-agent failures (Mood, MemoryHinter) are **always** `recoverable: true` - proposal ships without them. **Trip Board never blocks on optional polish.**
 
 ---
 
@@ -944,7 +944,7 @@ Capabilities:
 
 ### 7.4 `MoodSnapshotAgent` data
 
-The curated mood data lives at `src/lib/curation/moods.ts` — **outside providers**, so the agent (which sits in `src/agents/`) can import it without violating layer boundaries (`agents` deps `core, lib`; not `providers`). Both `MockItalyProvider` and `MoodSnapshotAgent` read from this single source.
+The curated mood data lives at `src/lib/curation/moods.ts` - **outside providers**, so the agent (which sits in `src/agents/`) can import it without violating layer boundaries (`agents` deps `core, lib`; not `providers`). Both `MockItalyProvider` and `MoodSnapshotAgent` read from this single source.
 
 ~10 hand-written snapshots, editorial tone:
 
@@ -978,15 +978,15 @@ export function routeProvider(intent: TripIntent): Provider {
 
 Slice A: simple if/else. Slice B: `ProviderRouter` fans out to multiple providers in parallel and merges.
 
-### 7.6 Photos — Unsplash + `next/image`
+### 7.6 Photos - Unsplash + `next/image`
 
 - Hot-link via `next/image` with `remotePatterns: [{ hostname: 'images.unsplash.com' }]` configured
 - Next.js optimizes server-side, caches in Vercel image CDN
 - Photographer credit + license URL stored on every photo (FTC + Unsplash license compliance)
 - Loading states are bloom gradients, not gray boxes
-- `Stay.photos[].source: 'unsplash' | 'expedia' | 'vrbo' | …` — Slice B routes by source to right CDN
+- `Stay.photos[].source: 'unsplash' | 'expedia' | 'vrbo' | …` - Slice B routes by source to right CDN
 
-### 7.7 Provider seam — what real Booking.com looks like
+### 7.7 Provider seam - what real Booking.com looks like
 
 For verification the seam is real:
 
@@ -1034,7 +1034,7 @@ Enforced by `pnpm test:seed` running at CI: Zod schema + banned-words check on e
 
 ## 8. Extensibility Seams
 
-The architecture's value isn't proven by Slice A working — it's proven by Slices B–D being **additive** rather than refactor-driven.
+The architecture's value isn't proven by Slice A working - it's proven by Slices B–D being **additive** rather than refactor-driven.
 
 ### 8.1 Agent expansion roadmap
 
@@ -1053,14 +1053,14 @@ The architecture's value isn't proven by Slice A working — it's proven by Slic
 
 ### 8.2 Provider expansion order
 
-1. **Booking.com** (Slice B) — affiliate API, hotels + apartments
-2. **Expedia** (Slice B) — affiliate, hotels
-3. **Vrbo** (Slice B) — affiliate, vacation rentals
-4. **Hotelbeds** (Slice B/C) — wholesaler, B2B inventory
-5. **Skyscanner** (Slice C) — flights — sibling `FlightProvider` interface
-6. **Viator** (Slice C) — activities — sibling `ActivityProvider` interface
+1. **Booking.com** (Slice B) - affiliate API, hotels + apartments
+2. **Expedia** (Slice B) - affiliate, hotels
+3. **Vrbo** (Slice B) - affiliate, vacation rentals
+4. **Hotelbeds** (Slice B/C) - wholesaler, B2B inventory
+5. **Skyscanner** (Slice C) - flights - sibling `FlightProvider` interface
+6. **Viator** (Slice C) - activities - sibling `ActivityProvider` interface
 
-### 8.3 Persistence (Slice B — Postgres + Prisma + Clerk)
+### 8.3 Persistence (Slice B - Postgres + Prisma + Clerk)
 
 Slice A: anonymous cookie session, in-memory turn map. Persistence boundary lives behind `SessionStore` interface in `src/lib/session/`.
 
@@ -1073,20 +1073,20 @@ model Conversation { id String @id @default(cuid()); userId String; tripId Strin
 model Turn { id String @id; conversationId String; type String; events Json; createdAt DateTime @default(now()) }
 model AffiliateClick { ... } // 8.7
 model MonitoringJob { ... } // Slice C
-model MemoryRecord { ... }   // Slice C — pgvector
+model MemoryRecord { ... }   // Slice C - pgvector
 ```
 
-### 8.4 Memory (Slice C — pgvector)
+### 8.4 Memory (Slice C - pgvector)
 
 `MemoryAgent` runs post-turn, async, non-blocking. Two writes per turn:
-- **Episodic** — turn summary embedded into `pgvector` (`MemoryRecord` table with `embedding vector(1536)`)
-- **Structural** — preference deltas applied to `User.preferences` JSON (`PreferenceGraph` shape — pace, luxury tolerance, social style, food priority, spontaneity, walkability bias, etc.)
+- **Episodic** - turn summary embedded into `pgvector` (`MemoryRecord` table with `embedding vector(1536)`)
+- **Structural** - preference deltas applied to `User.preferences` JSON (`PreferenceGraph` shape - pace, luxury tolerance, social style, food priority, spontaneity, walkability bias, etc.)
 
 Pre-turn read: `MemoryAgent.recall(intent)` returns top-K relevant memories, consumed by `IntentAgent` via `AgentContext.memory?: MemoryContext`.
 
 The session-only `MemoryHinter` from Slice A is replaced by the same event shape (`concierge.memory.hint`) emitted from real cross-session evidence.
 
-### 8.5 Orchestration (Slice B — LangGraph.js drop-in)
+### 8.5 Orchestration (Slice B - LangGraph.js drop-in)
 
 Slice A `Orchestrator` is a hand-written sequential class. The wire output (`OrchestratorEvent` stream) is the contract.
 
@@ -1106,37 +1106,37 @@ const graph = new StateGraph<TurnState>(turnStateChannels)
   .compile({ checkpointer: postgresCheckpointer });
 ```
 
-### 8.6 Observability (Slice B — Langfuse)
+### 8.6 Observability (Slice B - Langfuse)
 
 `TraceLogger` interface already abstract. Slice B impl swaps no-op for `LangfuseTraceLogger`. One-line wire-up in route handler. Every existing event automatically becomes a trace.
 
 ### 8.7 Affiliate infrastructure (Slice B)
 
 Two pieces:
-1. **Click attribution** — orchestrator post-processes `Stay.bookingLink.url` through `wrapWithAttribution(link, { stayId, providerId, sessionId, turnId, userId? })`, producing `https://stayscout.com/r/<linkId>`
-2. **Redirect handler** — `app/r/[linkId]/route.ts` records click in Postgres (`AffiliateClick`), 302s to upstream affiliate URL with their tracking params
+1. **Click attribution** - orchestrator post-processes `Stay.bookingLink.url` through `wrapWithAttribution(link, { stayId, providerId, sessionId, turnId, userId? })`, producing `https://stayscout.com/r/<linkId>`
+2. **Redirect handler** - `app/r/[linkId]/route.ts` records click in Postgres (`AffiliateClick`), 302s to upstream affiliate URL with their tracking params
 
 Conversion tracking via webhooks/postbacks. `Stay` shape doesn't change; only the link wrapper.
 
 ### 8.8 Programmatic SEO (Slice B)
 
-- `app/destinations/[slug]/page.tsx` — RSC pages per destination
-- `app/sitemap.ts` — generates from destination + neighborhood combinations
+- `app/destinations/[slug]/page.tsx` - RSC pages per destination
+- `app/sitemap.ts` - generates from destination + neighborhood combinations
 - `app/robots.ts`
 - JSON-LD `TouristAttraction` / `LodgingBusiness` schema markup (hand-rolled)
-- `<FeaturedStaysSection>` reuses Trip Board components from workspace — visual consistency, code reuse
+- `<FeaturedStaysSection>` reuses Trip Board components from workspace - visual consistency, code reuse
 
 Slice C scales to thousands of pages with `generateStaticParams`.
 
 ### 8.9 Monetization
 
-- **Affiliate commissions** — live the moment Slice B's affiliate infrastructure ships
-- **Premium tier** — Slice C: Stripe subscription. `User.tier: 'free' | 'premium'` gates priority concierge (Sonnet model), autonomous booking access, multiple monitoring jobs, advanced memory features
-- **Trip protection** — Slice D: insurance partner via Provider interface family
+- **Affiliate commissions** - live the moment Slice B's affiliate infrastructure ships
+- **Premium tier** - Slice C: Stripe subscription. `User.tier: 'free' | 'premium'` gates priority concierge (Sonnet model), autonomous booking access, multiple monitoring jobs, advanced memory features
+- **Trip protection** - Slice D: insurance partner via Provider interface family
 
 ### 8.10 Admin panel (Slice C)
 
-New route group `app/(admin)/admin/*`, auth-gated to admin role. Reads from same Postgres tables. **Reuses workspace's chat sidebar pattern for the agent trace viewer** — code reuse, not redesign.
+New route group `app/(admin)/admin/*`, auth-gated to admin role. Reads from same Postgres tables. **Reuses workspace's chat sidebar pattern for the agent trace viewer** - code reuse, not redesign.
 
 Sections: Funnel, Agents (per-agent latency/error/cost), Affiliate revenue, Traces (live agent trace viewer replays JSONL stream), Monitoring.
 
@@ -1146,8 +1146,8 @@ Bottom-sheet redesign with `vaul` or hand-rolled. Touch-optimized targets. PWA m
 
 ### 8.12 Autonomous booking (Slice D)
 
-- **D.1** — Approval-gated: `BookingAgent` prepares params, surfaces confirmation UI, user confirms → execute
-- **D.2** — Autonomous: same flow, user rules ("auto-book if price drops below $X"), human-approval node becomes conditional. Audit log per autonomous action. Revocable.
+- **D.1** - Approval-gated: `BookingAgent` prepares params, surfaces confirmation UI, user confirms → execute
+- **D.2** - Autonomous: same flow, user rules ("auto-book if price drops below $X"), human-approval node becomes conditional. Audit log per autonomous action. Revocable.
 
 Architectural change between D.1 and D.2: a single graph edge condition in LangGraph.
 
@@ -1156,9 +1156,9 @@ Architectural change between D.1 and D.2: a single graph edge condition in LangG
 `src/lib/quality/` extends:
 
 - `taste-lint.ts` (Slice A: live for curated copy + LLM mood snapshots) → Slice B extends to all LLM-generated copy
-- `eval-recorder.ts` (Slice B) — records ranking quality samples to Postgres for offline review by curators
-- `hallucination-monitor.ts` (Slice B) — flags responses mentioning specific brand names from a banned list, fictional locations, or impossible price points
-- `quality-gates.ts` (Slice C) — blocks proposals that fail quality bars (e.g., all stays have stale pricing) before emission
+- `eval-recorder.ts` (Slice B) - records ranking quality samples to Postgres for offline review by curators
+- `hallucination-monitor.ts` (Slice B) - flags responses mentioning specific brand names from a banned list, fictional locations, or impossible price points
+- `quality-gates.ts` (Slice C) - blocks proposals that fail quality bars (e.g., all stays have stale pricing) before emission
 
 ### 8.14 Human concierge escalation (Slice C+)
 
@@ -1171,9 +1171,9 @@ Architectural change between D.1 and D.2: a single graph edge condition in LangG
 ### 8.15 Evaluation framework (Slice B+)
 
 `src/lib/evaluation/` interfaces in Slice A (no impl). Slice B+ wires:
-- `RankingEvaluator` — golden test cases for "would a human concierge agree with this ranking?"
-- `RefinementEvaluator` — does refine actually move the proposal in the user-requested direction?
-- `HallucinationDetector` — runs on every LLM output via spot-check
+- `RankingEvaluator` - golden test cases for "would a human concierge agree with this ranking?"
+- `RefinementEvaluator` - does refine actually move the proposal in the user-requested direction?
+- `HallucinationDetector` - runs on every LLM output via spot-check
 - Offline eval harness via Promptfoo or Anthropic's eval kit
 
 Slice A ships only golden TripIntent test cases at `tests/eval/intent-extraction/` to baseline the Intent Agent's accuracy.
@@ -1183,18 +1183,18 @@ Slice A ships only golden TripIntent test cases at `tests/eval/intent-extraction
 Architecture must prevent the product from drifting into "raw inventory marketplace":
 
 - No "browse all stays" surfaces in any slice
-- Search results never show "and 1,242 more" — always curated finite sets (max 5 alternatives)
+- Search results never show "and 1,242 more" - always curated finite sets (max 5 alternatives)
 - Orchestrator never just dumps inventory; always narrates/ranks/explains
-- Provider response data is canonicalized through `Stay` mapper — providers don't get their own UI surface
+- Provider response data is canonicalized through `Stay` mapper - providers don't get their own UI surface
 - The `<TripBoard>` is the only inventory presentation component; if a slice wants to add a new way to show stays, it must be a curated, explained, finite arrangement (e.g., `<DestinationGuide>`, `<CompareView>`)
 
 ### 8.17 Five invariants
 
-1. **Single source of truth for UI state** — Zustand store fed by typed events from wire. No component-local state for non-ephemeral data.
-2. **`core/` knows nothing about runtime** — no `import 'next/...'`, no `import 'react'`, no upward imports. ESLint enforces.
-3. **Domain events ≠ infrastructure events** — `intent.extracted` is domain; `agent.step.completed` is infra. New domain objects never grow step-event schema.
-4. **Optional polish never blocks critical path** — `MoodSnapshotAgent` failing must not block proposal. Orchestrator's degradation handling is the firewall.
-5. **The Provider interface is sacred** — every real-world inventory source must fit through it (with sibling interfaces for Flights/Activities). Inventory-specific quirks live in mappers, not the interface.
+1. **Single source of truth for UI state** - Zustand store fed by typed events from wire. No component-local state for non-ephemeral data.
+2. **`core/` knows nothing about runtime** - no `import 'next/...'`, no `import 'react'`, no upward imports. ESLint enforces.
+3. **Domain events ≠ infrastructure events** - `intent.extracted` is domain; `agent.step.completed` is infra. New domain objects never grow step-event schema.
+4. **Optional polish never blocks critical path** - `MoodSnapshotAgent` failing must not block proposal. Orchestrator's degradation handling is the firewall.
+5. **The Provider interface is sacred** - every real-world inventory source must fit through it (with sibling interfaces for Flights/Activities). Inventory-specific quirks live in mappers, not the interface.
 
 Plus the marketplace risk principle (8.16) as a sixth positioning invariant.
 
@@ -1203,9 +1203,9 @@ Plus the marketplace risk principle (8.16) as a sixth positioning invariant.
 | Slice | Adds | New files | Refactor risk | Realistic effort |
 |---|---|---|---|---|
 | **A** | This spec | ~80 | n/a | 2–3 weeks for one strong full-stack engineer |
-| **B** | Postgres + Clerk, real Search/Ranking/Weather/Events agents, Booking + Expedia + Vrbo providers, LangGraph orchestrator, Langfuse traces, affiliate redirect, /destinations SEO, mobile bottom-sheet | ~80 | Provider routing → `ProviderRouter`, orchestrator → LangGraph — both behind existing interfaces. **No UI changes.** | 8–12 weeks for 2 engineers |
+| **B** | Postgres + Clerk, real Search/Ranking/Weather/Events agents, Booking + Expedia + Vrbo providers, LangGraph orchestrator, Langfuse traces, affiliate redirect, /destinations SEO, mobile bottom-sheet | ~80 | Provider routing → `ProviderRouter`, orchestrator → LangGraph - both behind existing interfaces. **No UI changes.** | 8–12 weeks for 2 engineers |
 | **C** | pgvector memory, MemoryAgent, MonitoringAgent + workers, ItineraryAgent, Stripe subscription, admin panel, push notifications, programmatic SEO scale-out | ~60 | Memory plugs into `AgentContext`; admin reuses workspace components | 8–10 weeks for 2 engineers |
-| **D** | BookingAgent (approval-gated → autonomous), trip-protection partner, advanced monitoring rules, audit logs | ~30 | LangGraph edge condition + human-approval node — no protocol changes | 6–8 weeks for 2 engineers |
+| **D** | BookingAgent (approval-gated → autonomous), trip-protection partner, advanced monitoring rules, audit logs | ~30 | LangGraph edge condition + human-approval node - no protocol changes | 6–8 weeks for 2 engineers |
 
 Total honest estimate to "complete the platform per the original spec": **~6–8 months of focused work for a small team after Slice A**.
 
@@ -1235,14 +1235,14 @@ Total honest estimate to "complete the platform per the original spec": **~6–8
 
 These are decisions deliberately left for the implementation plan phase (writing-plans skill output):
 
-1. **Bottom-sheet implementation** — `vaul` library vs hand-rolled physics
-2. **Specific Italian destinations & stays** — exact ~30 stays curated from real or composite properties; needs research/curation pass during Slice A implementation
-3. **Test scope** — exact set of unit/integration/e2e tests for Slice A
-4. **CI configuration** — which checks run on PR vs main (typecheck + lint + test:seed at minimum)
-5. **Vercel project settings** — analytics, image optimization quotas, edge config
-6. **Anonymous session implementation** — signed cookie via `iron-session` vs hand-rolled HMAC
-7. **Exact rate limits on the LLM-synthesized provider** — per-IP, per-session
-8. **Claude prompt details** — system prompts for Intent Agent and MoodSnapshotAgent (drafted in plan phase)
+1. **Bottom-sheet implementation** - `vaul` library vs hand-rolled physics
+2. **Specific Italian destinations & stays** - exact ~30 stays curated from real or composite properties; needs research/curation pass during Slice A implementation
+3. **Test scope** - exact set of unit/integration/e2e tests for Slice A
+4. **CI configuration** - which checks run on PR vs main (typecheck + lint + test:seed at minimum)
+5. **Vercel project settings** - analytics, image optimization quotas, edge config
+6. **Anonymous session implementation** - signed cookie via `iron-session` vs hand-rolled HMAC
+7. **Exact rate limits on the LLM-synthesized provider** - per-IP, per-session
+8. **Claude prompt details** - system prompts for Intent Agent and MoodSnapshotAgent (drafted in plan phase)
 
 None of these are blocking. Each will be resolved in the implementation plan.
 
@@ -1262,7 +1262,7 @@ None of these are blocking. Each will be resolved in the implementation plan.
 | **Agent step** | A single named stage in the orchestrator's execution (intent / search / ranking / mood) |
 | **Provider** | An inventory source (mock, synthesized, real) implementing the `Provider` interface |
 | **Orchestrator** | The component that walks the agent graph and emits the JSONL event stream |
-| **Wire format** | JSONL over POST `/api/concierge` — newline-delimited `OrchestratorEvent` objects |
+| **Wire format** | JSONL over POST `/api/concierge` - newline-delimited `OrchestratorEvent` objects |
 | **Bloom** | A radial gradient overlay used as the primary elevation language in dark mode |
 | **Editorial voice** | The concierge tone: fragmentary, italic, sensory, no clichés |
 | **Mock Italy** | The curated 30-stay seed dataset for Slice A's primary demo path |

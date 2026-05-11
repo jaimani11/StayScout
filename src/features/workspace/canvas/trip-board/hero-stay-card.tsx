@@ -22,7 +22,7 @@ import type { TripIntent } from '@core/trip-intent';
  * Hero stay card. Materialize choreography (spec §5.6):
  *   T+0    opacity 0→1, scale 0.96→1, blur(8px)→blur(0), 600ms ease-emphasized
  *   T+200  Top pick badge fades up
- *   T+600  switch to breathe loop — scale 1↔1.005, 5s infinite
+ *   T+600  switch to breathe loop - scale 1↔1.005, 5s infinite
  *
  * Reduced motion: 200ms cross-fade, no breathing.
  */
@@ -37,7 +37,7 @@ export function HeroStayCard({
 }) {
   const reduced = useReducedMotion();
   const openDetail = useWorkspaceStore((s) => s.openDetail);
-  // Stay.id is the key on the AnimatePresence wrapper above us — the
+  // Stay.id is the key on the AnimatePresence wrapper above us - the
   // component remounts on hero swap, so useState starts fresh at
   // 'materialize' each time. We just schedule the transition to breathe.
   const [stage, setStage] = useState<'materialize' | 'breathe'>('materialize');
@@ -100,7 +100,7 @@ export function HeroStayCard({
         }}
       />
 
-      {/* Bottom-up scrim — deepens slightly on hover */}
+      {/* Bottom-up scrim - deepens slightly on hover */}
       <div
         aria-hidden
         className="absolute inset-0 transition-opacity duration-[var(--dur-base)] group-hover:opacity-100"

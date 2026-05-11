@@ -15,7 +15,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     return Response.json({ error: 'invalid JSON body' }, { status: 400 });
   }
 
-  // Body schema is lenient on sessionId — the route fills it in from
+  // Body schema is lenient on sessionId - the route fills it in from
   // the cookie session before passing the canonical ConciergeRequest
   // shape to the orchestrator.
   const parsed = ConciergeRequestBodySchema.safeParse(body);
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   const session = resolveSession(req.headers.get('cookie'));
   const requestSessionId = parsed.data.sessionId || session.sessionId;
 
-  // Construct the canonical request — sessionId guaranteed to be a
+  // Construct the canonical request - sessionId guaranteed to be a
   // string from here on. Spread + override would still TS-widen to
   // `string | undefined`; explicit shape keeps it clean.
   const conciergeRequest: ConciergeRequest = {

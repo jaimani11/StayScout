@@ -162,7 +162,7 @@ const MoodSnapshotReady = z.object({
   snapshot: MoodSnapshotSchema,
 });
 
-// Slice F1 — search-opportunity board (emitted when no real/curated
+// Slice F1 - search-opportunity board (emitted when no real/curated
 // provider can back the destination). The UI swaps in
 // `<SearchOpportunityBoard>` instead of `<TripBoard>` for this turn.
 const SearchOpportunityReady = z.object({

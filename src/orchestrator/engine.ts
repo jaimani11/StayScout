@@ -22,7 +22,7 @@ export type OrchestratorEngineKind = 'hand-rolled' | 'langgraph';
 
 /**
  * Read STAYSCOUT_ORCHESTRATOR at call time. Default `hand-rolled`. Any
- * other value (including missing) falls back to default — typo-safe.
+ * other value (including missing) falls back to default - typo-safe.
  */
 export function getOrchestratorEngineKind(): OrchestratorEngineKind {
   const v = process.env.STAYSCOUT_ORCHESTRATOR;
@@ -67,7 +67,7 @@ export async function createOrchestratorEngine(): Promise<OrchestratorEngine> {
 
   // Wrap so every yielded event also flows through TraceLogger.recordEvent.
   // The orchestrators emit events but don't (yet) auto-pipe them to the
-  // logger — doing it here keeps both engines telemetry-aligned without
+  // logger - doing it here keeps both engines telemetry-aligned without
   // duplicating the wrapping in their internals.
   return {
     async *run(req, ctx) {

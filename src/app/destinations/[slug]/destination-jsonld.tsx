@@ -38,7 +38,7 @@ export function DestinationJsonLd({ destination, baseUrl, imageUrl }: JsonLdProp
   return (
     <script
       type="application/ld+json"
-      // JSON.stringify is the safe stringifier — no unescaped HTML can
+      // JSON.stringify is the safe stringifier - no unescaped HTML can
       // sneak in from our hand-curated content, but using it is the
       // standard pattern for Schema.org JSON-LD in React.
       dangerouslySetInnerHTML={{ __html: JSON.stringify(payload) }}

@@ -7,7 +7,7 @@ const REDIRECT_BASE = 'https://www.expedia.com/affiliate/redirect';
 
 /**
  * Convert an Expedia property record to our Stay shape. Mirrors
- * Booking.com's mapper file-for-file by design — the value of B5's
+ * Booking.com's mapper file-for-file by design - the value of B5's
  * abstraction is proven by reuse.
  */
 export function mapExpediaProperty(raw: ExpediaProperty, apiKey: string): Stay {

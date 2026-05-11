@@ -12,7 +12,7 @@ function delta(changed: IntentDelta['changed']): IntentDelta {
   return { added: {}, changed, removed: [] };
 }
 
-describe('synthesizeAdaptationNotes — Slice E1 specificity', () => {
+describe('synthesizeAdaptationNotes - Slice E1 specificity', () => {
   it('vibe added/removed → "Added: …" / "Dropped: …" notes', () => {
     const notes = synthesizeAdaptationNotes(
       delta([

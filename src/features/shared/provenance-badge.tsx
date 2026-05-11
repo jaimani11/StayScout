@@ -2,7 +2,7 @@ import type { ProviderId } from '@core/ids';
 
 interface ProvenanceBadgeProps {
   providerId: ProviderId | string;
-  /** Variant — visual emphasis. `on-photo` is high-contrast for placement
+  /** Variant - visual emphasis. `on-photo` is high-contrast for placement
    *  over hero/alternative imagery; `panel` is muted for the detail header. */
   variant?: 'on-photo' | 'panel';
 }
@@ -20,7 +20,7 @@ const PROVENANCE: Readonly<Record<string, ChipSpec>> = {
   'booking-com': { label: 'BOOKING.COM · LIVE', tone: 'live' },
   'mock-italy': { label: 'CURATED · ITALY', tone: 'curated' },
   'llm-synthesized': { label: 'AI PREVIEW', tone: 'preview' },
-  // Slice F1 — affiliate-search chips. `preview` tone (warning border)
+  // Slice F1 - affiliate-search chips. `preview` tone (warning border)
   // tells the user "this routes to the partner site for live results",
   // distinct from the bold `live` chip (which means we already have
   // real availability in hand).
@@ -30,7 +30,7 @@ const PROVENANCE: Readonly<Record<string, ChipSpec>> = {
 };
 
 /**
- * Per-listing provenance chip. Tells the user where a stay came from —
+ * Per-listing provenance chip. Tells the user where a stay came from -
  * a real partner API (Expedia/Vrbo/Booking.com), our hand-curated
  * Italian dataset, or AI-synthesized for unfamiliar destinations.
  *
@@ -38,8 +38,8 @@ const PROVENANCE: Readonly<Record<string, ChipSpec>> = {
  * so users never confuse a model-generated stay with a live partner
  * listing. Honesty is the load-bearing thing.
  *
- * Vocabulary mirrors the EntitlementBadge from C4 — same surface +
- * geist-mono uppercase pattern — so the operator/admin chrome and the
+ * Vocabulary mirrors the EntitlementBadge from C4 - same surface +
+ * geist-mono uppercase pattern - so the operator/admin chrome and the
  * end-user chrome read consistently.
  */
 export function ProvenanceBadge({ providerId, variant = 'on-photo' }: ProvenanceBadgeProps) {
@@ -111,7 +111,7 @@ function toneColors(
       fg: 'rgba(237,230,219,0.85)',
     };
   }
-  // Panel variant — muted.
+  // Panel variant - muted.
   if (tone === 'live') {
     return {
       bg: 'var(--surface-overlay)',

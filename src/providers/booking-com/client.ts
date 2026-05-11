@@ -9,7 +9,7 @@ import { BookingComSearchResponseSchema, type BookingComSearchResponse } from '.
  * query param + Bearer header for redundancy.
  *
  * Returns null when no results (404 from the API → null per httpJson's
- * convention) — caller treats that as "empty search," not "error."
+ * convention) - caller treats that as "empty search," not "error."
  */
 
 const ENDPOINT = 'https://distribution-xml.booking.com/3.1/json/getHotels';
@@ -26,13 +26,13 @@ export async function searchBookingCom(
 ): Promise<BookingComSearchResponse | null> {
   const params = new URLSearchParams();
   // Geo: country code drives the search; specific city/region is
-  // narrowed via additional params on real calls (`city_ids`, etc.) —
+  // narrowed via additional params on real calls (`city_ids`, etc.) -
   // we'll add them in B5.x as we get real-API access for tuning.
   const dest = query.destinations[0];
   if (dest?.country) params.set('country', dest.country.toUpperCase());
   if (dest?.name) params.set('text', dest.name);
 
-  // Date range — Booking.com expects YYYY-MM-DD.
+  // Date range - Booking.com expects YYYY-MM-DD.
   if (query.dates.kind === 'specific') {
     params.set('checkin', query.dates.start);
     params.set('checkout', query.dates.end);
@@ -63,7 +63,7 @@ export async function searchBookingCom(
   if (raw === null) return null;
   const parsed = BookingComSearchResponseSchema.safeParse(raw);
   if (!parsed.success) {
-    // Soft-fail: we'd rather return empty + log than throw — the
+    // Soft-fail: we'd rather return empty + log than throw - the
     // orchestrator's degradation policy treats provider failures as
     // recoverable, but the user still sees no results from this
     // provider. Other providers in the fanout cover the gap.

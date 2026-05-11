@@ -13,7 +13,7 @@ import { ClerkAuthProvider } from './clerk-auth-provider';
  * The branch is at render time on a build-time constant
  * (NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY), so when the flag is off the
  * Clerk branch is dead code and modern bundlers can tree-shake it.
- * Worst case the runtime is shipped but never executed — acceptable.
+ * Worst case the runtime is shipped but never executed - acceptable.
  */
 export function AuthProvider({ sessionId, children }: { sessionId: string; children: ReactNode }) {
   if (clientFeatures.auth) {

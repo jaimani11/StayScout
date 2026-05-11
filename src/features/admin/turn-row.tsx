@@ -8,7 +8,7 @@ interface TurnRowProps {
 /**
  * Single recent-turn row. Shows turnId tail, type, status, duration,
  * agent count, and total cost (if any agent run reported one). Status
- * dot color-coded. Slice C5 — turnId is now a link to the trace
+ * dot color-coded. Slice C5 - turnId is now a link to the trace
  * detail page.
  */
 export function TurnRow({ turn }: TurnRowProps) {
@@ -54,7 +54,7 @@ export function TurnRow({ turn }: TurnRowProps) {
           color: 'var(--ink-secondary)',
         }}
       >
-        {turn.type ?? '—'}
+        {turn.type ?? '-'}
       </td>
       <td className="px-3 py-2.5">
         <Link
@@ -76,7 +76,7 @@ export function TurnRow({ turn }: TurnRowProps) {
           color: 'var(--ink-primary)',
         }}
       >
-        {turn.durationMs ? `${turn.durationMs}ms` : '—'}
+        {turn.durationMs ? `${turn.durationMs}ms` : '-'}
       </td>
       <td
         className="px-3 py-2.5 text-right"
@@ -96,7 +96,7 @@ export function TurnRow({ turn }: TurnRowProps) {
           color: totalCost > 0 ? 'var(--accent-primary)' : 'var(--ink-tertiary)',
         }}
       >
-        {totalCost > 0 ? `$${totalCost.toFixed(4)}` : '—'}
+        {totalCost > 0 ? `$${totalCost.toFixed(4)}` : '-'}
       </td>
     </tr>
   );

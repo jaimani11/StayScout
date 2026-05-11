@@ -5,15 +5,15 @@ import { jsonResponse, resolveRouteContext } from '../../_lib/route-context';
 export const runtime = 'nodejs';
 
 /**
- * GET /api/trips/list — list saved trips for the current owner.
+ * GET /api/trips/list - list saved trips for the current owner.
  * Anonymous sessions see only the trips they bookmarked; authenticated
  * users see only theirs. Order: most recently bookmarked first.
  *
- * Slice C2 — each trip in the response is enriched with
+ * Slice C2 - each trip in the response is enriched with
  * `monitoringEvents: MonitoringEvent[]` (unacknowledged events for
  * that trip). The MonitoringRunner is called inline; throttled checks
  * skip work when a trip was checked recently. Failures in monitoring
- * never block the trips list — the response always returns the trips.
+ * never block the trips list - the response always returns the trips.
  */
 export async function GET(req: NextRequest): Promise<Response> {
   const ctx = await resolveRouteContext(req);

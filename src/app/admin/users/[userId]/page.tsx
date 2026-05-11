@@ -22,7 +22,7 @@ export const dynamic = 'force-dynamic';
  * needs to debug a single user's flow without bouncing between pages.
  *
  * The `?kind=session|user` query param disambiguates anonymous vs
- * authenticated owners — the route's `[userId]` segment is the
+ * authenticated owners - the route's `[userId]` segment is the
  * literal id; ownerKind is metadata. Defaults to `user` for the
  * "click an authenticated id" common case.
  */
@@ -279,7 +279,7 @@ const tripColumns: DataTableColumn<SavedTrip>[] = [
   {
     key: 'nights',
     label: 'Nights',
-    render: (t) => String(t.proposalSummary.nights ?? '—'),
+    render: (t) => String(t.proposalSummary.nights ?? '-'),
   },
   {
     key: 'bookmarked',
@@ -326,7 +326,7 @@ const clickColumns: DataTableColumn<AffiliateClickRecord>[] = [
     key: 'turn',
     label: 'Turn',
     render: (c) => {
-      if (!c.turnId) return '—';
+      if (!c.turnId) return '-';
       const tail = c.turnId.length > 14 ? `…${c.turnId.slice(-12)}` : c.turnId;
       return (
         <Link
@@ -405,12 +405,12 @@ const turnColumns: DataTableColumn<TurnRecord>[] = [
       );
     },
   },
-  { key: 'type', label: 'Type', render: (t) => t.type ?? '—' },
+  { key: 'type', label: 'Type', render: (t) => t.type ?? '-' },
   { key: 'status', label: 'Status', render: (t) => t.status },
   {
     key: 'duration',
     label: 'Duration',
-    render: (t) => (t.durationMs ? `${t.durationMs}ms` : '—'),
+    render: (t) => (t.durationMs ? `${t.durationMs}ms` : '-'),
   },
   {
     key: 'started',

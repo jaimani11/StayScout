@@ -31,7 +31,7 @@ export class MemoryTraceLogger implements TraceLogger {
     const store = getMemoryTelemetryStore();
     switch (event.kind) {
       case 'session.started':
-        // Nothing to record at the buffer level — turn-scoped.
+        // Nothing to record at the buffer level - turn-scoped.
         break;
       case 'turn.started':
         store.beginTurn({

@@ -34,7 +34,7 @@ export interface SavedTrip {
 /**
  * Public, sanitized projection of a SavedTrip for share links. Strips
  * everything that could leak owner identity or PII. The intent is
- * coarsened — we keep the structured trip parameters but drop
+ * coarsened - we keep the structured trip parameters but drop
  * `rawInput` (which can echo the user's exact words including names).
  */
 export interface SharedTrip {
@@ -56,7 +56,7 @@ export interface AffiliateClickRecord {
   id: string;
   ownerKind: 'user' | 'session';
   ownerId: string;
-  /** sessionId is recorded even when ownerKind is 'user' — covers
+  /** sessionId is recorded even when ownerKind is 'user' - covers
    *  cross-device + supports anonymous→user reconciliation in B7. */
   sessionId: string;
   stayId: string;
@@ -96,7 +96,7 @@ export interface OwnerArgs {
 }
 
 /**
- * SessionStore — the persistence boundary for everything Slice B–D
+ * SessionStore - the persistence boundary for everything Slice B–D
  * stores per-user or per-session. Two implementations:
  *
  *   - InMemorySessionStore: always available; backs the "no DB" dev mode.
@@ -126,12 +126,12 @@ export interface SessionStore {
    * Idempotently mint a share slug for the given owned trip. If the
    * trip already has a slug, return it; otherwise generate one, persist,
    * and return. Returns null if the trip isn't owned by the caller (or
-   * doesn't exist) — callers should treat null as 404.
+   * doesn't exist) - callers should treat null as 404.
    */
   mintShareSlug(args: OwnerArgs & { tripId: string }): Promise<string | null>;
 
   /**
-   * Public read by share slug — no owner gating. Returns a sanitized
+   * Public read by share slug - no owner gating. Returns a sanitized
    * projection (no ownerId, no rawInput). Returns null for unknown slug.
    */
   getTripBySlug(slug: string): Promise<SharedTrip | null>;
@@ -140,7 +140,7 @@ export interface SessionStore {
   /**
    * Append-only record of a booking redirect. Owner attribution mirrors
    * trip ownership (user for authenticated, session for anonymous).
-   * Failures here MUST NOT block the redirect — callers wrap with
+   * Failures here MUST NOT block the redirect - callers wrap with
    * try/catch + log so a DB outage doesn't break the booking flow.
    */
   recordClick(args: RecordClickArgs): Promise<AffiliateClickRecord>;
@@ -151,7 +151,7 @@ export interface SessionStore {
    * returns the global recent feed (admin clicks page). `limit` defaults
    * to 50 to keep payload bounded.
    *
-   * Slice C5 — admin pages call this. Production traffic should NOT call
+   * Slice C5 - admin pages call this. Production traffic should NOT call
    * it without a small limit; sorting in-memory is fine, sorting from
    * Postgres uses an index on createdAt.
    */

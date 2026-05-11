@@ -3,7 +3,7 @@ import { AdminNav, type AdminSection } from './admin-nav';
 
 interface AdminShellProps {
   section: AdminSection;
-  /** Section title — shown in the breadcrumb. */
+  /** Section title - shown in the breadcrumb. */
   title: string;
   /** Optional supporting line under the title (italic Fraunces). */
   subtitle?: string;

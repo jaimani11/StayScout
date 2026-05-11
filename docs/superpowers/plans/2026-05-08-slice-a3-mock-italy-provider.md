@@ -1,12 +1,12 @@
-# StayScout Slice A3 — Mock Italy Provider + Curation Library Implementation Plan
+# StayScout Slice A3 - Mock Italy Provider + Curation Library Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Land the Slice A primary demo path: a deterministic `MockItalyProvider` returning ~30 hand-curated stays across 7 Italian destinations, behind the `Provider` interface from A2. Plus the cross-cutting `lib/curation/` (mood snapshots, banned words, voice templates), `lib/quality/` (taste lint), and provider `_shared/` utilities (canonical mapper, photo helper, timeout decorator, errors). Includes a CI seed-quality lint that fails on Zod schema violations or banned-cliché copy. After A3, agents have realistic data to act on.
 
-**Architecture:** All curated content lives in `src/lib/curation/` (NOT under `providers/`) so agents can read it without breaking layer boundaries — fixed in spec self-review. Provider implementation in `src/providers/mock-italy/`. Routing in `src/providers/index.ts` returns mock-italy when destination is in IT, falls back to a stub `llm-synthesized` provider (full impl in A6). CI seed-quality test ensures the curated dataset stays disciplined as it grows.
+**Architecture:** All curated content lives in `src/lib/curation/` (NOT under `providers/`) so agents can read it without breaking layer boundaries - fixed in spec self-review. Provider implementation in `src/providers/mock-italy/`. Routing in `src/providers/index.ts` returns mock-italy when destination is in IT, falls back to a stub `llm-synthesized` provider (full impl in A6). CI seed-quality test ensures the curated dataset stays disciplined as it grows.
 
-**Tech additions:** None — Zod and Vitest already installed.
+**Tech additions:** None - Zod and Vitest already installed.
 
 **Spec reference:** [docs/superpowers/specs/2026-05-08-stayscout-slice-a-design.md](../specs/2026-05-08-stayscout-slice-a-design.md) §5.17, §7
 
@@ -57,17 +57,17 @@ Total: ~22 new files. ~30 curated stays.
 
 ---
 
-## Task 1: Curation library — voice + banned words
+## Task 1: Curation library - voice + banned words
 
 - [ ] Create `src/lib/curation/voice.ts`:
   ```ts
-  // Voice rules — codified taste constraints from spec §5.17 + §8.13.
+  // Voice rules - codified taste constraints from spec §5.17 + §8.13.
   // Used by:
   //   * tests/seed.test.ts (fails CI if curated copy violates)
   //   * MoodSnapshotAgent (Slice A6) to validate LLM output before emitting
   //   * Slice B+ taste-governance pipeline
 
-  // Banned cliché list. Restrained over expansive — we add words when we
+  // Banned cliché list. Restrained over expansive - we add words when we
   // catch them in real outputs, not preemptively.
   export const BANNED_WORDS: readonly string[] = [
     'unforgettable',
@@ -113,9 +113,9 @@ Total: ~22 new files. ~30 curated stays.
   export const containsBannedWord = (text: string): boolean => BANNED_REGEX.test(text);
   ```
 
-- [ ] Tiny test for the linter — add a test inside `tests/seed.test.ts` later (Task 9), no separate file.
+- [ ] Tiny test for the linter - add a test inside `tests/seed.test.ts` later (Task 9), no separate file.
 
-## Task 2: Curation library — Italian destination metadata
+## Task 2: Curation library - Italian destination metadata
 
 - [ ] Create `src/lib/curation/destinations.ts`:
   ```ts
@@ -203,7 +203,7 @@ Total: ~22 new files. ~30 curated stays.
   }
   ```
 
-## Task 3: Curation library — mood snapshots
+## Task 3: Curation library - mood snapshots
 
 - [ ] Create `src/lib/curation/moods.ts`:
   ```ts
@@ -271,7 +271,7 @@ Total: ~22 new files. ~30 curated stays.
   export * from './moods';
   ```
 
-## Task 5: Quality library — taste lint helper
+## Task 5: Quality library - taste lint helper
 
 - [ ] Create `src/lib/quality/taste-lint.ts`:
   ```ts
@@ -422,7 +422,7 @@ Total: ~22 new files. ~30 curated stays.
   }
   ```
 
-## Task 7: Curated stay data — write all 30 stays
+## Task 7: Curated stay data - write all 30 stays
 
 For each destination file, every stay record conforms to `Stay` from `@core`. The shape per stay is the same; the content differs. We use the Stay schema's fields exactly.
 
@@ -490,7 +490,7 @@ export const villaDiGeggiano: Stay = {
 
 Each file exports an array of its stays as `export const TUSCANY_STAYS: Stay[] = [villa1, villa2, ...]` for ergonomic import.
 
-**Discipline rules** (every stay must satisfy — verified by `tests/seed.test.ts`):
+**Discipline rules** (every stay must satisfy - verified by `tests/seed.test.ts`):
 - `id` matches `mock-italy:<kebab-slug>` and is unique across all files
 - `description` passes `lintVoice()` (no banned cliché words)
 - `pricing.pricePerNight.amount` is realistic for the destination/category (50–2000 EUR)
@@ -571,7 +571,7 @@ Each file exports an array of its stays as `export const TUSCANY_STAYS: Stay[] =
       score += (stay.signals.walkability / 100) * W_WALKABILITY;
     }
 
-    // Budget — Gaussian falloff around the user's per-night budget.
+    // Budget - Gaussian falloff around the user's per-night budget.
     const budgetPerNight = derivePerNightBudget(intent);
     if (budgetPerNight !== null) {
       const diff = Math.abs(stay.pricing.pricePerNight.amount - budgetPerNight);
@@ -631,18 +631,18 @@ Each file exports an array of its stays as `export const TUSCANY_STAYS: Stay[] =
     let candidates = matched.length === 0 ? ALL_STAYS : matched;
     const closestMatch = matched.length === 0 && query.destinations.length > 0;
 
-    // 2. Hard filter — capacity
+    // 2. Hard filter - capacity
     const totalTravelers =
       query.travelers.adults + query.travelers.children.count + query.travelers.infants;
     candidates = candidates.filter((s) => s.capacity.sleeps >= totalTravelers);
 
-    // 3. Hard filter — explicit per-night budget cap if specified
+    // 3. Hard filter - explicit per-night budget cap if specified
     if (query.budget?.kind === 'per-night') {
       const cap = query.budget.amount;
       candidates = candidates.filter((s) => s.pricing.pricePerNight.amount <= cap * 1.4);
     }
 
-    // 4. Soft filter — explicit filters from the query
+    // 4. Soft filter - explicit filters from the query
     if (query.filters?.minPricePerNight !== undefined) {
       const min = query.filters.minPricePerNight;
       candidates = candidates.filter((s) => s.pricing.pricePerNight.amount >= min);
@@ -656,7 +656,7 @@ Each file exports an array of its stays as `export const TUSCANY_STAYS: Stay[] =
       candidates = candidates.filter((s) => !excluded.has(s.type));
     }
 
-    // 5. Rank — derive a TripIntent-shaped object from the query for the
+    // 5. Rank - derive a TripIntent-shaped object from the query for the
     // ranking function. We carry vibe via the intent passed externally
     // (orchestrator passes the IntentAgent's output). For Slice A4, the
     // orchestrator wires intent through; for now, fall back to query-only.
@@ -684,7 +684,7 @@ Each file exports an array of its stays as `export const TUSCANY_STAYS: Stay[] =
     return stays;
   }
 
-  // Synthetic intent for Slice A3 — Slice A5 wires the real IntentAgent
+  // Synthetic intent for Slice A3 - Slice A5 wires the real IntentAgent
   // output. The full TripIntent shape is heavy; we project just the
   // fields rankStays() reads.
   function syntheticIntent(query: ProviderSearchQuery, _intent: unknown): import('@core/trip-intent').TripIntent {
@@ -837,7 +837,7 @@ Full impl in Slice A6 (real Claude generation). Slice A3 ships a typed stub so `
   /**
    * Route an intent to the right provider. Slice A: simple if/else.
    * Slice B replaces with a parallel ProviderRouter that fans out to
-   * multiple real providers and merges results — same return type.
+   * multiple real providers and merges results - same return type.
    */
   export function routeProvider(intent: TripIntent): Provider {
     const dest = intent.destinations[0];
@@ -863,7 +863,7 @@ Full impl in Slice A6 (real Claude generation). Slice A3 ships a typed stub so `
   import { ITALIAN_DESTINATIONS } from '@lib/curation/destinations';
   import { lintField } from '@lib/quality/taste-lint';
 
-  describe('seed quality — curated stays', () => {
+  describe('seed quality - curated stays', () => {
     it('has the expected total count', () => {
       expect(ALL_STAYS.length).toBe(30);
     });
@@ -928,7 +928,7 @@ Full impl in Slice A6 (real Claude generation). Slice A3 ships a typed stub so `
 
   describe('voice lint smoke', () => {
     it('catches an obvious banned word', () => {
-      const r = lintField('test', 'desc', 'A magical place — your unforgettable journey starts here.');
+      const r = lintField('test', 'desc', 'A magical place - your unforgettable journey starts here.');
       expect(r.length).toBeGreaterThanOrEqual(2);
     });
 

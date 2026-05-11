@@ -8,7 +8,7 @@ export const runtime = 'nodejs';
  * POST /api/trips/[tripId]/monitoring/acknowledge
  *
  * Marks every unacknowledged monitoring event for the given trip as
- * read for the calling owner. Idempotent — re-calling is a no-op.
+ * read for the calling owner. Idempotent - re-calling is a no-op.
  *
  * Used by the saved-trips panel: when the user clicks a row to
  * resurface, the panel also fires this endpoint to clear the badge.
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest, { params }: RouteParams): Promise<R
   const ctx = await resolveRouteContext(req);
 
   // Defense-in-depth: confirm the caller owns this trip before
-  // acknowledging — prevents one anonymous session from clearing
+  // acknowledging - prevents one anonymous session from clearing
   // another's badges if the route is hit with a foreign tripId.
   const trip = await ctx.store.getTrip({
     ownerKind: ctx.owner.ownerKind,

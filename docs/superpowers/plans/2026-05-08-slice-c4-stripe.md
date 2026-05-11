@@ -1,12 +1,12 @@
-# Slice C4 Implementation Plan — Stripe (premium tier)
+# Slice C4 Implementation Plan - Stripe (premium tier)
 
 > Executed inline, batched, only pausing for real blockers or missing Stripe account details.
 
-**Goal:** Ship a real Stripe-ready billing architecture in C4 — not a stub. Stripe Checkout in test mode, signature-verified webhook with `event.id` idempotency, subscription status sync, and a local `MockBillingProvider` fallback that triggers only when Stripe env vars are absent. The "Plan day-by-day" CTA in the workspace gets a soft gate: when the destination falls through to the synthesized itinerary path AND the caller's entitlement is free, the page renders an upgrade card instead. Curated Italy stays free for everyone — the demo never breaks.
+**Goal:** Ship a real Stripe-ready billing architecture in C4 - not a stub. Stripe Checkout in test mode, signature-verified webhook with `event.id` idempotency, subscription status sync, and a local `MockBillingProvider` fallback that triggers only when Stripe env vars are absent. The "Plan day-by-day" CTA in the workspace gets a soft gate: when the destination falls through to the synthesized itinerary path AND the caller's entitlement is free, the page renders an upgrade card instead. Curated Italy stays free for everyone - the demo never breaks.
 
-**Architecture:** A `BillingProvider` interface with two **fully implemented** providers (`MockBillingProvider`, `StripeBillingProvider`) and a `SubscriptionStore` cache keyed by owner. Server-side `requirePremium(owner)` is the only thing UI/routes ever call. Webhooks land on `/api/billing/webhook`, are signature-verified via `stripe.webhooks.constructEvent`, deduplicated by Stripe `event.id`, and update the subscription. Entitlement is sourced from server state every render — clients never claim premium.
+**Architecture:** A `BillingProvider` interface with two **fully implemented** providers (`MockBillingProvider`, `StripeBillingProvider`) and a `SubscriptionStore` cache keyed by owner. Server-side `requirePremium(owner)` is the only thing UI/routes ever call. Webhooks land on `/api/billing/webhook`, are signature-verified via `stripe.webhooks.constructEvent`, deduplicated by Stripe `event.id`, and update the subscription. Entitlement is sourced from server state every render - clients never claim premium.
 
-**Tech Stack:** New dep: `stripe` (server-only Node SDK). No client-side Stripe; Checkout is the hosted page so PCI scope is zero. Tests use the SDK's own `stripe.webhooks.generateTestHeaderString` to sign fixture events — exercising **real** verification + idempotency + state-sync without needing live network calls. Stripe CLI is documented for end-to-end manual testing against a test account.
+**Tech Stack:** New dep: `stripe` (server-only Node SDK). No client-side Stripe; Checkout is the hosted page so PCI scope is zero. Tests use the SDK's own `stripe.webhooks.generateTestHeaderString` to sign fixture events - exercising **real** verification + idempotency + state-sync without needing live network calls. Stripe CLI is documented for end-to-end manual testing against a test account.
 
 ---
 
@@ -33,29 +33,29 @@
 ## File Structure
 
 **Create:**
-- `src/core/billing.ts` — Zod schemas + types: `Plan`, `Entitlement`, `Subscription`, `OwnerKey`
-- `src/lib/billing/billing-provider.ts` — `BillingProvider` interface
-- `src/lib/billing/mock-billing-provider.ts` — `MockBillingProvider`
-- `src/lib/billing/stripe-billing-provider.ts` — `StripeBillingProvider` (full impl)
-- `src/lib/billing/subscription-store.ts` — `SubscriptionStore` interface
-- `src/lib/billing/in-memory-subscription-store.ts` — process-singleton cache
-- `src/lib/billing/webhook-idempotency.ts` — `WebhookEventStore` + in-memory impl
-- `src/lib/billing/gates.ts` — `requirePremium(owner)` server-side gate
-- `src/lib/billing/factory.ts` — `getBillingSubsystem()`
-- `src/lib/billing/index.ts` — barrel
-- `src/app/api/billing/checkout/route.ts` — POST owner-gated → Checkout URL
-- `src/app/api/billing/webhook/route.ts` — POST raw-body Stripe webhook
-- `src/app/api/billing/entitlement/route.ts` — GET → `Entitlement`
-- `src/app/billing/return/page.tsx` — post-checkout return; polls entitlement
-- `src/app/billing/return/poll-entitlement.tsx` — small client-side poller
-- `src/app/billing/mock-checkout/page.tsx` — dev-only fake-checkout flow
-- `src/app/billing/mock-checkout/actions.ts` — server action that flips mock subscription
-- `src/features/billing/upgrade-card.tsx` — soft-paywall card
-- `src/features/billing/entitlement-badge.tsx` — small "Premium" chip
-- `docs/billing.md` — Stripe setup walkthrough + CLI testing recipe + documented end-to-end test flow
-- `.env.example` — placeholders for Stripe + (existing) other env vars
+- `src/core/billing.ts` - Zod schemas + types: `Plan`, `Entitlement`, `Subscription`, `OwnerKey`
+- `src/lib/billing/billing-provider.ts` - `BillingProvider` interface
+- `src/lib/billing/mock-billing-provider.ts` - `MockBillingProvider`
+- `src/lib/billing/stripe-billing-provider.ts` - `StripeBillingProvider` (full impl)
+- `src/lib/billing/subscription-store.ts` - `SubscriptionStore` interface
+- `src/lib/billing/in-memory-subscription-store.ts` - process-singleton cache
+- `src/lib/billing/webhook-idempotency.ts` - `WebhookEventStore` + in-memory impl
+- `src/lib/billing/gates.ts` - `requirePremium(owner)` server-side gate
+- `src/lib/billing/factory.ts` - `getBillingSubsystem()`
+- `src/lib/billing/index.ts` - barrel
+- `src/app/api/billing/checkout/route.ts` - POST owner-gated → Checkout URL
+- `src/app/api/billing/webhook/route.ts` - POST raw-body Stripe webhook
+- `src/app/api/billing/entitlement/route.ts` - GET → `Entitlement`
+- `src/app/billing/return/page.tsx` - post-checkout return; polls entitlement
+- `src/app/billing/return/poll-entitlement.tsx` - small client-side poller
+- `src/app/billing/mock-checkout/page.tsx` - dev-only fake-checkout flow
+- `src/app/billing/mock-checkout/actions.ts` - server action that flips mock subscription
+- `src/features/billing/upgrade-card.tsx` - soft-paywall card
+- `src/features/billing/entitlement-badge.tsx` - small "Premium" chip
+- `docs/billing.md` - Stripe setup walkthrough + CLI testing recipe + documented end-to-end test flow
+- `.env.example` - placeholders for Stripe + (existing) other env vars
 - `tests/mock-billing-provider.test.ts`
-- `tests/stripe-billing-provider.test.ts` — fixture-event signature verification + state sync (real verification path)
+- `tests/stripe-billing-provider.test.ts` - fixture-event signature verification + state sync (real verification path)
 - `tests/subscription-store.test.ts`
 - `tests/webhook-idempotency.test.ts`
 - `tests/billing-gates.test.ts`
@@ -63,12 +63,12 @@
 - `tests/itinerary-gate.test.ts`
 
 **Modify:**
-- `src/app/trips/[tripId]/itinerary/page.tsx` — gate when `itinerary.source === 'synthesized'` AND not premium
-- `src/features/workspace/saved-trips/saved-trip-row.tsx` — show lock icon on "Plan day-by-day →" when non-curated destination + free entitlement (best-effort hint; the page is the source of truth)
-- `src/lib/env/get-server-features.ts` — surface `billing: { kind: 'mock' | 'stripe' }`
-- `prisma/schema.prisma` — `Subscription` + `WebhookEvent` models (schema lands in C4; PostgresSubscriptionStore wired in C4.x)
-- `package.json` — add `stripe` dep
-- `README.md` — Slice C4 row + roadmap update
+- `src/app/trips/[tripId]/itinerary/page.tsx` - gate when `itinerary.source === 'synthesized'` AND not premium
+- `src/features/workspace/saved-trips/saved-trip-row.tsx` - show lock icon on "Plan day-by-day →" when non-curated destination + free entitlement (best-effort hint; the page is the source of truth)
+- `src/lib/env/get-server-features.ts` - surface `billing: { kind: 'mock' | 'stripe' }`
+- `prisma/schema.prisma` - `Subscription` + `WebhookEvent` models (schema lands in C4; PostgresSubscriptionStore wired in C4.x)
+- `package.json` - add `stripe` dep
+- `README.md` - Slice C4 row + roadmap update
 
 ---
 
@@ -82,7 +82,7 @@
   - `Entitlement { plan: Plan; premiumUntil: Date | null; source: EntitlementSource }`
   - `Subscription { ownerKind: 'user' | 'session'; ownerId: string; stripeCustomerId: string | null; stripeSubscriptionId: string | null; priceId: string | null; status: 'active' | 'trialing' | 'past_due' | 'canceled' | 'incomplete' | 'unpaid' | 'paused' | 'incomplete_expired'; currentPeriodEnd: Date | null; updatedAt: Date }`
 - [ ] Zod schemas for all of them. Status enum mirrors Stripe's exactly.
-- [ ] `isPremiumStatus(status): boolean` helper — `active` or `trialing` (or `canceled` while still in `currentPeriodEnd` grace).
+- [ ] `isPremiumStatus(status): boolean` helper - `active` or `trialing` (or `canceled` while still in `currentPeriodEnd` grace).
 - [ ] Verify: `pnpm typecheck`.
 
 ### Task 2: BillingProvider interface + MockBillingProvider + factory
@@ -101,8 +101,8 @@
   - Authenticated owner → `{ plan: 'premium', source: 'mock-everyone-premium', premiumUntil: null }`.
   - `createCheckoutSession` returns `{ url: '/billing/mock-checkout?return=<encoded>' }`.
   - `handleWebhook` returns `{ ok: false, reason: 'mock-provider' }`.
-- [ ] `src/lib/billing/factory.ts` — picks provider based on env (`STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` both set → stripe; else mock). HMR-safe singleton.
-- [ ] `src/lib/billing/index.ts` — barrel.
+- [ ] `src/lib/billing/factory.ts` - picks provider based on env (`STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` both set → stripe; else mock). HMR-safe singleton.
+- [ ] `src/lib/billing/index.ts` - barrel.
 - [ ] Tests (`tests/mock-billing-provider.test.ts`, ~6):
   - Anonymous owner returns free.
   - Authenticated owner returns premium.
@@ -153,7 +153,7 @@
 
 - [ ] Add dep: `pnpm add stripe` (latest server SDK).
 - [ ] `src/lib/billing/stripe-billing-provider.ts`:
-  - Constructor takes `{ secretKey, webhookSecret, priceId, store, eventLog }` — fail fast if any missing.
+  - Constructor takes `{ secretKey, webhookSecret, priceId, store, eventLog }` - fail fast if any missing.
   - Holds a singleton `Stripe(secretKey, { apiVersion: <pin>, typescript: true })`.
   - `kind: 'stripe'`.
   - `getEntitlement(owner)`:
@@ -178,7 +178,7 @@
   - Both `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` + `STRIPE_PRICE_ID` set → `StripeBillingProvider`.
   - Any subset present (partial config) → log a clear warning + fall back to `MockBillingProvider`. Don't half-construct.
   - `kind` reflects which path was taken so `/admin` can show it.
-- [ ] Tests (`tests/stripe-billing-provider.test.ts`, ~10) — these exercise the **real** verification + state-sync paths via SDK fixture helpers, no live network:
+- [ ] Tests (`tests/stripe-billing-provider.test.ts`, ~10) - these exercise the **real** verification + state-sync paths via SDK fixture helpers, no live network:
   - Use a fixed `webhookSecret = 'whsec_test_secret_for_unit_tests'` and a stubbed `Stripe` checkout client.
   - `handleWebhook` rejects request with no signature.
   - `handleWebhook` rejects request with invalid signature (constructed with wrong secret).
@@ -198,7 +198,7 @@
 - [ ] `src/app/api/billing/checkout/route.ts`:
   - `runtime = 'nodejs'`.
   - POST. Resolve auth via `getServerAuth()`. If anonymous → 401 `{ error: 'sign-in-required' }`.
-  - Body: `{ returnUrl, cancelUrl }` — Zod-parse.
+  - Body: `{ returnUrl, cancelUrl }` - Zod-parse.
   - Call `provider.createCheckoutSession({ owner, returnUrl, cancelUrl })`.
   - Return `{ url }`.
 - [ ] `src/app/api/billing/webhook/route.ts`:
@@ -231,7 +231,7 @@
   - After loading itinerary + before rendering, if `itinerary.source === 'synthesized'`:
     - `const gate = await requirePremium(owner)`.
     - If `!gate.entitled` → render `<UpgradeView>` with destination + reason instead of `<ItineraryView>`.
-  - Curated path is unchanged — no gate.
+  - Curated path is unchanged - no gate.
 - [ ] Tests (`tests/billing-gates.test.ts`, ~5):
   - `requirePremium` returns entitled for premium.
   - Returns not-entitled with reason 'anonymous' for session owner.
@@ -249,18 +249,18 @@
 ### Task 7: UI (upgrade card + badge + lock + return + mock-checkout)
 
 - [ ] `src/features/billing/upgrade-card.tsx`:
-  - Surface-elevated card. Heading (Fraunces): "Day-by-day for everywhere — premium."
-  - Italic detail (Fraunces italic): destination-specific copy ("we hand-write three days for the seven Italian regions; everywhere else needs the model — that's premium.").
+  - Surface-elevated card. Heading (Fraunces): "Day-by-day for everywhere - premium."
+  - Italic detail (Fraunces italic): destination-specific copy ("we hand-write three days for the seven Italian regions; everywhere else needs the model - that's premium.").
   - Bulleted preview of premium features (current + planned).
   - Primary CTA → starts checkout via `POST /api/billing/checkout`.
   - Secondary "Sign in" link if `reason === 'anonymous'`.
 - [ ] `src/features/billing/entitlement-badge.tsx`:
-  - Tiny chip — "PREMIUM" geist-mono uppercase, surface-2 bg, accent border. Shown in workspace header when entitled.
+  - Tiny chip - "PREMIUM" geist-mono uppercase, surface-2 bg, accent border. Shown in workspace header when entitled.
   - Hides itself on free / anonymous.
   - Server-rendered; takes `entitlement: Entitlement` as prop.
 - [ ] Modify `src/features/workspace/saved-trips/saved-trip-row.tsx`:
   - Add a small lock glyph (Unicode `🔒` or SVG) to the "PLAN DAY-BY-DAY →" link when destination would synthesize AND entitlement is free.
-  - This is a hint only — the page is the source of truth. Reuse the existing curated-destination set: `isCuratedDestinationSlug(slug)` helper from `src/lib/curation` (export it if not already).
+  - This is a hint only - the page is the source of truth. Reuse the existing curated-destination set: `isCuratedDestinationSlug(slug)` helper from `src/lib/curation` (export it if not already).
 - [ ] `src/app/billing/return/page.tsx`:
   - Server component. After Checkout, Stripe redirects here.
   - Polls `/api/billing/entitlement` client-side (small client component) every 1s up to 10s, then renders state.
@@ -294,27 +294,27 @@
     3. Dashboard → Developers → API keys → copy `sk_test_...` (Secret key).
     4. Install Stripe CLI: `brew install stripe/stripe-cli/stripe` (or platform equivalent).
     5. `stripe login`.
-    6. `stripe listen --forward-to localhost:3000/api/billing/webhook` — copy the printed `whsec_...`.
+    6. `stripe listen --forward-to localhost:3000/api/billing/webhook` - copy the printed `whsec_...`.
     7. Drop `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID` into `.env.local`.
     8. Restart `pnpm dev`.
   - **Documented end-to-end test flow**:
     - Sign in to the app (any auth method that resolves to a `userId`).
     - Open a saved trip in a non-curated destination (anything outside the 7 Italian regions, e.g. "Tokyo, slow week").
-    - Click "Plan day-by-day →" — page renders the upgrade card (synthesized + free).
-    - Click "Upgrade to Premium" — redirects to Stripe Checkout test page.
+    - Click "Plan day-by-day →" - page renders the upgrade card (synthesized + free).
+    - Click "Upgrade to Premium" - redirects to Stripe Checkout test page.
     - Use test card `4242 4242 4242 4242`, any future expiry, any 3-digit CVC, any zip.
     - Stripe redirects to `/billing/return`, which polls entitlement.
     - The `stripe listen` CLI logs the `checkout.session.completed` event being forwarded to our webhook.
     - Within ~1s the webhook lands; entitlement flips to premium; the return page redirects to the workspace.
-    - Re-open the same itinerary URL — synthesized itinerary now renders (gate cleared).
+    - Re-open the same itinerary URL - synthesized itinerary now renders (gate cleared).
     - Verify in Stripe Dashboard → Customers → the customer row exists with the active subscription.
-    - Trigger a status change: `stripe trigger customer.subscription.updated` — webhook receives it; `getEntitlement` reflects the new state.
-    - Trigger cancellation: `stripe trigger customer.subscription.deleted` — status flips to 'canceled'; entitlement remains premium until `currentPeriodEnd` (grace period).
-  - **Idempotency check**: Re-deliver an event from the Stripe Dashboard ("Resend") — webhook returns 200 with `idempotent: true` and store state is unchanged. Verify in server logs.
+    - Trigger a status change: `stripe trigger customer.subscription.updated` - webhook receives it; `getEntitlement` reflects the new state.
+    - Trigger cancellation: `stripe trigger customer.subscription.deleted` - status flips to 'canceled'; entitlement remains premium until `currentPeriodEnd` (grace period).
+  - **Idempotency check**: Re-deliver an event from the Stripe Dashboard ("Resend") - webhook returns 200 with `idempotent: true` and store state is unchanged. Verify in server logs.
   - **Test cards reference**: `4242...` (success), `4000 0000 0000 0002` (declined), `4000 0027 6000 3184` (3DS required). Link to Stripe's test cards page.
   - **Production switch**: Replace `sk_test_...` with `sk_live_...` and update the webhook endpoint's signing secret in production. No code change.
   - **Care points** (cross-link to architectural tenets in this plan):
-    - Webhook is idempotent on `event.id` — Stripe retries are safe.
+    - Webhook is idempotent on `event.id` - Stripe retries are safe.
     - Subscription state is server-side source of truth; no client cookie ever claims premium.
     - Anonymous sessions can't check out; sign-in is required first.
     - PCI scope = zero; Stripe Checkout is the hosted page.
@@ -344,9 +344,9 @@
     processedAt DateTime @default(now())
   }
   ```
-  - Run `pnpm exec prisma generate` (no migrate — schema lands in C4; PostgresSubscriptionStore impl in C4.x).
+  - Run `pnpm exec prisma generate` (no migrate - schema lands in C4; PostgresSubscriptionStore impl in C4.x).
 - [ ] Update `src/lib/env/get-server-features.ts` to surface `billing: { kind: 'mock' | 'stripe' }`.
-- [ ] Update README — Slice C4 status entry, roadmap row, brief Stripe-test-mode note pointing at `docs/billing.md`.
+- [ ] Update README - Slice C4 status entry, roadmap row, brief Stripe-test-mode note pointing at `docs/billing.md`.
 - [ ] Write `docs/superpowers/changelogs/2026-05-08-slice-c4.md` matching the C1/C2/C3 format. Include the documented end-to-end test flow as the "Demo behavior" section.
 - [ ] Tag `slice-c4`. Commit at logical milestones (per-task commits or grouped where related).
 
@@ -354,9 +354,9 @@
 
 ## What stays unchanged
 
-- Auth model — same `getServerAuth()` + `ownerOf()` everywhere.
-- Saved-trips API + share + redirect — untouched.
-- Memory + monitoring + itinerary subsystems — read-only consumers of the gate.
+- Auth model - same `getServerAuth()` + `ownerOf()` everywhere.
+- Saved-trips API + share + redirect - untouched.
+- Memory + monitoring + itinerary subsystems - read-only consumers of the gate.
 - Mock-safe end-to-end: keyless dev still ships every flow (curated itineraries are unaffected; synthesized fallback shows upgrade in mock mode for anonymous, and "everyone premium" for authenticated dev users).
 
 ## Out of C4 scope (deferred to C4.x)
@@ -368,7 +368,7 @@
 - Per-feature granular gating beyond synthesized-itinerary.
 - Email/transactional notifications on subscription change.
 - Live integration tests run against an actual Stripe test account in CI (current C4 tests use SDK fixture-signing, which exercises the same verification code path without network).
-- `ModelItineraryGenerator` itself — C3 deferred this; C4 unlocks the demand but the impl arrives when Viator is wired.
+- `ModelItineraryGenerator` itself - C3 deferred this; C4 unlocks the demand but the impl arrives when Viator is wired.
 
 ## Mock-safe matrix (Slice C4 end state)
 

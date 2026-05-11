@@ -1,10 +1,10 @@
-# StayScout Slice A8 — Trip Board Cinematic Materialization Implementation Plan
+# StayScout Slice A8 - Trip Board Cinematic Materialization Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Replace the structurally-correct-but-motion-light A7 stay list with the choreographed Trip Board materialization moment per spec §5.6. Hero card with Top pick badge, materialize→breathe motion sequence, photo with warm-bloom top + scrim bottom. Alternative cards with stagger. Reasoning chip strip with intent-vs-AI provenance distinction. Diff transition for `proposal.evolved` (cards present in both freeze, removed fade, added materialize, hero cross-fade on swap). "Why this changed" adaptation banner seam (renders when Slice B's RankingAgent emits adaptation notes). Hover states, prefers-reduced-motion fallbacks. After A8, the highest-leverage moment of the product — the showpiece — is polished.
+**Goal:** Replace the structurally-correct-but-motion-light A7 stay list with the choreographed Trip Board materialization moment per spec §5.6. Hero card with Top pick badge, materialize→breathe motion sequence, photo with warm-bloom top + scrim bottom. Alternative cards with stagger. Reasoning chip strip with intent-vs-AI provenance distinction. Diff transition for `proposal.evolved` (cards present in both freeze, removed fade, added materialize, hero cross-fade on swap). "Why this changed" adaptation banner seam (renders when Slice B's RankingAgent emits adaptation notes). Hover states, prefers-reduced-motion fallbacks. After A8, the highest-leverage moment of the product - the showpiece - is polished.
 
-**Architecture:** New folder `src/features/workspace/canvas/trip-board/` with focused components, each owning its motion. `<AnimatePresence>` with stable `stay.id` keys handles diff transitions for free — cards present in both proposals don't re-animate. Workspace store gains `currentTurn.adaptationNotes` + `proposal.adaptation` event handler so Slice B can surface the banner without UI changes.
+**Architecture:** New folder `src/features/workspace/canvas/trip-board/` with focused components, each owning its motion. `<AnimatePresence>` with stable `stay.id` keys handles diff transitions for free - cards present in both proposals don't re-animate. Workspace store gains `currentTurn.adaptationNotes` + `proposal.adaptation` event handler so Slice B can surface the banner without UI changes.
 
 **Tests:** Pure-function additions to `workspace-store.test.ts` for the new event. Visual components rely on manual verification + existing pipeline gates.
 
@@ -22,7 +22,7 @@ src/features/workspace/canvas/trip-board/
 ├── hero-stay-card.tsx            [new] hero with materialize→breathe + Top pick + bloom
 ├── alternative-card.tsx          [new] alt card with materialize + hover
 ├── reasoning-strip.tsx           [new] "Why these" chip row
-├── adaptation-banner.tsx         [new] "Why this changed" — seam, Slice B activates
+├── adaptation-banner.tsx         [new] "Why this changed" - seam, Slice B activates
 └── trip-board.tsx                [new] container with AnimatePresence diff transitions
 
 src/features/workspace/canvas/canvas.tsx   [modify] use TripBoard, drop StayList
@@ -200,7 +200,7 @@ Total: ~6 new files, 2 modified, 1 deleted.
    * Hero stay card. Materialize choreography (spec §5.6):
    *   T+0    opacity 0→1, scale 0.96→1, blur(8px)→blur(0), 600ms ease-emphasized
    *   T+200  Top pick badge fades up, photo overlay begins
-   *   T+600  switch to breathe loop — scale 1↔1.005, 5s infinite
+   *   T+600  switch to breathe loop - scale 1↔1.005, 5s infinite
    *
    * Reduced motion: 200ms cross-fade, no breathing.
    */
@@ -271,7 +271,7 @@ Total: ~6 new files, 2 modified, 1 deleted.
           }}
         />
 
-        {/* Bottom-up scrim — deepens slightly on hover */}
+        {/* Bottom-up scrim - deepens slightly on hover */}
         <div
           aria-hidden
           className="absolute inset-0 transition-opacity duration-[var(--dur-base)] group-hover:opacity-100"
@@ -449,7 +449,7 @@ Total: ~6 new files, 2 modified, 1 deleted.
    * "Why this changed" banner. Renders when proposal.adaptation events
    * arrive (Slice B+ via RankingAgent). Auto-dismisses after 5s. Slice
    * A's orchestrator never emits these so this component is silently
-   * inactive in the current demo — but the wire is ready.
+   * inactive in the current demo - but the wire is ready.
    */
   export function AdaptationBanner({ notes }: { notes: AdaptationNote[] }) {
     const reduced = useReducedMotion();

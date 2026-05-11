@@ -15,7 +15,7 @@ const TRIP_INTENT_KEYS: readonly (keyof TripIntent)[] = [
 ] as const;
 
 /**
- * Structurally diff two TripIntents. Top-level fields only — sub-tree
+ * Structurally diff two TripIntents. Top-level fields only - sub-tree
  * deep-equal is good enough for the UI's "what changed" banner.
  */
 export function computeIntentDelta(prior: TripIntent, next: TripIntent): IntentDelta {

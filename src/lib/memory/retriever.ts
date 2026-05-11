@@ -7,7 +7,7 @@ import type { MemoryStore, OwnerArgs } from './memory-store';
  *   - top-K cap
  *   - prompt-block formatter ready to splice into the user message
  *
- * Returns `null` when nothing met the floor — the agent threads that
+ * Returns `null` when nothing met the floor - the agent threads that
  * straight into "no memory hint to fire" territory.
  */
 
@@ -22,7 +22,7 @@ export interface RetrievedMemories {
   entries: RetrievedMemoryEntry[];
   /** Pre-formatted block for splicing into the user prompt. */
   promptBlock: string;
-  /** Best score among the returned entries — used to decide whether
+  /** Best score among the returned entries - used to decide whether
    *  the workspace's `concierge.memory.hint` event fires. */
   topScore: number;
 }
@@ -68,7 +68,7 @@ function formatPromptBlock(entries: RetrievedMemoryEntry[]): string {
   const lines = entries.map((e) => `- ${e.content}`);
   return [
     '<memory>',
-    'Prior signals from this user (use as soft hints, not hard facts — the user can override anytime):',
+    'Prior signals from this user (use as soft hints, not hard facts - the user can override anytime):',
     ...lines,
     '</memory>',
   ].join('\n');

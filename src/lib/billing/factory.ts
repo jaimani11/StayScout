@@ -16,11 +16,11 @@ export interface BillingSubsystem {
   provider: BillingProvider;
   store: SubscriptionStore;
   eventLog: WebhookEventStore;
-  /** Surfaced via getServerFeatures() — `mock` (default) or `stripe`. */
+  /** Surfaced via getServerFeatures() - `mock` (default) or `stripe`. */
   kind: 'mock' | 'stripe';
 }
 
-// Process-global anchor — see comment in src/lib/session/factory.ts.
+// Process-global anchor - see comment in src/lib/session/factory.ts.
 declare global {
   var __stayscoutBillingSubsystem: BillingSubsystem | undefined;
 }
@@ -67,7 +67,7 @@ export function getBillingSubsystem(): BillingSubsystem {
     if (!webhookSecret) missing.push('STRIPE_WEBHOOK_SECRET');
     if (!priceId) missing.push('STRIPE_PRICE_ID');
     console.warn(
-      `[billing] partial Stripe configuration — falling back to MockBillingProvider. Missing: ${missing.join(', ')}.`,
+      `[billing] partial Stripe configuration - falling back to MockBillingProvider. Missing: ${missing.join(', ')}.`,
     );
   }
 
