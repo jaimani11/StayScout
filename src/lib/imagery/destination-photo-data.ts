@@ -113,9 +113,11 @@ export const DESTINATION_PHOTOS: Readonly<Record<string, DestinationPhotoEntry>>
     photographer: 'Sorasak',
   },
   lisbon: {
-    id: '1513735718075-2e2d54f8de80',
-    alt: 'Lisbon tram on yellow street',
-    photographer: 'Tom Byrom',
+    // Original ID 1513735718075-2e2d54f8de80 dropped - Unsplash
+    // repurposed it and the URL no longer serves a Lisbon photo.
+    id: '1555881400-69a2c1e22e9e',
+    alt: 'Portuguese tile-clad coastal city',
+    photographer: 'Joran Quinten',
   },
   london: {
     id: '1486299267070-83823f5448dd',

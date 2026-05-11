@@ -103,13 +103,13 @@ const SLIDES: readonly CarouselSlide[] = [
     gradient: ['#1a2a3a', '#5a7a9a'],
   },
   {
-    name: 'Lisbon',
-    region: 'Portugal',
-    country: 'PT',
-    id: '1513735718075-2e2d54f8de80',
-    alt: 'Lisbon tram on a yellow street',
-    photographer: 'Tom Byrom',
-    gradient: ['#3a2a1a', '#aa7a4a'],
+    name: 'Sydney',
+    region: 'Australia',
+    country: 'AU',
+    id: '1506973035872-a4ec16b8e8d9',
+    alt: 'Sydney Opera House and Harbour Bridge',
+    photographer: 'Caleb',
+    gradient: ['#1a3a5a', '#3a8aba'],
   },
   {
     name: 'Maldives',
@@ -122,7 +122,14 @@ const SLIDES: readonly CarouselSlide[] = [
   },
 ];
 
-const SLIDE_INTERVAL_MS = 6000;
+// Auto-advance cadence. Tuned short enough that the carousel feels
+// alive the moment the page opens, long enough that the user can
+// still read the destination label.
+const SLIDE_INTERVAL_MS = 4000;
+// How soon after page open the first transition fires. Snappier than
+// the steady-state interval so movement starts visibly within the
+// first couple seconds.
+const FIRST_ADVANCE_MS = 1500;
 const DRAG_THRESHOLD_PX = 70;
 
 function unsplashUrl(id: string): string {
@@ -160,6 +167,10 @@ function tracedExpediaHref(slide: CarouselSlide): string {
 }
 
 export function EmptyState() {
+  // Start at slide 0 on every mount so SSR and CSR agree on the first
+  // frame (no hydration warning). Motion kicks in within 1.5s via the
+  // FIRST_ADVANCE_MS path below, so the carousel feels live immediately
+  // without needing randomization at mount time.
   const [index, setIndex] = useState(0);
   const [imageOk, setImageOk] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
@@ -174,15 +185,29 @@ export function EmptyState() {
   const goPrev = useCallback(() => goTo(index - 1), [goTo, index]);
   const goNext = useCallback(() => goTo(index + 1), [goTo, index]);
 
-  // Auto-advance - pauses while hovered or dragging so the user can
-  // study a slide without it slipping away.
+  // Auto-advance. Two-stage cadence: the FIRST transition fires
+  // quickly (FIRST_ADVANCE_MS) so the page feels alive the moment it
+  // opens; subsequent transitions space out (SLIDE_INTERVAL_MS) so
+  // each destination is readable. Pauses while hovered or dragging.
   useEffect(() => {
     if (isHovered) return;
-    const t = setInterval(() => {
-      if (!isDraggingRef.current) goNext();
-    }, SLIDE_INTERVAL_MS);
-    return () => clearInterval(t);
-  }, [isHovered, goNext]);
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleNext = (delayMs: number) => {
+      timer = setTimeout(() => {
+        if (cancelled) return;
+        if (!isDraggingRef.current) setIndex((i) => (i + 1) % SLIDES.length);
+        scheduleNext(SLIDE_INTERVAL_MS);
+      }, delayMs);
+    };
+    // First scheduled hop is faster; everything after settles to the
+    // normal interval. The user perceives motion within ~1.5s of load.
+    scheduleNext(FIRST_ADVANCE_MS);
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [isHovered]);
 
   // Keyboard nav - arrows move slides, Enter opens the link.
   useEffect(() => {
