@@ -35,7 +35,7 @@ export function Greeting() {
         Concierge
       </div>
       <h1
-        className="mb-5"
+        className="mb-3"
         style={{
           fontFamily: 'var(--font-fraunces)',
           fontSize: 'var(--text-display-sm)',
@@ -49,6 +49,79 @@ export function Greeting() {
         <br />
         <em style={{ color: 'var(--accent-primary)', fontStyle: 'italic' }}>next?</em>
       </h1>
+
+      {/* What StayScout does — a single editorial line that orients new
+       *  visitors before they pick a suggestion. */}
+      <p
+        className="mb-5 max-w-md"
+        style={{
+          fontFamily: 'var(--font-inter)',
+          fontSize: 'var(--text-body-sm)',
+          color: 'var(--ink-secondary)',
+          lineHeight: 1.55,
+        }}
+      >
+        Describe your trip in plain English — a city, vibe, party size, budget. I&rsquo;ll surface
+        real stays where I have them or hand you to Expedia, Vrbo, and Hotels.com with your search
+        already filled in.
+      </p>
+
+      {/* "How it works" — three quick steps. Tiny + understated; doesn't
+       *  compete with the suggestions below. */}
+      <ol
+        className="mb-5 space-y-1"
+        style={{
+          fontFamily: 'var(--font-inter)',
+          fontSize: '0.7rem',
+          color: 'var(--ink-tertiary)',
+          letterSpacing: '0.01em',
+          lineHeight: 1.55,
+          counterReset: 'how-step',
+        }}
+      >
+        {[
+          'Type a destination or pick a suggestion below.',
+          'I read your trip — dates, party, vibe — and route to the right partner.',
+          'Click any card to land on the partner site with your search ready.',
+        ].map((step, i) => (
+          <li
+            key={step}
+            className="flex items-start gap-2"
+            style={{ counterIncrement: 'how-step' }}
+          >
+            <span
+              aria-hidden
+              style={{
+                fontFamily: 'var(--font-geist-mono)',
+                fontSize: '0.6rem',
+                color: 'var(--accent-primary)',
+                fontWeight: 600,
+                minWidth: '1.1rem',
+                paddingTop: '0.05rem',
+              }}
+            >
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <span>{step}</span>
+          </li>
+        ))}
+      </ol>
+
+      {/* Suggestion chips — pre-baked prompts that exercise both the
+       *  curated-inventory path (Tuscany) and the search-opportunity
+       *  path (Austria, Vancouver, Tokyo, Lisbon). */}
+      <div
+        className="mb-2"
+        style={{
+          fontFamily: 'var(--font-inter)',
+          fontSize: 'var(--text-label)',
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+          color: 'var(--ink-tertiary)',
+        }}
+      >
+        Try one
+      </div>
       <ul className="space-y-1.5">
         {SUGGESTIONS.map((s) => (
           <li key={s}>
