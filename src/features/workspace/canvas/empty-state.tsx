@@ -122,13 +122,12 @@ const SLIDES: readonly CarouselSlide[] = [
   },
 ];
 
-// Auto-advance cadence. Tuned short enough that the carousel feels
-// alive the moment the page opens, long enough that the user can
-// still read the destination label before it disappears.
-const SLIDE_INTERVAL_MS = 3000;
-// How soon after page open the first transition fires. Deliberately
-// shorter than the steady-state interval so visible motion lands
-// within ~1s of the page loading.
+// Auto-advance cadence. Steady-state interval is long enough that a
+// reader can take in the destination + photo before it slides away.
+const SLIDE_INTERVAL_MS = 5000;
+// How soon after page open the FIRST transition fires. Snappier than
+// the steady-state interval so visible motion lands within ~1s of the
+// page loading and the carousel never feels stuck on its first slide.
 const FIRST_ADVANCE_MS = 1000;
 const DRAG_THRESHOLD_PX = 70;
 
@@ -244,23 +243,36 @@ export function EmptyState() {
     >
       {/* Photo layer - Apple-style drag-to-swipe over a crossfading
        *  background. The motion.div is dragged on the X axis; the
-       *  AnimatePresence inside swaps the underlying Image. */}
+       *  AnimatePresence inside swaps the underlying Image. The whole
+       *  photo doubles as the affiliate click target via Framer
+       *  Motion's onTap, which DISTINGUISHES taps from drags
+       *  automatically so swipes never trigger the redirect. */}
       <motion.div
-        className="absolute inset-0"
+        className="absolute inset-0 cursor-pointer"
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.15}
         style={{ x: dragX }}
+        role="link"
+        aria-label={`Search ${slide.name} on Expedia (affiliate link)`}
         onDragStart={() => {
           isDraggingRef.current = true;
         }}
         onDragEnd={(_, info) => {
-          // Defer click suppression - onClick fires after onDragEnd.
+          // Defer reset so onTap, which fires shortly after, can still
+          // read isDraggingRef as true. The Tap handler below also has
+          // its own drag-suppression check via Framer Motion's info.
           setTimeout(() => {
             isDraggingRef.current = false;
           }, 50);
           if (info.offset.x < -DRAG_THRESHOLD_PX) goNext();
           else if (info.offset.x > DRAG_THRESHOLD_PX) goPrev();
+        }}
+        onTap={() => {
+          // onTap fires only on quick taps (not drags), so swipes
+          // never accidentally trigger the affiliate redirect.
+          if (isDraggingRef.current) return;
+          window.open(href, '_blank', 'noopener,noreferrer');
         }}
       >
         <AnimatePresence mode="sync" initial={false}>
@@ -305,27 +317,12 @@ export function EmptyState() {
         }}
       />
 
-      {/* Whole-photo affiliate click target. Suppresses the click when
-       *  the user just finished a drag so swipes don't accidentally
-       *  fire the redirect. Explicit z-index keeps it BELOW the nav
-       *  control bar so the prev/next/dot buttons can't accidentally
-       *  trigger this affiliate link. */}
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer sponsored"
-        className="absolute inset-0 cursor-pointer"
-        aria-label={`Search ${slide.name} on Expedia (affiliate link)`}
-        onClick={(e) => {
-          if (isDraggingRef.current) e.preventDefault();
-        }}
-        draggable={false}
-        style={{ zIndex: 1 }}
-      />
-
       {/* Editorial overlay - a single flex column so the top and bottom
        *  rows are physically separated by `flex-1` spacer. They can't
-       *  overlap regardless of viewport height. */}
+       *  overlap regardless of viewport height. The overlay's parent
+       *  is `pointer-events-none`, so it never intercepts clicks on
+       *  the photo beneath. The nav row inside re-enables clicks for
+       *  its buttons via `pointer-events-auto`. */}
       <div
         className="pointer-events-none absolute inset-0 flex flex-col p-6"
         style={{ gap: '1rem', zIndex: 10 }}
