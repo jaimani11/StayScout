@@ -7,22 +7,31 @@ import { Canvas } from './canvas/canvas';
 import { SavedTripsPanel } from './saved-trips/saved-trips-panel';
 import { UrlInit } from './url-init';
 import { MobileBottomSheet } from './mobile-bottom-sheet';
+import { LandingPage } from './landing/landing-page';
+import { useWorkspaceStore } from './store/workspace-store';
 import { useIsMobile } from '@/features/shared/use-media-query';
 
 /**
  * Single-screen workspace shell.
  *
- *   Desktop (≥768px): split chat (38%) + canvas (62%) - Slice A layout.
- *   Mobile  (<768px): canvas full-screen background; chat lives in a
- *                     draggable bottom sheet with peek/half/full snaps.
+ *   Pre-submission (no turns): bedroomvillas-style LandingPage.
+ *     A full-bleed photo carousel with a centered "Describe where you
+ *     want to go..." input bar; featured destinations grid below.
  *
- * The two layouts are switched via media-query state, NOT CSS classes,
- * because the mobile sheet needs JS-driven drag + viewport
- * measurement. SSR + first-paint render the desktop layout; mobile
- * flips post-mount via useIsMobile (which is SSR-safe → false).
+ *   Post-submission (≥1 turn):
+ *     Desktop (≥768px) - split chat (38%) + canvas (62%).
+ *     Mobile  (<768px) - canvas full-screen; chat in a draggable bottom
+ *     sheet with peek/half/full snaps.
+ *
+ * The two post-submission layouts are switched via media-query state,
+ * NOT CSS classes, because the mobile sheet needs JS-driven drag +
+ * viewport measurement. SSR + first-paint render the desktop layout;
+ * mobile flips post-mount via useIsMobile (which is SSR-safe → false).
  */
 export function Workspace() {
   const isMobile = useIsMobile();
+  const hasTurns = useWorkspaceStore((s) => s.turns.length > 0);
+
   return (
     <div className="flex h-screen flex-col">
       {/* useSearchParams is gated behind Suspense per Next 16's CSR rules. */}
@@ -31,7 +40,13 @@ export function Workspace() {
       </Suspense>
       <Header />
 
-      {isMobile ? (
+      {!hasTurns ? (
+        // First-impression landing page. Once the user submits a trip
+        // (a turn appears in the store), the workspace below takes over.
+        <main className="relative min-h-0 flex-1">
+          <LandingPage />
+        </main>
+      ) : isMobile ? (
         // Mobile shell: canvas owns the full viewport; chat is a sheet
         // anchored to the bottom edge.
         <main className="relative min-h-0 flex-1">
