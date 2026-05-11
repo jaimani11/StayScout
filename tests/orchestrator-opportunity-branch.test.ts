@@ -68,7 +68,10 @@ function makeStubFlavorAgent() {
     name: 'StubFlavor',
     version: 'test',
     async run(_input: unknown, _ctx: AgentContext) {
-      return { text: 'Quiet ski mornings; six people share a chalet here.', source: 'llm' as const };
+      return {
+        text: 'Quiet ski mornings; six people share a chalet here.',
+        source: 'llm' as const,
+      };
     },
   };
 }

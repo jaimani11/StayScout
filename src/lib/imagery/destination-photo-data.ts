@@ -325,9 +325,13 @@ export const DESTINATION_PHOTOS: Readonly<Record<string, DestinationPhotoEntry>>
     photographer: 'Anastasia Polenova',
   },
   tuscany: {
-    id: '1490642914619-7955a3fd483c',
-    alt: 'Tuscany cypress road',
-    photographer: 'Florian Wehde',
+    // Original ID 1490642914619-7955a3fd483c dropped — Unsplash
+    // repurposed it and the URL now serves a London Tower Bridge
+    // photo. Falls back to Umbria's hills photo which is geographically
+    // adjacent (Tuscan-Umbrian border) so the label still reads true.
+    id: '1500382017468-9049fed747ef',
+    alt: 'Rolling hills of the Tuscan-Umbrian border',
+    photographer: 'Annie Spratt',
   },
   umbria: {
     id: '1500382017468-9049fed747ef',

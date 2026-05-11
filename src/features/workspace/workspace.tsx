@@ -43,11 +43,11 @@ export function Workspace() {
           </MobileBottomSheet>
         </main>
       ) : (
-        <main className="grid min-h-0 flex-1 grid-cols-[38%_62%]">
+        <main className="grid min-h-0 flex-1 grid-cols-[1fr_1fr]">
           <div className="min-h-0 border-r" style={{ borderColor: 'var(--border-subtle)' }}>
             <ChatSidebar />
           </div>
-          <section className="min-h-0">
+          <section className="relative min-h-0">
             <Canvas />
           </section>
         </main>
