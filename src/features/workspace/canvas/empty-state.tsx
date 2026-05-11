@@ -197,16 +197,21 @@ export function EmptyState() {
   const slide = SLIDES[index]!;
   const href = tracedExpediaHref(slide);
 
+  // The carousel root is `absolute inset-0` over its parent <section>.
+  // That guarantees full-height regardless of how the grid measures the
+  // cell — `h-full` was collapsing in some viewport / Turbopack-HMR
+  // states. With inset-0 the overlay always fills its positioned
+  // ancestor, which `workspace.tsx` already declares with
+  // `relative min-h-0` on the canvas section.
   return (
     <div
-      className="relative h-full w-full overflow-hidden"
-      style={{ minHeight: '32rem' }}
+      className="absolute inset-0 overflow-hidden"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Photo layer — drag-to-swipe + crossfade. Wrapped in a draggable
-       *  Framer Motion container so mouse + touch gestures advance the
-       *  slide just like Apple's product carousels. */}
+      {/* Photo layer — Apple-style drag-to-swipe over a crossfading
+       *  background. The motion.div is dragged on the X axis; the
+       *  AnimatePresence inside swaps the underlying Image. */}
       <motion.div
         className="absolute inset-0"
         drag="x"
@@ -239,7 +244,7 @@ export function EmptyState() {
                 src={unsplashUrl(slide.id)}
                 alt={slide.alt}
                 fill
-                sizes="50vw"
+                sizes="62vw"
                 style={{ objectFit: 'cover' }}
                 priority={index === 0}
                 onError={() => setImageOk(false)}
@@ -257,20 +262,19 @@ export function EmptyState() {
         </AnimatePresence>
       </motion.div>
 
-      {/* Top + bottom gradients for legibility over photography. */}
+      {/* Legibility gradient — dark top + dark bottom, transparent middle. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            'linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 28%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.7) 100%)',
+            'linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 28%, rgba(0,0,0,0) 58%, rgba(0,0,0,0.75) 100%)',
         }}
       />
 
-      {/* Clickable slide overlay — entire photo is an affiliate link to
-       *  Expedia search for this destination. Suppresses the click when
+      {/* Whole-photo affiliate click target. Suppresses the click when
        *  the user just finished a drag so swipes don't accidentally
-       *  fire the affiliate redirect. */}
+       *  fire the redirect. */}
       <a
         href={href}
         target="_blank"
@@ -280,126 +284,165 @@ export function EmptyState() {
         onClick={(e) => {
           if (isDraggingRef.current) e.preventDefault();
         }}
-        // Don't block Framer Motion's drag — drag fires on the parent
-        // motion.div; this anchor is layered above with pointer events.
         draggable={false}
       />
 
-      {/* Top row — eyebrow on the left, photographer credit on the
-       *  right. They never overlap; each owns one edge. */}
-      <div className="pointer-events-none absolute top-6 right-6 left-6 flex items-start justify-between gap-4">
-        <span
-          style={{
-            fontFamily: 'var(--font-geist-mono)',
-            fontSize: '0.6rem',
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: 'rgba(237,230,219,0.92)',
-            padding: '0.32rem 0.6rem',
-            background: 'rgba(0,0,0,0.4)',
-            border: '1px solid rgba(237,230,219,0.35)',
-            borderRadius: '0.25rem',
-            backdropFilter: 'blur(6px)',
-            textShadow: '0 1px 2px rgba(0,0,0,0.6)',
-          }}
-        >
-          Where StayScout could send you
-        </span>
-        <span
-          style={{
-            fontFamily: 'var(--font-inter)',
-            fontSize: '0.6rem',
-            letterSpacing: '0.05em',
-            color: 'rgba(237,230,219,0.75)',
-            textShadow: '0 1px 2px rgba(0,0,0,0.7)',
-          }}
-        >
-          Photo · {slide.photographer} / Unsplash
-        </span>
-      </div>
-
-      {/* Bottom row — destination label + CTA. Big and obviously
-       *  clickable; the entire photo is the link, this is the visible
-       *  affordance. */}
-      <div className="pointer-events-none absolute right-8 bottom-14 left-8 flex items-end justify-between gap-6">
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={`${slide.id}-label`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="flex flex-col gap-1"
+      {/* Editorial overlay — a single flex column so the top and bottom
+       *  rows are physically separated by `flex-1` spacer. They can't
+       *  overlap regardless of viewport height. */}
+      <div
+        className="pointer-events-none absolute inset-0 flex flex-col p-6"
+        style={{ gap: '1rem' }}
+      >
+        {/* Top row */}
+        <div className="flex items-start justify-between gap-4">
+          <span
+            style={{
+              fontFamily: 'var(--font-geist-mono)',
+              fontSize: '0.58rem',
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: 'rgba(237,230,219,0.92)',
+              padding: '0.3rem 0.55rem',
+              background: 'rgba(0,0,0,0.4)',
+              border: '1px solid rgba(237,230,219,0.35)',
+              borderRadius: '0.25rem',
+              backdropFilter: 'blur(6px)',
+              textShadow: '0 1px 2px rgba(0,0,0,0.6)',
+              maxWidth: '60%',
+            }}
           >
-            <h2
-              style={{
-                fontFamily: 'var(--font-fraunces)',
-                fontSize: 'clamp(2.6rem, 4.5vw, 3.6rem)',
-                fontWeight: 400,
-                lineHeight: 1.05,
-                letterSpacing: '-0.02em',
-                color: '#EDE6DB',
-                textShadow: '0 2px 10px rgba(0,0,0,0.6)',
-                margin: 0,
-              }}
-            >
-              {slide.name}
-            </h2>
-            <p
-              style={{
-                fontFamily: 'var(--font-inter)',
-                fontSize: 'var(--text-body)',
-                color: 'rgba(237,230,219,0.88)',
-                textShadow: '0 1px 4px rgba(0,0,0,0.6)',
-                margin: 0,
-              }}
-            >
-              {slide.region}
-            </p>
-          </motion.div>
-        </AnimatePresence>
+            Where StayScout could send you
+          </span>
+          <span
+            style={{
+              fontFamily: 'var(--font-inter)',
+              fontSize: '0.6rem',
+              letterSpacing: '0.05em',
+              color: 'rgba(237,230,219,0.75)',
+              textShadow: '0 1px 2px rgba(0,0,0,0.7)',
+              textAlign: 'right',
+              flexShrink: 0,
+            }}
+          >
+            Photo · {slide.photographer} / Unsplash
+          </span>
+        </div>
 
-        <span
-          className="inline-flex items-center gap-1.5"
-          style={{
-            fontFamily: 'var(--font-inter)',
-            fontSize: '0.72rem',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            color: '#EDE6DB',
-            padding: '0.5rem 0.9rem',
-            background: 'rgba(0,0,0,0.4)',
-            border: '1px solid rgba(237,230,219,0.5)',
-            borderRadius: '999px',
-            backdropFilter: 'blur(6px)',
-            textShadow: '0 1px 2px rgba(0,0,0,0.6)',
-          }}
+        {/* Spacer — guarantees the top and bottom rows can never crash
+         *  into each other, no matter how short the viewport gets. */}
+        <div className="flex-1" />
+
+        {/* Bottom row */}
+        <div className="flex items-end justify-between gap-4">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={`${slide.id}-label`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+              className="flex flex-col gap-1"
+            >
+              <h2
+                style={{
+                  fontFamily: 'var(--font-fraunces)',
+                  fontSize: 'clamp(2.4rem, 4vw, 3.4rem)',
+                  fontWeight: 400,
+                  lineHeight: 1.05,
+                  letterSpacing: '-0.02em',
+                  color: '#EDE6DB',
+                  textShadow: '0 2px 10px rgba(0,0,0,0.65)',
+                  margin: 0,
+                }}
+              >
+                {slide.name}
+              </h2>
+              <p
+                style={{
+                  fontFamily: 'var(--font-inter)',
+                  fontSize: 'var(--text-body)',
+                  color: 'rgba(237,230,219,0.88)',
+                  textShadow: '0 1px 4px rgba(0,0,0,0.6)',
+                  margin: 0,
+                }}
+              >
+                {slide.region}
+              </p>
+            </motion.div>
+          </AnimatePresence>
+
+          <span
+            className="inline-flex items-center gap-1.5"
+            style={{
+              fontFamily: 'var(--font-inter)',
+              fontSize: '0.7rem',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: '#EDE6DB',
+              padding: '0.5rem 0.9rem',
+              background: 'rgba(0,0,0,0.4)',
+              border: '1px solid rgba(237,230,219,0.5)',
+              borderRadius: '999px',
+              backdropFilter: 'blur(6px)',
+              textShadow: '0 1px 2px rgba(0,0,0,0.6)',
+              flexShrink: 0,
+            }}
+          >
+            View on Expedia
+            <ChevronRight size={12} strokeWidth={2.2} aria-hidden />
+          </span>
+        </div>
+
+        {/* Pagination dots — clickable shortcuts. Pointer-events restored
+         *  on the wrapper so the buttons remain clickable through the
+         *  pointer-events-none parent. */}
+        <div
+          className="pointer-events-auto flex items-center justify-center gap-1.5"
+          aria-label="Carousel pagination"
         >
-          View on Expedia
-          <ChevronRight size={12} strokeWidth={2.2} aria-hidden />
-        </span>
+          {SLIDES.map((s, i) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => goTo(i)}
+              aria-label={`Go to ${s.name}`}
+              aria-current={i === index}
+              style={{
+                width: i === index ? '1.4rem' : '0.4rem',
+                height: '0.2rem',
+                borderRadius: '0.2rem',
+                background: i === index ? 'rgba(237,230,219,0.95)' : 'rgba(237,230,219,0.4)',
+                border: 'none',
+                padding: 0,
+                cursor: 'pointer',
+                transition: 'width 600ms ease, background 600ms ease',
+              }}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* Prev / next buttons — always visible, large hit targets,
-       *  positioned so they're easy to find but never collide with
-       *  the labels. */}
+      {/* Prev / next buttons — z-indexed above the click overlay so the
+       *  user can navigate without triggering the affiliate redirect. */}
       <button
         type="button"
         onClick={goPrev}
         aria-label="Previous destination"
-        className="absolute top-1/2 left-4 -translate-y-1/2 transition-opacity hover:opacity-100"
+        className="absolute top-1/2 left-3 -translate-y-1/2 transition-opacity hover:opacity-100"
         style={{
           opacity: 0.7,
-          width: '2.4rem',
-          height: '2.4rem',
+          width: '2.3rem',
+          height: '2.3rem',
           borderRadius: '999px',
-          background: 'rgba(0,0,0,0.4)',
+          background: 'rgba(0,0,0,0.45)',
           border: '1px solid rgba(237,230,219,0.4)',
           color: '#EDE6DB',
           backdropFilter: 'blur(6px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          zIndex: 10,
         }}
       >
         <ChevronRight size={16} strokeWidth={2.4} style={{ transform: 'rotate(180deg)' }} />
@@ -408,49 +451,24 @@ export function EmptyState() {
         type="button"
         onClick={goNext}
         aria-label="Next destination"
-        className="absolute top-1/2 right-4 -translate-y-1/2 transition-opacity hover:opacity-100"
+        className="absolute top-1/2 right-3 -translate-y-1/2 transition-opacity hover:opacity-100"
         style={{
           opacity: 0.7,
-          width: '2.4rem',
-          height: '2.4rem',
+          width: '2.3rem',
+          height: '2.3rem',
           borderRadius: '999px',
-          background: 'rgba(0,0,0,0.4)',
+          background: 'rgba(0,0,0,0.45)',
           border: '1px solid rgba(237,230,219,0.4)',
           color: '#EDE6DB',
           backdropFilter: 'blur(6px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          zIndex: 10,
         }}
       >
         <ChevronRight size={16} strokeWidth={2.4} />
       </button>
-
-      {/* Pagination dots — clickable shortcuts to each slide. */}
-      <div
-        className="absolute bottom-5 left-1/2 flex -translate-x-1/2 items-center gap-1.5"
-        aria-label="Carousel pagination"
-      >
-        {SLIDES.map((s, i) => (
-          <button
-            key={s.id}
-            type="button"
-            onClick={() => goTo(i)}
-            aria-label={`Go to ${s.name}`}
-            aria-current={i === index}
-            style={{
-              width: i === index ? '1.6rem' : '0.45rem',
-              height: '0.22rem',
-              borderRadius: '0.22rem',
-              background: i === index ? 'rgba(237,230,219,0.95)' : 'rgba(237,230,219,0.4)',
-              border: 'none',
-              padding: 0,
-              cursor: 'pointer',
-              transition: 'width 600ms ease, background 600ms ease',
-            }}
-          />
-        ))}
-      </div>
     </div>
   );
 }
