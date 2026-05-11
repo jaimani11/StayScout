@@ -344,8 +344,10 @@ export const DESTINATION_PHOTOS: Readonly<Record<string, DestinationPhotoEntry>>
   // Used when an unknown city in a known country comes in. e.g.
   // "Innsbruck, Austria" without an entry → __country:AT (Alps).
   '__country:AT': {
-    id: '1568901346375-23c9450c58cd',
-    alt: 'Austrian Alps panorama',
+    // Original ID 1568901346375-23c9450c58cd dropped — Unsplash
+    // repurposed it and the URL now serves a non-travel image.
+    id: '1486870591958-9b9d0d1dda99',
+    alt: 'Alpine peaks panorama',
     photographer: 'Eberhard Grossgasteiger',
   },
   '__country:CH': {

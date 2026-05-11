@@ -21,7 +21,9 @@ const villaDEste: Stay = {
     'A Renaissance villa built in 1568 with 25 acres of gardens running down to the lake. The floating pool sits in the lake itself; the breakfast hall fits a chamber orchestra.',
   photos: [
     unsplashPhoto({
-      id: '1568901346375-23c9450c58cd',
+      // Replaced — original Unsplash ID 1568901346375-23c9450c58cd
+      // was repurposed and now serves a non-travel image (burger).
+      id: '1464822759023-fed622ff2c3b',
       alt: 'Lake Como villa with terraced gardens',
       credit: 'Unsplash',
     }),

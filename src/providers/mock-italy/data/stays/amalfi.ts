@@ -154,7 +154,9 @@ const monasteroSantaRosa: Stay = {
     'A 17th-century monastery turned twenty-room hotel. The cloister garden grows herbs for the kitchen; the infinity pool sits at the edge of the cliff.',
   photos: [
     unsplashPhoto({
-      id: '1568901346375-23c9450c58cd',
+      // Replaced — original Unsplash ID 1568901346375-23c9450c58cd
+      // was repurposed and now serves a non-travel image (burger).
+      id: '1464822759023-fed622ff2c3b',
       alt: 'Cliffside monastery with infinity pool',
       credit: 'Unsplash',
     }),

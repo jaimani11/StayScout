@@ -65,7 +65,9 @@ const hotelDeRussie: Stay = {
     'A 19th-century hotel built around a terraced garden the size of a small park. Bar Stravinskij at sunset is its own institution.',
   photos: [
     unsplashPhoto({
-      id: '1568901346375-23c9450c58cd',
+      // Replaced — original Unsplash ID 1568901346375-23c9450c58cd
+      // was repurposed and now serves a non-travel image (burger).
+      id: '1464822759023-fed622ff2c3b',
       alt: 'Hotel courtyard garden with terraces',
       credit: 'Unsplash',
     }),

@@ -44,7 +44,8 @@ const POOL: Readonly<Record<PhotoCategory, readonly string[]>> = {
     '1473496169904-658ba7c44d8a', // coastal cliffs (also valid for island)
   ],
   mountains: [
-    '1568901346375-23c9450c58cd', // Italian Dolomites peaks
+    // 1568901346375-23c9450c58cd removed — Unsplash repurposed it
+    // and the URL now serves a non-travel image (burger photo).
     '1486870591958-9b9d0d1dda99', // Patagonia jagged ridge
     '1464822759023-fed622ff2c3b', // Swiss valley fog
     '1454496522488-7a8e488e8606', // alpine sunrise + pine

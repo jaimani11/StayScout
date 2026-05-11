@@ -197,7 +197,9 @@ const castelloDiReschio: Stay = {
     'A thousand-year-old castle on its own 3,700-acre estate. Thirty-six rooms, a herb-garden spa, riding stables, and a single long lunch table outdoors.',
   photos: [
     unsplashPhoto({
-      id: '1568901346375-23c9450c58cd',
+      // Replaced — original Unsplash ID 1568901346375-23c9450c58cd
+      // was repurposed and now serves a non-travel image (burger).
+      id: '1464822759023-fed622ff2c3b',
       alt: 'Stone castle estate with cypress trees',
       credit: 'Unsplash',
     }),

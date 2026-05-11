@@ -1,17 +1,24 @@
 'use client';
 
-import Image from 'next/image';
 import { useMemo } from 'react';
 import { pickFeaturedToday } from '../featured-today';
 
+/**
+ * Empty-state pane shown before the user submits any trip.
+ *
+ * Temporary text-only treatment (no destination photo): a few of the
+ * Unsplash IDs baked into the mock-italy dataset have been repurposed
+ * by Unsplash and now resolve to non-travel imagery (one of them is a
+ * burger). Until every ID is audited we render a clean editorial
+ * intro instead of pulling a possibly-bad photo. The featured stay's
+ * name + location still surfaces so the page doesn't feel empty.
+ */
 export function EmptyState() {
   const featured = useMemo(() => pickFeaturedToday(), []);
-  const photo = featured.photos[0];
 
   return (
-    <div className="flex h-full flex-col gap-4 px-6 py-6">
+    <div className="flex h-full flex-col items-start justify-center gap-6 px-10 py-10">
       <div
-        className="mb-1"
         style={{
           fontFamily: 'var(--font-inter)',
           fontSize: 'var(--text-label)',
@@ -22,72 +29,41 @@ export function EmptyState() {
       >
         Featured today
       </div>
-      <div
-        className="relative w-full max-w-2xl overflow-hidden rounded-[22px] border"
-        style={{
-          aspectRatio: '4/3',
-          borderColor: 'var(--border-subtle)',
-          boxShadow: 'var(--elev-hero)',
-        }}
-      >
-        {photo ? (
-          <Image
-            src={photo.url}
-            alt={photo.alt}
-            fill
-            sizes="(max-width: 1280px) 60vw, 800px"
-            className="object-cover"
-            priority
-          />
-        ) : null}
-        <div
-          aria-hidden
-          className="absolute inset-0"
+
+      <div className="flex flex-col gap-2">
+        <h2
           style={{
-            background: 'linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.55) 100%)',
+            fontFamily: 'var(--font-fraunces)',
+            fontSize: 'clamp(2.6rem, 5vw, 3.4rem)',
+            fontWeight: 400,
+            lineHeight: 1.05,
+            letterSpacing: '-0.02em',
+            color: 'var(--ink-primary)',
+            margin: 0,
           }}
-        />
-        <div className="absolute right-4 bottom-4 left-4 flex items-end justify-between gap-3">
-          <div>
-            <p
-              style={{
-                fontFamily: 'var(--font-fraunces)',
-                fontSize: 'var(--text-display-sm)',
-                fontWeight: 400,
-                color: '#EDE6DB',
-                lineHeight: 1.1,
-              }}
-            >
-              {featured.name}
-            </p>
-            <p
-              className="mt-1"
-              style={{
-                fontFamily: 'var(--font-inter)',
-                fontSize: 'var(--text-body-sm)',
-                color: 'rgba(237,230,219,0.7)',
-              }}
-            >
-              {featured.location.region ?? featured.location.country}
-              {featured.location.neighborhood ? ` · ${featured.location.neighborhood}` : ''}
-            </p>
-          </div>
-          <p
-            style={{
-              fontFamily: 'var(--font-fraunces)',
-              fontSize: 'var(--text-display-sm)',
-              color: 'var(--accent-primary)',
-            }}
-          >
+        >
+          {featured.name}
+        </h2>
+        <p
+          style={{
+            fontFamily: 'var(--font-inter)',
+            fontSize: 'var(--text-body)',
+            color: 'var(--ink-secondary)',
+            margin: 0,
+          }}
+        >
+          {featured.location.region ?? featured.location.country}
+          {featured.location.neighborhood ? ` · ${featured.location.neighborhood}` : ''}
+          {' · '}
+          <span style={{ color: 'var(--accent-primary)' }}>
             {featured.pricing.pricePerNight.amount.toLocaleString()}{' '}
-            <span style={{ fontSize: 'var(--text-body-sm)' }}>
-              {featured.pricing.pricePerNight.currency}
-            </span>
-          </p>
-        </div>
+            {featured.pricing.pricePerNight.currency}/night
+          </span>
+        </p>
       </div>
+
       <p
-        className="max-w-md"
+        className="max-w-lg"
         style={{
           fontFamily: 'var(--font-fraunces)',
           fontSize: 'var(--text-body)',
@@ -95,6 +71,7 @@ export function EmptyState() {
           fontWeight: 300,
           color: 'var(--ink-secondary)',
           lineHeight: 1.5,
+          marginTop: '0.5rem',
         }}
       >
         Tell me about your trip — or start with one of the suggestions.
