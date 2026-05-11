@@ -60,7 +60,7 @@ export function SearchOpportunityBoard({ opportunity }: Props) {
           maxWidth: '46rem',
         }}
       >
-        We don&rsquo;t have direct inventory for {opportunity.destination.name} yet - these links
+        We don&rsquo;t have direct inventory for {opportunity.destination.name} yet. These links
         send you straight to our partners for live availability. Affiliate links · prices may
         change.
       </p>

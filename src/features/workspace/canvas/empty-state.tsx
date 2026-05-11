@@ -124,12 +124,12 @@ const SLIDES: readonly CarouselSlide[] = [
 
 // Auto-advance cadence. Tuned short enough that the carousel feels
 // alive the moment the page opens, long enough that the user can
-// still read the destination label.
-const SLIDE_INTERVAL_MS = 4000;
-// How soon after page open the first transition fires. Snappier than
-// the steady-state interval so movement starts visibly within the
-// first couple seconds.
-const FIRST_ADVANCE_MS = 1500;
+// still read the destination label before it disappears.
+const SLIDE_INTERVAL_MS = 3000;
+// How soon after page open the first transition fires. Deliberately
+// shorter than the steady-state interval so visible motion lands
+// within ~1s of the page loading.
+const FIRST_ADVANCE_MS = 1000;
 const DRAG_THRESHOLD_PX = 70;
 
 function unsplashUrl(id: string): string {
@@ -167,15 +167,22 @@ function tracedExpediaHref(slide: CarouselSlide): string {
 }
 
 export function EmptyState() {
-  // Start at slide 0 on every mount so SSR and CSR agree on the first
-  // frame (no hydration warning). Motion kicks in within 1.5s via the
-  // FIRST_ADVANCE_MS path below, so the carousel feels live immediately
-  // without needing randomization at mount time.
+  // Start at 0 for SSR/CSR agreement, then jump to a random slide on
+  // the first client tick so each page-load opens on a different
+  // destination. We use a ref to make sure the random pick only fires
+  // once per mount even if React re-renders.
   const [index, setIndex] = useState(0);
   const [imageOk, setImageOk] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const isDraggingRef = useRef(false);
+  const hasRandomizedRef = useRef(false);
   const dragX = useMotionValue(0);
+
+  useEffect(() => {
+    if (hasRandomizedRef.current) return;
+    hasRandomizedRef.current = true;
+    setIndex(Math.floor(Math.random() * SLIDES.length));
+  }, []);
 
   const goTo = useCallback((next: number) => {
     setIndex(((next % SLIDES.length) + SLIDES.length) % SLIDES.length);
@@ -300,7 +307,9 @@ export function EmptyState() {
 
       {/* Whole-photo affiliate click target. Suppresses the click when
        *  the user just finished a drag so swipes don't accidentally
-       *  fire the redirect. */}
+       *  fire the redirect. Explicit z-index keeps it BELOW the nav
+       *  control bar so the prev/next/dot buttons can't accidentally
+       *  trigger this affiliate link. */}
       <a
         href={href}
         target="_blank"
@@ -311,6 +320,7 @@ export function EmptyState() {
           if (isDraggingRef.current) e.preventDefault();
         }}
         draggable={false}
+        style={{ zIndex: 1 }}
       />
 
       {/* Editorial overlay - a single flex column so the top and bottom
@@ -318,7 +328,7 @@ export function EmptyState() {
        *  overlap regardless of viewport height. */}
       <div
         className="pointer-events-none absolute inset-0 flex flex-col p-6"
-        style={{ gap: '1rem' }}
+        style={{ gap: '1rem', zIndex: 10 }}
       >
         {/* Top row */}
         <div className="flex items-start justify-between gap-4">
@@ -421,14 +431,25 @@ export function EmptyState() {
         </div>
 
         {/* Pagination row - prev arrow, dots, next arrow. All bottom-
-         *  centered together so the photo area itself stays clean. */}
+         *  centered together so the photo area itself stays clean.
+         *
+         *  z-index 20 keeps this row ABOVE the click-anywhere anchor
+         *  (z-index 1) so the buttons unambiguously receive clicks.
+         *  Each button also stops propagation + preventDefault, in case
+         *  any descendant event ever bubbles through. */}
         <div
           className="pointer-events-auto flex items-center justify-center gap-3"
           aria-label="Carousel navigation"
+          style={{ zIndex: 20, position: 'relative' }}
+          onClick={(e) => e.stopPropagation()}
         >
           <button
             type="button"
-            onClick={goPrev}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              goPrev();
+            }}
             aria-label="Previous destination"
             style={chevronButtonStyle}
           >
@@ -444,7 +465,11 @@ export function EmptyState() {
               <button
                 key={s.id}
                 type="button"
-                onClick={() => goTo(i)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  goTo(i);
+                }}
                 aria-label={`Go to ${s.name}`}
                 aria-current={i === index}
                 style={{
@@ -463,7 +488,11 @@ export function EmptyState() {
 
           <button
             type="button"
-            onClick={goNext}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              goNext();
+            }}
             aria-label="Next destination"
             style={chevronButtonStyle}
           >

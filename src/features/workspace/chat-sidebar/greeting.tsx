@@ -61,9 +61,9 @@ export function Greeting() {
           lineHeight: 1.55,
         }}
       >
-        Describe your trip in plain English - a city, vibe, party size, budget. I&rsquo;ll surface
-        real stays where I have them or hand you to Expedia, Vrbo, and Hotels.com with your search
-        already filled in.
+        Tell me about your next trip in plain English. Mention a city, a vibe, your party size,
+        a budget. I&rsquo;ll surface real stays where I have them, or send you to Expedia, Vrbo,
+        and Hotels.com with your search already filled in.
       </p>
 
       {/* "How it works" - three quick steps. Tiny + understated; doesn't
@@ -81,7 +81,7 @@ export function Greeting() {
       >
         {[
           'Type a destination or pick a suggestion below.',
-          'I read your trip - dates, party, vibe - and route to the right partner.',
+          'I read the dates, party size, and vibe, then route you to the right partner.',
           'Click any card to land on the partner site with your search ready.',
         ].map((step, i) => (
           <li

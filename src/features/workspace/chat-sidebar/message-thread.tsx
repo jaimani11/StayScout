@@ -31,7 +31,7 @@ export function MessageThread() {
                 fontStyle: 'italic',
               }}
             >
-              Stream interrupted - try again?
+              Stream interrupted. Try again?
             </div>
           ) : null}
         </div>
