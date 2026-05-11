@@ -20,6 +20,13 @@ const PROVENANCE: Readonly<Record<string, ChipSpec>> = {
   'booking-com': { label: 'BOOKING.COM · LIVE', tone: 'live' },
   'mock-italy': { label: 'CURATED · ITALY', tone: 'curated' },
   'llm-synthesized': { label: 'AI PREVIEW', tone: 'preview' },
+  // Slice F1 — affiliate-search chips. `preview` tone (warning border)
+  // tells the user "this routes to the partner site for live results",
+  // distinct from the bold `live` chip (which means we already have
+  // real availability in hand).
+  'expedia-search': { label: 'SEARCH · EXPEDIA', tone: 'preview' },
+  'vrbo-search': { label: 'SEARCH · VRBO', tone: 'preview' },
+  'hotels-com-search': { label: 'SEARCH · HOTELS.COM', tone: 'preview' },
 };
 
 /**

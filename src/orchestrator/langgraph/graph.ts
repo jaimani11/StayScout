@@ -3,6 +3,7 @@ import { GraphAnnotation } from './state';
 import {
   makeBootstrapNode,
   makeIntentNode,
+  makeOpportunityNode,
   makeSearchNode,
   makeComposeNode,
   makeMoodNode,
@@ -23,11 +24,12 @@ import {
  * Edges:
  *   START → bootstrap
  *   bootstrap → intent | END (hard fail/duplicate)
- *   intent → search | END (hard fail)
+ *   intent → search | run_opportunity | END (hard fail)         [F1]
  *   search → compose | complete (soft empty) | END (hard fail)
  *   compose → mood
  *   mood → memory_hint
  *   memory_hint → complete
+ *   run_opportunity → complete                                   [F1]
  *   complete → END
  */
 export function buildGraph(deps: GraphDeps, checkpointer?: BaseCheckpointSaver) {
@@ -37,6 +39,7 @@ export function buildGraph(deps: GraphDeps, checkpointer?: BaseCheckpointSaver) 
     .addNode('bootstrap_turn', makeBootstrapNode(deps))
     .addNode('extract_intent', makeIntentNode(deps))
     .addNode('run_search', makeSearchNode(deps))
+    .addNode('run_opportunity', makeOpportunityNode(deps))
     .addNode('compose_proposal', makeComposeNode(deps))
     .addNode('run_mood', makeMoodNode(deps))
     .addNode('evaluate_hint', makeMemoryHintNode(deps))
@@ -47,7 +50,8 @@ export function buildGraph(deps: GraphDeps, checkpointer?: BaseCheckpointSaver) 
       end: END,
     })
     .addConditionalEdges('extract_intent', routeAfterIntent, {
-      next: 'run_search',
+      search: 'run_search',
+      opportunity: 'run_opportunity',
       end: END,
     })
     .addConditionalEdges('run_search', routeAfterSearch, {
@@ -58,6 +62,7 @@ export function buildGraph(deps: GraphDeps, checkpointer?: BaseCheckpointSaver) 
     .addEdge('compose_proposal', 'run_mood')
     .addEdge('run_mood', 'evaluate_hint')
     .addEdge('evaluate_hint', 'complete_turn')
+    .addEdge('run_opportunity', 'complete_turn')
     .addEdge('complete_turn', END);
 
   return checkpointer ? g.compile({ checkpointer }) : g.compile();

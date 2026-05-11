@@ -10,7 +10,13 @@ import type { IntentAgentInput } from '@/agents/intent-agent';
 import { IntentAgent } from '@/agents/intent-agent';
 import type { MoodSnapshotAgentInput } from '@/agents/mood-snapshot-agent';
 import { MoodSnapshotAgent } from '@/agents/mood-snapshot-agent';
-import { routeProvider } from '@/providers';
+import {
+  DestinationFlavorAgent,
+  type DestinationFlavor,
+  type DestinationFlavorAgentInput,
+} from '@/agents/destination-flavor-agent';
+import { buildProviderRegistry, routeProvider } from '@/providers';
+import { routeForIntent, type RouteDecision } from '../route-search';
 import { NoOpTraceLogger } from '@lib/observability/trace-logger';
 import { MemoryHinter } from '@lib/memory-hinter';
 import { InMemorySessionStore, type SessionStore } from '@lib/session';
@@ -25,7 +31,11 @@ export interface LangGraphOrchestratorOptions {
   traceLogger?: TraceLogger;
   intentAgent?: Agent<IntentAgentInput, TripIntent>;
   moodSnapshotAgent?: Agent<MoodSnapshotAgentInput, MoodSnapshot>;
+  destinationFlavorAgent?: Agent<DestinationFlavorAgentInput, DestinationFlavor | null>;
   providerRouter?: (intent: TripIntent) => Provider;
+  /** Slice F1 — decides inventory vs opportunity path. Defaults to
+   *  `routeForIntent` over the global provider registry. */
+  routeDecider?: (intent: TripIntent) => RouteDecision;
   sessionStore?: SessionStore;
   /** Optional LangGraph checkpoint saver. MemorySaver if omitted. */
   checkpointer?: BaseCheckpointSaver;
@@ -61,12 +71,20 @@ export class LangGraphOrchestrator {
 
   constructor(opts: LangGraphOrchestratorOptions) {
     const sessionStore = opts.sessionStore ?? new InMemorySessionStore();
+    const modelClient = opts.modelClient;
     const deps: GraphDeps = {
-      modelClient: opts.modelClient,
+      modelClient,
       traceLogger: opts.traceLogger ?? NoOpTraceLogger,
       intentAgent: opts.intentAgent ?? IntentAgent,
       moodSnapshotAgent: opts.moodSnapshotAgent ?? MoodSnapshotAgent,
+      destinationFlavorAgent: opts.destinationFlavorAgent ?? DestinationFlavorAgent,
       providerRouter: opts.providerRouter ?? routeProvider,
+      routeDecider:
+        opts.routeDecider ??
+        ((intent) => {
+          const reg = buildProviderRegistry(modelClient);
+          return routeForIntent(intent, { real: reg.real });
+        }),
       sessionStore,
       getHinter: (sid) => this.getHinter(sid),
       hasSeenSession: (sid) => this.seenSessions.has(sid),

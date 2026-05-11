@@ -11,14 +11,21 @@ import type { IntentAgentInput } from '@/agents/intent-agent';
 import { IntentAgent } from '@/agents/intent-agent';
 import type { MoodSnapshotAgentInput } from '@/agents/mood-snapshot-agent';
 import { MoodSnapshotAgent } from '@/agents/mood-snapshot-agent';
-import { routeProvider } from '@/providers';
+import {
+  DestinationFlavorAgent,
+  type DestinationFlavor,
+  type DestinationFlavorAgentInput,
+} from '@/agents/destination-flavor-agent';
+import { buildProviderRegistry, routeProvider } from '@/providers';
 import { NoOpTraceLogger } from '@lib/observability/trace-logger';
 import { MemoryHinter } from '@lib/memory-hinter';
 import { InMemorySessionStore, type SessionStore } from '@lib/session';
 import type { MemoryRecorder, MemoryRetriever, RetrievedMemories } from '@lib/memory';
+import { buildSearchOpportunity } from '@lib/affiliate/search-opportunity-builder';
 import { computeIntentDelta } from './intent-delta';
 import { computeProposalDiff } from './proposal-diff';
 import { buildProposal, buildProposalRef } from './proposal-builder';
+import { routeForIntent, type RouteDecision } from './route-search';
 import { synthesizeAdaptationNotes } from './synthesize-adaptation';
 
 export interface OrchestratorOptions {
@@ -26,7 +33,12 @@ export interface OrchestratorOptions {
   traceLogger?: TraceLogger;
   intentAgent?: Agent<IntentAgentInput, TripIntent>;
   moodSnapshotAgent?: Agent<MoodSnapshotAgentInput, MoodSnapshot>;
+  destinationFlavorAgent?: Agent<DestinationFlavorAgentInput, DestinationFlavor | null>;
   providerRouter?: (intent: TripIntent) => Provider;
+  /** Slice F1 — decides between real inventory path and SearchOpportunity
+   *  path. Defaults to `routeForIntent` over the global provider registry.
+   *  Override for tests that want to pin the route. */
+  routeDecider?: (intent: TripIntent) => RouteDecision;
   /**
    * Persistence boundary. Defaults to a per-Orchestrator
    * InMemorySessionStore so unit tests don't need to wire up a store —
@@ -54,7 +66,12 @@ export class Orchestrator {
   private readonly traceLogger: TraceLogger;
   private readonly intentAgent: Agent<IntentAgentInput, TripIntent>;
   private readonly moodSnapshotAgent: Agent<MoodSnapshotAgentInput, MoodSnapshot>;
+  private readonly destinationFlavorAgent: Agent<
+    DestinationFlavorAgentInput,
+    DestinationFlavor | null
+  >;
   private readonly providerRouter: (intent: TripIntent) => Provider;
+  private readonly routeDecider: (intent: TripIntent) => RouteDecision;
   private readonly sessionStore: SessionStore;
   private readonly memoryRecorder: MemoryRecorder | null;
   private readonly memoryRetriever: MemoryRetriever | null;
@@ -68,7 +85,14 @@ export class Orchestrator {
     this.traceLogger = opts.traceLogger ?? NoOpTraceLogger;
     this.intentAgent = opts.intentAgent ?? IntentAgent;
     this.moodSnapshotAgent = opts.moodSnapshotAgent ?? MoodSnapshotAgent;
+    this.destinationFlavorAgent = opts.destinationFlavorAgent ?? DestinationFlavorAgent;
     this.providerRouter = opts.providerRouter ?? routeProvider;
+    this.routeDecider =
+      opts.routeDecider ??
+      ((intent) => {
+        const reg = buildProviderRegistry(this.modelClient);
+        return routeForIntent(intent, { real: reg.real });
+      });
     this.sessionStore = opts.sessionStore ?? new InMemorySessionStore();
     this.memoryRecorder = opts.memoryRecorder ?? null;
     this.memoryRetriever = opts.memoryRetriever ?? null;
@@ -190,6 +214,16 @@ export class Orchestrator {
       };
     } else {
       yield { kind: 'intent.extracted', turnId: req.turnId, intent };
+    }
+
+    // ============== Step 1.5 — Route decision (F1) ==============
+    // Decide between real-inventory path (existing) and SearchOpportunity
+    // path (new). Opportunity short-circuits the proposal flow: we emit
+    // `search.opportunity.ready` + complete the turn. No fake hotels.
+    const route = this.routeDecider(intent);
+    if (route.kind === 'opportunity') {
+      yield* this.runOpportunityBranch(req, ctx.signal, intent, agentTrace, turnStartedAt);
+      return;
     }
 
     // ============== Step 2 — Provider search ==============
@@ -365,6 +399,123 @@ export class Orchestrator {
       intent,
       proposal,
       durationMs: Math.round(performance.now() - turnStartedAt),
+      completedAt: Date.now(),
+    });
+  }
+
+  /**
+   * Slice F1 — opportunity branch.
+   *
+   * Runs when the route decider says we don't have inventory for this
+   * destination. Steps:
+   *   1. DestinationFlavorAgent (best-effort, optional) — produces a
+   *      one-line "feel of the place" for the hero band.
+   *   2. buildSearchOpportunity — three provider search URLs prefilled
+   *      with intent (dates, party, vibe).
+   *   3. Emit `search.opportunity.ready`.
+   *   4. Persist the turn (intent only — no proposal; F1.x will add
+   *      opportunity persistence for refine analytics).
+   *   5. Complete the turn.
+   *
+   * Mood + memory hint are deliberately skipped here — they're tied to
+   * the proposal flow. The opportunity board is its own complete UX.
+   */
+  private async *runOpportunityBranch(
+    req: ConciergeRequest,
+    signal: AbortSignal,
+    intent: TripIntent,
+    agentTrace: AgentTraceSummary,
+    turnStartedAt: number,
+  ): AsyncIterable<OrchestratorEvent> {
+    const dest = intent.destinations[0];
+
+    // Defensive: routeDecider only returns opportunity with a usable
+    // destination, but the type system allows `destinations` to be
+    // empty. Fall back to the no-results message + complete.
+    if (!dest) {
+      yield {
+        kind: 'concierge.message',
+        turnId: req.turnId,
+        message: "*Tell me where you'd like to go — a city, region, or country.*",
+        tone: 'apologize',
+      };
+      yield {
+        kind: 'turn.completed',
+        turnId: req.turnId,
+        durationMs: Math.round(performance.now() - turnStartedAt),
+      };
+      return;
+    }
+
+    // ============== Step F1.A — Destination flavor (best-effort) ==============
+    const flavorStepId = stepId(`${req.turnId}-flavor`);
+    yield {
+      kind: 'agent.step.started',
+      turnId: req.turnId,
+      stepId: flavorStepId,
+      agentId: 'destination-flavor',
+      label: `Reading the feel of ${dest.name}`,
+    };
+
+    const flavorStartedAt = performance.now();
+    let flavor: DestinationFlavor | null = null;
+    try {
+      const agentCtx = this.buildAgentContext(req, signal);
+      flavor = await this.destinationFlavorAgent.run(
+        {
+          destination: dest,
+          vibeTags: intent.vibe.tags,
+          travelers: {
+            adults: intent.travelers.adults,
+            children: intent.travelers.children.count,
+          },
+        },
+        agentCtx,
+      );
+    } catch (err) {
+      // Flavor is decorative — never fail the turn on its account.
+      console.warn('[orchestrator] flavor agent threw', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+    const flavorDurationMs = Math.round(performance.now() - flavorStartedAt);
+    agentTrace.agents.push({ id: 'destination-flavor', durationMs: flavorDurationMs });
+    yield {
+      kind: 'agent.step.completed',
+      turnId: req.turnId,
+      stepId: flavorStepId,
+      durationMs: flavorDurationMs,
+    };
+
+    // ============== Step F1.B — Build opportunity ==============
+    const opportunity = buildSearchOpportunity({
+      intent,
+      ...(flavor?.text ? { flavor: flavor.text } : {}),
+    });
+
+    yield {
+      kind: 'search.opportunity.ready',
+      turnId: req.turnId,
+      opportunity,
+    };
+
+    // ============== Step F1.C — Complete ==============
+    agentTrace.totalDurationMs = Math.round(performance.now() - turnStartedAt);
+    yield {
+      kind: 'turn.completed',
+      turnId: req.turnId,
+      durationMs: agentTrace.totalDurationMs,
+    };
+
+    // Persist the turn so /refine can find priorIntent. Proposal field
+    // stays unset — F1.x adds opportunity-aware persistence (per plan).
+    await this.sessionStore.putTurn({
+      turnId: req.turnId,
+      sessionId: req.sessionId,
+      type: req.type,
+      rawInput: req.input.rawInput,
+      intent,
+      durationMs: agentTrace.totalDurationMs,
       completedAt: Date.now(),
     });
   }

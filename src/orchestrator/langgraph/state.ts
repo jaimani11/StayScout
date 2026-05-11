@@ -7,6 +7,7 @@ import type { TripIntent } from '@core/trip-intent';
 import type { AgentTraceSummary, TripProposal } from '@core/trip-proposal';
 import type { TurnRecord } from '@lib/session/session-store';
 import type { RetrievedMemories } from '@lib/memory';
+import type { RouteDecision } from '../route-search';
 
 /**
  * Graph state — the **minimum** data flowing between nodes. Events are
@@ -62,6 +63,13 @@ export const GraphAnnotation = Annotation.Root({
   /** Wall-clock ms when bootstrap ran — basis for turn duration. */
   turnStartedAt: Annotation<number>({
     default: () => 0,
+    reducer: (_l, r) => r,
+  }),
+  /** Slice F1 — route decision computed after intent extraction.
+   *  When `kind === 'opportunity'`, the graph branches into the
+   *  opportunity node instead of running search/compose/mood/hint. */
+  route: Annotation<RouteDecision | null>({
+    default: () => null,
     reducer: (_l, r) => r,
   }),
   /** Slice C1 — retrieval result, populated by the bootstrap node when

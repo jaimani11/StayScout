@@ -426,7 +426,7 @@ function modeDescription(mode: Mode): string {
     case 'live-rapid':
       return 'Listings come from real Expedia + Rapid availability; every CTA carries your affcid; commission tracks on every click. Fully wired.';
     case 'affiliate-only':
-      return 'Listings are curated (Italy) or AI-synthesized (everywhere else); CTAs route through real Expedia search with your affcid attached. Commission tracks. Add EXPEDIA_API_KEY + EXPEDIA_SHARED_SECRET for real inventory.';
+      return 'Listings are curated (7 Italian regions) for in-region queries; everywhere else surfaces a SearchOpportunityBoard with prefilled Expedia/Vrbo/Hotels.com search URLs. Every click carries your affcid and tracks commission. Add EXPEDIA_API_KEY + EXPEDIA_SHARED_SECRET to swap the opportunity board for real Expedia inventory.';
     case 'mock':
       return 'Demo mode. Listings are mock; CTAs link to Expedia search but no affcid attached → commission does NOT track. Add NEXT_PUBLIC_EXPEDIA_AFFILIATE_CID to start earning.';
   }

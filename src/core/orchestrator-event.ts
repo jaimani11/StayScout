@@ -6,6 +6,7 @@ import { AdaptationNoteSchema, MoodSnapshotSchema, ExplanationTopicSchema } from
 import { ProviderBadgeSchema } from './provider';
 import { FreshnessInfoSchema } from './trust';
 import { ProposalRefSchema, PartialnessReportSchema } from './partial';
+import { SearchOpportunitySchema } from './search-opportunity';
 
 // Every event the UI sees flows through this discriminated union. The
 // Zustand store has one reducer that pattern-matches `kind`. `turnId`
@@ -161,6 +162,15 @@ const MoodSnapshotReady = z.object({
   snapshot: MoodSnapshotSchema,
 });
 
+// Slice F1 — search-opportunity board (emitted when no real/curated
+// provider can back the destination). The UI swaps in
+// `<SearchOpportunityBoard>` instead of `<TripBoard>` for this turn.
+const SearchOpportunityReady = z.object({
+  kind: z.literal('search.opportunity.ready'),
+  turnId: z.string(),
+  opportunity: SearchOpportunitySchema,
+});
+
 export const OrchestratorEventSchema = z.discriminatedUnion('kind', [
   SessionStarted,
   TurnStarted,
@@ -184,6 +194,7 @@ export const OrchestratorEventSchema = z.discriminatedUnion('kind', [
   ConciergeMessage,
   ConciergeMemoryHint,
   MoodSnapshotReady,
+  SearchOpportunityReady,
 ]);
 export type OrchestratorEvent = z.infer<typeof OrchestratorEventSchema>;
 

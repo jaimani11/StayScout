@@ -10,12 +10,18 @@ import type { AgentTraceSummary } from '@core/trip-proposal';
 import type { MoodSnapshot } from '@core/reasoning';
 import type { IntentAgentInput } from '@/agents/intent-agent';
 import type { MoodSnapshotAgentInput } from '@/agents/mood-snapshot-agent';
+import type {
+  DestinationFlavor,
+  DestinationFlavorAgentInput,
+} from '@/agents/destination-flavor-agent';
 import type { MemoryHinter } from '@lib/memory-hinter';
 import type { MemoryRecorder, MemoryRetriever, RetrievedMemories } from '@lib/memory';
 import type { SessionStore } from '@lib/session/session-store';
+import { buildSearchOpportunity } from '@lib/affiliate/search-opportunity-builder';
 import { computeIntentDelta } from '../intent-delta';
 import { computeProposalDiff } from '../proposal-diff';
 import { buildProposal, buildProposalRef } from '../proposal-builder';
+import type { RouteDecision } from '../route-search';
 import { synthesizeAdaptationNotes } from '../synthesize-adaptation';
 import {
   RUNTIME_CONTEXT_KEY,
@@ -35,7 +41,10 @@ export interface GraphDeps {
   traceLogger: TraceLogger;
   intentAgent: Agent<IntentAgentInput, TripIntent>;
   moodSnapshotAgent: Agent<MoodSnapshotAgentInput, MoodSnapshot>;
+  destinationFlavorAgent: Agent<DestinationFlavorAgentInput, DestinationFlavor | null>;
   providerRouter: (intent: TripIntent) => Provider;
+  /** Slice F1 — route decision after intent extraction. */
+  routeDecider: (intent: TripIntent) => RouteDecision;
   sessionStore: SessionStore;
   getHinter: (sessionId: string) => MemoryHinter;
   hasSeenSession: (sessionId: string) => boolean;
@@ -222,7 +231,100 @@ export function makeIntentNode(deps: GraphDeps) {
       emit({ kind: 'intent.extracted', turnId: req.turnId, intent });
     }
 
-    return { intent, agentTrace };
+    // Slice F1 — compute the route decision here so `routeAfterIntent`
+    // (a pure router function) can branch without re-running deciders.
+    const route = deps.routeDecider(intent);
+    return { intent, agentTrace, route };
+  };
+}
+
+// ============== Opportunity (F1) ==============
+
+/**
+ * Slice F1 — opportunity branch node.
+ *
+ * Runs when the route decider returns `{ kind: 'opportunity', ... }`.
+ * Best-effort calls DestinationFlavorAgent (decorative; never fails the
+ * turn), then builds + emits a SearchOpportunity. Skips search/compose/
+ * mood/memory-hint — those are tied to real inventory.
+ *
+ * Persistence is handled by the complete node (it already persists when
+ * `state.intent` is set, with optional `proposal`).
+ */
+export function makeOpportunityNode(deps: GraphDeps) {
+  return async (state: GraphState, config: LangGraphRunnableConfig): Promise<GraphUpdate> => {
+    const { emit, signal } = readRuntime(config);
+    if (!state.intent) return {};
+    const req = state.request;
+    const intent = state.intent;
+    const dest: Destination | undefined = intent.destinations[0];
+
+    // Defensive: routeDecider should only route here with a destination.
+    if (!dest) {
+      emit({
+        kind: 'concierge.message',
+        turnId: req.turnId,
+        message: "*Tell me where you'd like to go — a city, region, or country.*",
+        tone: 'apologize',
+      });
+      return { softEnded: true };
+    }
+
+    const flavorStepId = stepId(`${req.turnId}-flavor`);
+    emit({
+      kind: 'agent.step.started',
+      turnId: req.turnId,
+      stepId: flavorStepId,
+      agentId: 'destination-flavor',
+      label: `Reading the feel of ${dest.name}`,
+    });
+
+    const startedAt = performance.now();
+    let flavor: DestinationFlavor | null = null;
+    try {
+      const agentCtx = buildAgentContext(req, signal, deps);
+      flavor = await deps.destinationFlavorAgent.run(
+        {
+          destination: dest,
+          vibeTags: intent.vibe.tags,
+          travelers: {
+            adults: intent.travelers.adults,
+            children: intent.travelers.children.count,
+          },
+        },
+        agentCtx,
+      );
+    } catch (err) {
+      // Decorative — never fails the turn.
+      console.warn('[langgraph] destination flavor threw', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+    const durationMs = Math.round(performance.now() - startedAt);
+    const agentTrace: AgentTraceSummary = {
+      agents: [...state.agentTrace.agents, { id: 'destination-flavor', durationMs }],
+      totalDurationMs: state.agentTrace.totalDurationMs,
+    };
+    emit({
+      kind: 'agent.step.completed',
+      turnId: req.turnId,
+      stepId: flavorStepId,
+      durationMs,
+    });
+
+    const opportunity = buildSearchOpportunity({
+      intent,
+      ...(flavor?.text ? { flavor: flavor.text } : {}),
+    });
+    emit({
+      kind: 'search.opportunity.ready',
+      turnId: req.turnId,
+      opportunity,
+    });
+
+    // softEnded → graph skips mood + hint, still runs complete (which
+    // emits turn.completed + persists the intent).
+    return { agentTrace, softEnded: true };
   };
 }
 
@@ -506,8 +608,10 @@ export function routeAfterBootstrap(state: GraphState): 'next' | 'end' {
   return state.hardEnded ? 'end' : 'next';
 }
 
-export function routeAfterIntent(state: GraphState): 'next' | 'end' {
-  return state.hardEnded ? 'end' : 'next';
+export function routeAfterIntent(state: GraphState): 'search' | 'opportunity' | 'end' {
+  if (state.hardEnded) return 'end';
+  if (state.route?.kind === 'opportunity') return 'opportunity';
+  return 'search';
 }
 
 export function routeAfterSearch(state: GraphState): 'compose' | 'complete' | 'end' {

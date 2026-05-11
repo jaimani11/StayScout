@@ -4,10 +4,16 @@ import { Sparkle } from '@/features/shared/icons';
 import { useWorkspaceStore } from '../store/workspace-store';
 import { useConciergeStream } from '../hooks/use-concierge-stream';
 
+// Diverse suggestions across geographies + party shapes + vibes so the
+// app reads as a real concierge from the first frame — not a "demo for
+// Tuscany". Slice F1: opportunity board handles destinations we don't
+// have curated inventory for, so every one of these resolves today.
 const SUGGESTIONS = [
+  'Austria ski trip for 6 people',
+  'Vancouver luxury weekend near restaurants',
   'Tuscany, slow and walkable',
   'Tokyo for a long weekend',
-  'Patagonia in shoulder season',
+  'Lisbon under €200/night, near music',
 ];
 
 export function Greeting() {

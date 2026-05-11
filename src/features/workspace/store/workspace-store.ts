@@ -7,6 +7,7 @@ import type { TripProposal } from '@core/trip-proposal';
 import type { AdaptationNote, MoodSnapshot } from '@core/reasoning';
 import type { MemoryHint } from '@core/memory';
 import type { ProposalRef } from '@core/partial';
+import type { SearchOpportunity } from '@core/search-opportunity';
 
 export type Phase =
   | 'idle'
@@ -33,6 +34,10 @@ export interface Turn {
   steps: AgentStep[];
   intent?: TripIntent;
   proposal?: TripProposal;
+  /** Slice F1 — set when the orchestrator chose the opportunity path
+   *  instead of producing a proposal. The Canvas renders SearchOpportunityBoard
+   *  when this is present (and no proposal). */
+  searchOpportunity?: SearchOpportunity;
   proposalRef?: ProposalRef;
   moodSnapshot?: MoodSnapshot;
   adaptationNotes: AdaptationNote[];
@@ -220,6 +225,16 @@ export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set,
         updateCurrentTurn(set, get, (turn) => ({
           ...turn,
           proposal: event.proposal as unknown as TripProposal,
+        }));
+        break;
+
+      case 'search.opportunity.ready':
+        // Settle the canvas immediately — no shimmer skeleton waiting
+        // for a `proposal.ready` that's never going to come.
+        set({ phase: 'settled' });
+        updateCurrentTurn(set, get, (turn) => ({
+          ...turn,
+          searchOpportunity: event.opportunity,
         }));
         break;
 
