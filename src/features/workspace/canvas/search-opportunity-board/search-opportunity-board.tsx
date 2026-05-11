@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useState } from 'react';
 import type { SearchOpportunity } from '@core/search-opportunity';
 import { useWorkspaceStore } from '../../store/workspace-store';
 import { SearchOpportunityCard } from './search-opportunity-card';
@@ -70,6 +71,12 @@ export function SearchOpportunityBoard({ opportunity }: Props) {
 
 function HeroBand({ opportunity }: { opportunity: SearchOpportunity }) {
   const digest = describeDigest(opportunity);
+  // Resilience against Unsplash IDs that get repurposed and start
+  // serving non-travel imagery (or 404). When the hero image fails to
+  // load, we render a deterministic gradient derived from the
+  // destination name so the band still looks intentional.
+  const [imageOk, setImageOk] = useState(true);
+  const gradient = destinationGradient(opportunity.destination.name);
 
   return (
     <section
@@ -81,17 +88,28 @@ function HeroBand({ opportunity }: { opportunity: SearchOpportunity }) {
         minHeight: '15rem',
       }}
     >
-      <Image
-        src={opportunity.photoUrl}
-        alt={opportunity.photoAlt}
-        fill
-        sizes="(max-width: 768px) 100vw, 70vw"
-        style={{ objectFit: 'cover' }}
-        // Photo lookup is hash-deterministic - same destination always
-        // gets the same image. Priority because this is above-the-fold
-        // for the opportunity flow.
-        priority
-      />
+      {imageOk ? (
+        <Image
+          src={opportunity.photoUrl}
+          alt={opportunity.photoAlt}
+          fill
+          sizes="(max-width: 768px) 100vw, 70vw"
+          style={{ objectFit: 'cover' }}
+          // Photo lookup is hash-deterministic - same destination always
+          // gets the same image. Priority because this is above-the-fold
+          // for the opportunity flow.
+          priority
+          onError={() => setImageOk(false)}
+        />
+      ) : (
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background: `linear-gradient(140deg, ${gradient[0]} 0%, ${gradient[1]} 100%)`,
+          }}
+        />
+      )}
       {/* Darkening gradient so the editorial copy stays legible across
        *  varied photography. */}
       <div
@@ -122,18 +140,20 @@ function HeroBand({ opportunity }: { opportunity: SearchOpportunity }) {
           >
             {digest}
           </span>
-          <span
-            style={{
-              fontFamily: 'var(--font-inter)',
-              fontSize: '0.55rem',
-              letterSpacing: '0.05em',
-              color: 'rgba(237,230,219,0.8)',
-              textShadow: '0 1px 2px rgba(0,0,0,0.6)',
-            }}
-            aria-label={`Photo: ${opportunity.photoCredit}`}
-          >
-            {opportunity.photoCredit}
-          </span>
+          {imageOk && (
+            <span
+              style={{
+                fontFamily: 'var(--font-inter)',
+                fontSize: '0.55rem',
+                letterSpacing: '0.05em',
+                color: 'rgba(237,230,219,0.8)',
+                textShadow: '0 1px 2px rgba(0,0,0,0.6)',
+              }}
+              aria-label={`Photo: ${opportunity.photoCredit}`}
+            >
+              {opportunity.photoCredit}
+            </span>
+          )}
         </div>
 
         <div className="flex flex-col gap-2">
@@ -188,6 +208,31 @@ function describeDigest(o: SearchOpportunity): string {
   const vibe = intentDigest.vibeTags.slice(0, 3).join(', ');
 
   return [party, dates, vibe].filter(Boolean).join(' · ');
+}
+
+/**
+ * Pick a fallback gradient when the hero photo fails to load. The
+ * gradient is derived deterministically from the destination name so
+ * the same destination always falls back to the same colours - never
+ * a random splash.
+ */
+function destinationGradient(name: string): [string, string] {
+  const palettes: Array<[string, string]> = [
+    ['#1a2a4a', '#5a3a7a'], // dusk
+    ['#0a4f7a', '#3aafbf'], // ocean
+    ['#3a1a1a', '#8b2c2c'], // ember
+    ['#1a3a2a', '#3a7a5a'], // forest
+    ['#3a2a1a', '#aa7a4a'], // terracotta
+    ['#2a2a4a', '#7a5a3a'], // antique
+  ];
+  // FNV-1a 32-bit hash of the destination name so a given destination
+  // always picks the same palette.
+  let h = 2166136261;
+  for (let i = 0; i < name.length; i++) {
+    h ^= name.charCodeAt(i);
+    h = (h * 16777619) >>> 0;
+  }
+  return palettes[h % palettes.length]!;
 }
 
 function formatDateRange(checkIn: string, checkOut: string): string {
