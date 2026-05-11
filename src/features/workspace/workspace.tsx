@@ -9,6 +9,7 @@ import { UrlInit } from './url-init';
 import { MobileBottomSheet } from './mobile-bottom-sheet';
 import { LandingPage } from './landing/landing-page';
 import { useWorkspaceStore } from './store/workspace-store';
+import { selectCurrentTurnHasResults } from './store/derived';
 import { useIsMobile } from '@/features/shared/use-media-query';
 
 /**
@@ -31,6 +32,7 @@ import { useIsMobile } from '@/features/shared/use-media-query';
 export function Workspace() {
   const isMobile = useIsMobile();
   const hasTurns = useWorkspaceStore((s) => s.turns.length > 0);
+  const hasResults = useWorkspaceStore(selectCurrentTurnHasResults);
 
   return (
     <div className="flex h-screen flex-col">
@@ -56,6 +58,19 @@ export function Workspace() {
           <MobileBottomSheet>
             <ChatSidebar />
           </MobileBottomSheet>
+        </main>
+      ) : !hasResults ? (
+        // Streaming - AI is still thinking, no proposal/opportunity yet.
+        // Chat takes the full width so the agent steps + thinking states
+        // are the focus. The chat sidebar's max-width caps the content
+        // around 720px and centers it, mirroring a real conversation
+        // view. Once the orchestrator emits a proposal.ready or
+        // search.opportunity.ready event, hasResults flips true and the
+        // shell smoothly collapses to the split layout below.
+        <main className="relative min-h-0 flex-1">
+          <div className="mx-auto h-full w-full max-w-3xl">
+            <ChatSidebar />
+          </div>
         </main>
       ) : (
         <main className="grid min-h-0 flex-1 grid-cols-[38%_62%]">

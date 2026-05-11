@@ -264,13 +264,24 @@ function LandingHero() {
         </motion.div>
       </AnimatePresence>
 
-      {/* Vignette so the centered editorial copy stays legible. */}
+      {/* Base darkening layer over the whole photo - just enough to
+       *  knock back hyper-saturated photography (neon-lit Tokyo,
+       *  glacier sunlight) without losing the destination feel. */}
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{ background: 'rgba(0,0,0,0.45)' }}
+      />
+
+      {/* Radial vignette that focuses on the centered editorial block.
+       *  Darkens more aggressively around the text than at the edges so
+       *  the title + tagline + search bar are unambiguously legible. */}
       <div
         aria-hidden
         className="absolute inset-0"
         style={{
           background:
-            'linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 35%, rgba(0,0,0,0.55) 100%)',
+            'radial-gradient(ellipse 60% 55% at 50% 50%, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 70%, rgba(0,0,0,0.45) 100%)',
         }}
       />
 
@@ -303,7 +314,7 @@ function LandingHero() {
             lineHeight: 1.05,
             letterSpacing: '-0.03em',
             color: '#EDE6DB',
-            textShadow: '0 2px 12px rgba(0,0,0,0.5)',
+            textShadow: '0 2px 4px rgba(0,0,0,0.9), 0 4px 18px rgba(0,0,0,0.7)',
             margin: 0,
             textAlign: 'center',
             maxWidth: '46rem',
@@ -318,8 +329,8 @@ function LandingHero() {
             fontFamily: 'var(--font-inter)',
             fontSize: 'clamp(1rem, 1.6vw, 1.15rem)',
             lineHeight: 1.5,
-            color: 'rgba(237,230,219,0.9)',
-            textShadow: '0 1px 4px rgba(0,0,0,0.55)',
+            color: '#EDE6DB',
+            textShadow: '0 1px 3px rgba(0,0,0,0.95), 0 3px 10px rgba(0,0,0,0.7)',
             margin: '1.2rem 0 2.4rem',
             textAlign: 'center',
             maxWidth: '38rem',
@@ -448,14 +459,14 @@ function NaturalLanguageSearch() {
       style={{ width: '100%', maxWidth: '38rem' }}
     >
       <div
-        className="flex items-center gap-3 rounded-full px-5 py-3"
+        className="flex items-center gap-3 rounded-full px-5 py-3.5"
         style={{
-          background: 'rgba(20, 20, 22, 0.6)',
+          background: 'rgba(12, 12, 14, 0.88)',
           border: `1px solid ${
-            focused ? 'var(--accent-primary)' : 'rgba(237,230,219,0.5)'
+            focused ? 'var(--accent-primary)' : 'rgba(237,230,219,0.6)'
           }`,
           backdropFilter: 'blur(14px)',
-          boxShadow: '0 12px 30px rgba(0,0,0,0.35)',
+          boxShadow: '0 16px 40px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.4)',
           transition: 'border-color var(--dur-fast) var(--ease-out)',
         }}
       >
@@ -529,15 +540,16 @@ function NaturalLanguageSearch() {
             }}
             style={{
               fontFamily: 'var(--font-inter)',
-              fontSize: '0.72rem',
-              padding: '0.25rem 0.65rem',
+              fontSize: '0.75rem',
+              padding: '0.35rem 0.75rem',
               borderRadius: '999px',
-              background: 'rgba(0,0,0,0.4)',
-              border: '1px solid rgba(237,230,219,0.35)',
-              color: 'rgba(237,230,219,0.92)',
+              background: 'rgba(12, 12, 14, 0.78)',
+              border: '1px solid rgba(237,230,219,0.5)',
+              color: '#EDE6DB',
               cursor: 'pointer',
-              textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-              backdropFilter: 'blur(4px)',
+              textShadow: '0 1px 2px rgba(0,0,0,0.7)',
+              backdropFilter: 'blur(6px)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
             }}
           >
             {q}
