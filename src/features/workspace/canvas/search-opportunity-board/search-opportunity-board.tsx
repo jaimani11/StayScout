@@ -36,7 +36,12 @@ export function SearchOpportunityBoard({ opportunity }: Props) {
   const turnId = useWorkspaceStore((s) => s.currentTurnId);
 
   return (
-    <div className="flex h-full flex-col gap-4 px-6 py-6">
+    // overflow-y-auto + min-h-0 lets the board scroll inside the
+    // fixed-height canvas pane. Without overflow-y-auto, content
+    // past the viewport (the live Things-to-do rail, footer copy)
+    // is silently clipped because the parent grid pane is height-
+    // capped by the workspace 38/62 layout.
+    <div className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto px-6 py-6">
       <HeroBand opportunity={opportunity} />
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
