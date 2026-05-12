@@ -14,6 +14,8 @@ export * from './temporal';
 export * from './partial';
 export * from './agent';
 export * from './provider';
+export * from './experience';
+export * from './experience-provider';
 export * from './orchestrator-event';
 export * from './model-client';
 export * from './concierge-request';

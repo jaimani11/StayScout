@@ -8,3 +8,8 @@
 
 export { DiscoveryRail } from './discovery-rail';
 export { DiscoverySectionHeader } from './discovery-section-header';
+export {
+  DiscoveryExperienceRail,
+  type ExperienceRailLayout,
+  type ExperienceRailSection,
+} from './discovery-experience-rail';

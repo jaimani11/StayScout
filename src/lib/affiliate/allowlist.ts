@@ -9,7 +9,7 @@
  * subdomains unless the booking flow actually traverses them.
  */
 export const AFFILIATE_HOST_ALLOWLIST: readonly string[] = [
-  'example.com', // mock-italy provider
+  'example.com', // mock-italy provider (slated for removal in Slice H2)
   'booking.com',
   'expedia.com',
   'hotels.com',
@@ -17,7 +17,7 @@ export const AFFILIATE_HOST_ALLOWLIST: readonly string[] = [
   'airbnb.com',
   'hotelbeds.com',
   'skyscanner.com',
-  'viator.com',
+  'viator.com', // Slice H1: live experience inventory
   'getyourguide.com',
 ];
 

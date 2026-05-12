@@ -5,8 +5,9 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useCallback, useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { ChevronRight, Sparkle, Send } from '@/features/shared/icons';
-import { DiscoveryRail } from '@/features/discovery';
+import { DiscoveryRail, type ExperienceRailSection } from '@/features/discovery';
 import { DISCOVERY_SECTIONS } from '@lib/discovery/sections';
+import { LiveExperiencesRail } from './live-experiences-rail';
 import { useWorkspaceStore } from '../store/workspace-store';
 import { useConciergeStream } from '../hooks/use-concierge-stream';
 
@@ -132,6 +133,7 @@ export function LandingPage() {
     <div className="relative h-full w-full overflow-y-auto">
       <LandingHero />
       <DiscoverySections />
+      <LiveExperienceSections />
       <LandingFooter />
     </div>
   );
@@ -502,6 +504,62 @@ function DiscoverySections() {
       <div className="mx-auto flex max-w-6xl flex-col gap-20 px-6 pt-20 pb-12 md:gap-24">
         {DISCOVERY_SECTIONS.map((section) => (
           <DiscoveryRail key={section.slug} section={section} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ============== Live experience sections (Viator) ==============
+
+/**
+ * Things-to-do rails powered by live Viator inventory. Currently
+ * three sections, each calling `/search/freetext` with a different
+ * editorial term and rendering with a different layout.
+ *
+ * When `VIATOR_API_KEY` isn't configured the rails render their
+ * empty state silently rather than disappearing - leaves space the
+ * visitor can come back to once we go live.
+ */
+const LIVE_EXPERIENCE_SECTIONS: readonly ExperienceRailSection[] = [
+  {
+    slug: 'live-things-to-do',
+    eyebrow: 'Live · Things to do',
+    title: "What's bookable on Viator right now.",
+    subtitle:
+      'Real inventory, real prices, real availability. Updates throughout the day as suppliers open and close their hold windows.',
+    layout: 'carousel',
+    query: 'private day tour',
+  },
+  {
+    slug: 'live-food-and-wine',
+    eyebrow: 'Live · Food & wine',
+    title: 'Tables, tastings, and the people who run them.',
+    subtitle:
+      'Dinner-in-a-vineyard, sake brewery walks, evening market crawls with a chef who actually cooks for you.',
+    layout: 'hero-rail',
+    query: 'food wine tasting tour',
+  },
+  {
+    slug: 'live-outdoors',
+    eyebrow: 'Live · Outdoors',
+    title: 'Mornings that start before the city does.',
+    subtitle:
+      'Hot-air balloons, glacier hikes, dawn snorkels. Small groups, instant confirmation, easy to add to a stay.',
+    layout: 'grid',
+    query: 'sunrise outdoor adventure',
+  },
+];
+
+function LiveExperienceSections() {
+  return (
+    <div
+      className="relative z-10 w-full"
+      style={{ background: 'var(--surface-base)' }}
+    >
+      <div className="mx-auto flex max-w-6xl flex-col gap-20 px-6 pt-12 pb-20 md:gap-24">
+        {LIVE_EXPERIENCE_SECTIONS.map((section) => (
+          <LiveExperiencesRail key={section.slug} section={section} />
         ))}
       </div>
     </div>
