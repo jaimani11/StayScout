@@ -1,57 +1,24 @@
 import { describe, expect, it } from 'vitest';
-import { ALL_STAYS, STAYS_BY_DESTINATION } from '@/providers/mock-italy/data';
-import { StaySchema } from '@core/stay';
 import { CURATED_MOODS } from '@lib/curation/moods';
 import { ITALIAN_DESTINATIONS } from '@lib/curation/destinations';
 import { lintField } from '@lib/quality/taste-lint';
 
-describe('seed quality - curated stays', () => {
-  it('has the expected total count', () => {
-    expect(ALL_STAYS.length).toBe(30);
-  });
+/**
+ * Editorial curation invariants.
+ *
+ * Pre-H2 this file also lint-checked the mock-italy seed (30 hand-
+ * authored stays). Those stays are gone; the curation that stayed -
+ * destination metadata + per-destination mood blurbs - is still
+ * lint-protected here.
+ *
+ * New editorial copy is added the same way: write it, run this test,
+ * fix the banned-word warnings.
+ */
 
-  it('every stay validates against StaySchema', () => {
-    for (const s of ALL_STAYS) {
-      expect(() => StaySchema.parse(s)).not.toThrow();
-    }
-  });
-
-  it('stay ids are unique and namespaced as mock-italy:<slug>', () => {
-    const seen = new Set<string>();
-    for (const s of ALL_STAYS) {
-      expect(s.id).toMatch(/^mock-italy:[a-z0-9-]+$/);
-      expect(seen.has(s.id)).toBe(false);
-      seen.add(s.id);
-    }
-  });
-
-  it('descriptions pass the banned-word lint', () => {
-    const issues = ALL_STAYS.flatMap((s) => lintField(s.id, 'description', s.description));
-    if (issues.length > 0) {
-      const summary = issues
-        .map((i) => `[${i.path}.${i.field}] "${i.word}" near "${i.sample}"`)
-        .join('\n');
-      throw new Error(`taste-lint failed on ${issues.length} stay(s):\n${summary}`);
-    }
-  });
-
-  it('every stay has at least one photo with an https URL', () => {
-    for (const s of ALL_STAYS) {
-      expect(s.photos.length).toBeGreaterThan(0);
-      for (const p of s.photos) expect(p.url).toMatch(/^https:\/\//);
-    }
-  });
-
-  it('prices are in a sane range', () => {
-    for (const s of ALL_STAYS) {
-      expect(s.pricing.pricePerNight.amount).toBeGreaterThanOrEqual(50);
-      expect(s.pricing.pricePerNight.amount).toBeLessThanOrEqual(3000);
-    }
-  });
-
-  it('every destination has at least one stay', () => {
+describe('curated editorial content', () => {
+  it('every destination has a curated mood', () => {
     for (const dest of ITALIAN_DESTINATIONS) {
-      expect((STAYS_BY_DESTINATION[dest.slug] ?? []).length).toBeGreaterThan(0);
+      expect(CURATED_MOODS[dest.slug]).toBeDefined();
     }
   });
 
@@ -63,12 +30,6 @@ describe('seed quality - curated stays', () => {
       throw new Error(
         `mood lint failed:\n${issues.map((i) => `[${i.path}] "${i.word}"`).join('\n')}`,
       );
-    }
-  });
-
-  it('every destination has a curated mood', () => {
-    for (const dest of ITALIAN_DESTINATIONS) {
-      expect(CURATED_MOODS[dest.slug]).toBeDefined();
     }
   });
 });

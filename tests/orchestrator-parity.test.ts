@@ -5,6 +5,18 @@ import type { ConciergeRequest } from '@core/concierge-request';
 import type { OrchestratorEvent } from '@core/orchestrator-event';
 import type { TripIntent } from '@core/trip-intent';
 import { MockModelClient } from './helpers/mock-model-client';
+import { stubStayProvider } from './helpers/stub-provider';
+
+// Slice H2 - mock-italy is gone, so by default Italy now routes to the
+// opportunity branch. Inject the stub provider so the parity test still
+// exercises the proposal flow (where the engines have the most surface
+// area to drift).
+function withStubProvider() {
+  return {
+    providerRouter: () => stubStayProvider,
+    routeDecider: () => ({ kind: 'inventory' as const, providers: [stubStayProvider] }),
+  };
+}
 
 /**
  * Parity test - runs identical ConciergeRequests through both engines
@@ -141,12 +153,8 @@ describe('orchestrator parity (hand-rolled vs LangGraph)', () => {
     process.env.MOCK_PROVIDER_LATENCY_MS = '0';
     const req = baseRequest();
 
-    const handRolled = new Orchestrator({
-      modelClient: new MockModelClient().respondGenerate(() => intentResponse),
-    });
-    const langgraph = new LangGraphOrchestrator({
-      modelClient: new MockModelClient().respondGenerate(() => intentResponse),
-    });
+    const handRolled = new Orchestrator({ modelClient: new MockModelClient().respondGenerate(() => intentResponse), ...withStubProvider() });
+    const langgraph = new LangGraphOrchestrator({ modelClient: new MockModelClient().respondGenerate(() => intentResponse), ...withStubProvider() });
 
     const handEvents = await collect(handRolled.run(req, { signal: new AbortController().signal }));
     const lgEvents = await collect(langgraph.run(req, { signal: new AbortController().signal }));
@@ -164,12 +172,8 @@ describe('orchestrator parity (hand-rolled vs LangGraph)', () => {
 
     // Bootstrap: run a compose against each engine to get a prior proposal.
     const composeReq = baseRequest({ sessionId: 'parity_refine' });
-    const handRolled = new Orchestrator({
-      modelClient: new MockModelClient().respondGenerate(() => intentResponse),
-    });
-    const langgraph = new LangGraphOrchestrator({
-      modelClient: new MockModelClient().respondGenerate(() => intentResponse),
-    });
+    const handRolled = new Orchestrator({ modelClient: new MockModelClient().respondGenerate(() => intentResponse), ...withStubProvider() });
+    const langgraph = new LangGraphOrchestrator({ modelClient: new MockModelClient().respondGenerate(() => intentResponse), ...withStubProvider() });
     const composeHand = await collect(
       handRolled.run(composeReq, { signal: new AbortController().signal }),
     );
@@ -211,12 +215,8 @@ describe('orchestrator parity (hand-rolled vs LangGraph)', () => {
     process.env.MOCK_PROVIDER_LATENCY_MS = '0';
     const req = baseRequest({ sessionId: 'parity_dup' });
 
-    const handRolled = new Orchestrator({
-      modelClient: new MockModelClient().respondGenerate(() => intentResponse),
-    });
-    const langgraph = new LangGraphOrchestrator({
-      modelClient: new MockModelClient().respondGenerate(() => intentResponse),
-    });
+    const handRolled = new Orchestrator({ modelClient: new MockModelClient().respondGenerate(() => intentResponse), ...withStubProvider() });
+    const langgraph = new LangGraphOrchestrator({ modelClient: new MockModelClient().respondGenerate(() => intentResponse), ...withStubProvider() });
 
     await collect(handRolled.run(req, { signal: new AbortController().signal }));
     await collect(langgraph.run(req, { signal: new AbortController().signal }));

@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { computeProposalDiff } from '@/orchestrator/proposal-diff';
-import { ALL_STAYS } from '@/providers/mock-italy/data';
+import { fakeStayPool } from './helpers/fake-stays';
 import type { Stay } from '@core/stay';
 import type { TripIntent } from '@core/trip-intent';
 import type { TripProposal } from '@core/trip-proposal';
+
+const ALL_STAYS = fakeStayPool(10);
 
 const intent: TripIntent = {
   destinations: [{ kind: 'curated', name: 'Tuscany', country: 'IT' }],

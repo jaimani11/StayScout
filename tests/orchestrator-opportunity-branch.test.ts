@@ -144,7 +144,12 @@ describe('Orchestrator F1 routing - end-to-end', () => {
     }
   });
 
-  it('Tuscany → inventory branch (provider.search.completed via mock-italy, no search.opportunity.ready)', async () => {
+  it('Tuscany → opportunity branch when no real provider is configured (post-H2)', async () => {
+    // Slice H2 - MockItalyProvider is removed. With no real provider
+    // serving IT in the default registry, every Italian destination
+    // now routes to the opportunity branch, alongside live Viator on
+    // the canvas. The "no provider serves IT" path is what every
+    // destination outside the configured-provider footprint hits today.
     const orch = new Orchestrator({
       modelClient: new MockModelClient(),
       intentAgent: makeStubIntentAgent(makeTuscanyIntent()),
@@ -172,13 +177,15 @@ describe('Orchestrator F1 routing - end-to-end', () => {
     );
 
     const kinds = events.map((e) => e.kind);
-    expect(kinds).toContain('provider.search.completed');
-    expect(kinds).not.toContain('search.opportunity.ready');
+    expect(kinds).toContain('search.opportunity.ready');
+    expect(kinds).not.toContain('provider.search.completed');
+    expect(kinds).not.toContain('proposal.ready');
 
-    const searchEvent = events.find((e) => e.kind === 'provider.search.completed');
-    expect(searchEvent).toBeDefined();
-    if (searchEvent?.kind === 'provider.search.completed') {
-      expect(searchEvent.providerId).toBe('mock-italy');
+    const oppEvent = events.find((e) => e.kind === 'search.opportunity.ready');
+    expect(oppEvent).toBeDefined();
+    if (oppEvent?.kind === 'search.opportunity.ready') {
+      expect(oppEvent.opportunity.destination.name).toBe('Tuscany');
+      expect(oppEvent.opportunity.destination.country).toBe('IT');
     }
   });
 });

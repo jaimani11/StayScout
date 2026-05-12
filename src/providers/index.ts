@@ -12,7 +12,6 @@ import type { ProviderId } from '@core/ids';
 import type { Stay } from '@core/stay';
 import type { TripIntent } from '@core/trip-intent';
 import type { ModelClient } from '@core/model-client';
-import { MockItalyProvider } from './mock-italy';
 import { LLMSynthesizedProvider, LLMSynthesizedProviderStub } from './llm-synthesized';
 import { BookingComProvider } from './booking-com';
 import { ExpediaProvider } from './expedia';
@@ -21,14 +20,20 @@ import { VrboProvider } from './vrbo';
 /**
  * Availability-aware registry.
  *
- *   - Mock providers (MockItaly, LLMSynthesized) are always present -
- *     they're the keyless-dev floor.
  *   - Real providers self-register via their `fromEnv()` factory; if
  *     keys are missing, the factory returns null and the registry
  *     skips them. No "half configured" provider ever reaches the
  *     router.
+ *   - `LLMSynthesizedProvider` is the keyless-dev floor, kept dormant
+ *     for the foreseeable future and surfaced only when explicitly
+ *     opted in via env.
  *   - The router asks the registry for "providers that can serve this
  *     destination," which combines geographic capability + availability.
+ *
+ * Slice H2 removed `MockItalyProvider` and its fake Italian villa data
+ * from the registry entirely. Destinations without a real provider now
+ * fall through to the search-opportunity branch (partner cards + live
+ * Viator experiences), never to fabricated inventory.
  *
  * The registry is built lazily on first access so changing env vars in
  * tests works without process restart. Production captures it once;
@@ -65,7 +70,7 @@ export function buildProviderRegistry(modelClient?: ModelClient): Registry {
     ? new LLMSynthesizedProvider(modelClient)
     : LLMSynthesizedProviderStub;
 
-  const mocks: Provider[] = [MockItalyProvider, llmProvider];
+  const mocks: Provider[] = [llmProvider];
   globalThis.__stayscoutProviderRegistry = { all: [...real, ...mocks], real, mocks };
   return globalThis.__stayscoutProviderRegistry;
 }
@@ -87,9 +92,8 @@ export function listAvailableRealProviders(): string[] {
 
 /**
  * Single-provider router (back-compat). Picks the most-specific
- * available provider for the destination - real providers > mocks
- * within their region; MockItaly for Italy queries; LLMSynthesized
- * everywhere else.
+ * available provider for the destination - real providers first;
+ * `LLMSynthesizedProviderStub` only as a last-resort dormant floor.
  */
 export function routeProvider(intent: TripIntent, modelClient?: ModelClient): Provider {
   const list = routeProviders(intent, modelClient);
@@ -99,6 +103,10 @@ export function routeProvider(intent: TripIntent, modelClient?: ModelClient): Pr
 /**
  * Fanout list. Returns every provider that can serve the destination -
  * caller can run them in parallel via `searchWithFanout`.
+ *
+ * Slice H2: mock-italy is no longer in the registry, so the only
+ * possible results are real env-keyed providers plus the dormant
+ * LLMSynthesized fallback at the end.
  */
 export function routeProviders(intent: TripIntent, modelClient?: ModelClient): Provider[] {
   const reg = buildProviderRegistry(modelClient);
@@ -119,13 +127,9 @@ export function routeProviders(intent: TripIntent, modelClient?: ModelClient): P
     }
   }
 
-  // Mock specialist for Italy.
-  if (dest.country === 'IT' && MockItalyProvider.knowsDestination(dest)) {
-    result.push(MockItalyProvider);
-  }
-
-  // LLM synthesized as final fallback (always available).
-  const llm = reg.mocks.find((m) => m.id !== MockItalyProvider.id);
+  // LLM synthesized as final fallback (always available, dormant by
+  // default - actually serves only if explicitly enabled).
+  const llm = reg.mocks[reg.mocks.length - 1];
   if (llm) result.push(llm);
 
   return result;
@@ -205,7 +209,6 @@ export async function searchWithFanout(
 // ============== Re-exports ==============
 
 export const ProviderRegistry: Readonly<Record<string, Provider>> = {
-  'mock-italy': MockItalyProvider,
   'llm-synthesized': LLMSynthesizedProviderStub,
 };
 
@@ -213,7 +216,6 @@ export function getProvider(id: ProviderId | string): Provider | null {
   return ProviderRegistry[id] ?? null;
 }
 
-export { MockItalyProvider } from './mock-italy';
 export { LLMSynthesizedProvider, LLMSynthesizedProviderStub } from './llm-synthesized';
 export { BookingComProvider } from './booking-com';
 export { ExpediaProvider } from './expedia';

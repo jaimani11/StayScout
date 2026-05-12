@@ -1,7 +1,15 @@
-// Canonical metadata for the seven Italian destinations covered by the
-// Slice A demo. Used by MockItalyProvider's destination matcher and by
-// the MoodSnapshotAgent (A6) for keying mood data. Slice B's real
-// providers will read aliases for query normalization.
+// Canonical metadata for the seven hand-curated Italian destinations.
+//
+// Used by:
+//   - the /destinations/[slug] + /destinations index routes (editorial
+//     copy + slug-to-name resolution),
+//   - MoodSnapshotAgent (A6) for keying mood data,
+//   - sitemap generation,
+//   - the destination-extraction fallback.
+//
+// Slice H2 removed MockItalyProvider, but this curation file outlasted
+// it - the editorial metadata is the durable layer. New destinations
+// land here whenever we have voice/mood content for them.
 
 export interface CuratedDestination {
   slug: string;

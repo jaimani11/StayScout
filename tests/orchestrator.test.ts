@@ -4,6 +4,24 @@ import type { ConciergeRequest } from '@core/concierge-request';
 import type { OrchestratorEvent } from '@core/orchestrator-event';
 import type { TripIntent } from '@core/trip-intent';
 import { MockModelClient } from './helpers/mock-model-client';
+import { stubStayProvider } from './helpers/stub-provider';
+
+/**
+ * Orchestrator integration tests.
+ *
+ * Slice H2 removed the MockItalyProvider, so the orchestrator's default
+ * router would now send our Tuscany test intent to the opportunity
+ * branch (partner cards + live Viator). These tests still want to
+ * exercise the proposal/inventory path - they inject `stubStayProvider`
+ * via the `providerRouter` + `routeDecider` overrides to force it.
+ */
+
+function withStubProvider() {
+  return {
+    providerRouter: () => stubStayProvider,
+    routeDecider: () => ({ kind: 'inventory' as const, providers: [stubStayProvider] }),
+  };
+}
 
 function baseRequest(overrides: Partial<ConciergeRequest> = {}): ConciergeRequest {
   return {
@@ -42,7 +60,7 @@ describe('Orchestrator', () => {
   it('emits the expected event sequence for a compose turn', async () => {
     process.env.MOCK_PROVIDER_LATENCY_MS = '0';
     const client = new MockModelClient().respondGenerate(() => intentResponse);
-    const orch = new Orchestrator({ modelClient: client });
+    const orch = new Orchestrator({ modelClient: client, ...withStubProvider() });
     const events = await collect(orch.run(baseRequest(), { signal: new AbortController().signal }));
     const kinds = events.map((e) => e.kind);
 
@@ -62,7 +80,7 @@ describe('Orchestrator', () => {
   it('emits mood.snapshot.ready after proposal.ready (curated path)', async () => {
     process.env.MOCK_PROVIDER_LATENCY_MS = '0';
     const client = new MockModelClient().respondGenerate(() => intentResponse);
-    const orch = new Orchestrator({ modelClient: client });
+    const orch = new Orchestrator({ modelClient: client, ...withStubProvider() });
     const events = await collect(orch.run(baseRequest(), { signal: new AbortController().signal }));
     const proposalReadyIdx = events.findIndex((e) => e.kind === 'proposal.ready');
     const moodIdx = events.findIndex((e) => e.kind === 'mood.snapshot.ready');
@@ -73,7 +91,7 @@ describe('Orchestrator', () => {
   it('does not re-emit session.started for subsequent turns in the same session', async () => {
     process.env.MOCK_PROVIDER_LATENCY_MS = '0';
     const client = new MockModelClient().respondGenerate(() => intentResponse);
-    const orch = new Orchestrator({ modelClient: client });
+    const orch = new Orchestrator({ modelClient: client, ...withStubProvider() });
     await collect(orch.run(baseRequest(), { signal: new AbortController().signal }));
     const second = await collect(orch.run(baseRequest(), { signal: new AbortController().signal }));
     expect(second.find((e) => e.kind === 'session.started')).toBeUndefined();
@@ -82,7 +100,7 @@ describe('Orchestrator', () => {
   it('refine turn emits intent.refined and proposal.evolved', async () => {
     process.env.MOCK_PROVIDER_LATENCY_MS = '0';
     const client = new MockModelClient().respondGenerate(() => intentResponse);
-    const orch = new Orchestrator({ modelClient: client });
+    const orch = new Orchestrator({ modelClient: client, ...withStubProvider() });
 
     const composeReq = baseRequest();
     const composeEvents = await collect(
@@ -120,7 +138,7 @@ describe('Orchestrator', () => {
   it('rejects duplicate turnIds with a turn.failed', async () => {
     process.env.MOCK_PROVIDER_LATENCY_MS = '0';
     const client = new MockModelClient().respondGenerate(() => intentResponse);
-    const orch = new Orchestrator({ modelClient: client });
+    const orch = new Orchestrator({ modelClient: client, ...withStubProvider() });
     const req = baseRequest();
     await collect(orch.run(req, { signal: new AbortController().signal }));
     const second = await collect(orch.run(req, { signal: new AbortController().signal }));
@@ -137,7 +155,7 @@ describe('Orchestrator', () => {
     const client = new MockModelClient().respondGenerate(() => {
       throw new Error('intent boom');
     });
-    const orch = new Orchestrator({ modelClient: client });
+    const orch = new Orchestrator({ modelClient: client, ...withStubProvider() });
     const events = await collect(orch.run(baseRequest(), { signal: new AbortController().signal }));
     const kinds = events.map((e) => e.kind);
     expect(kinds).not.toContain('turn.failed');
@@ -152,7 +170,7 @@ describe('Orchestrator', () => {
       ctrl.abort();
       throw new DOMException('Aborted', 'AbortError');
     });
-    const orch = new Orchestrator({ modelClient: client });
+    const orch = new Orchestrator({ modelClient: client, ...withStubProvider() });
     const events = await collect(orch.run(baseRequest(), { signal: ctrl.signal }));
     const fail = events.find((e) => e.kind === 'turn.failed');
     if (fail?.kind !== 'turn.failed') throw new Error('expected turn.failed');

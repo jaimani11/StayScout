@@ -41,12 +41,15 @@ const fakeProvider = (id: string, regions?: string[]): Provider =>
   }) as Provider;
 
 describe('routeForIntent', () => {
-  it('routes Italian destination known to MockItaly to inventory', () => {
+  it('routes Italian destination to opportunity when no real providers cover it', () => {
+    // Slice H2 - MockItalyProvider was removed. With no real Italy
+    // provider configured, every Italian destination now routes to the
+    // opportunity branch (partner-search cards + live Viator rail).
     const decision = routeForIntent(makeIntent({ name: 'Tuscany', country: 'IT' }), { real: [] });
-    expect(decision.kind).toBe('inventory');
-    if (decision.kind !== 'inventory') return; // type narrow
-    expect(decision.providers).toHaveLength(1);
-    expect(decision.providers[0]?.id).toBe('mock-italy');
+    expect(decision.kind).toBe('opportunity');
+    if (decision.kind !== 'opportunity') return;
+    expect(decision.destination.name).toBe('Tuscany');
+    expect(decision.destination.country).toBe('IT');
   });
 
   it('routes unknown Austrian destination to opportunity when no real providers configured', () => {
@@ -80,15 +83,13 @@ describe('routeForIntent', () => {
     expect(decision.kind).toBe('opportunity');
   });
 
-  it('prefers real provider over MockItaly when both serve the destination', () => {
+  it('routes Italian destination to a real global provider when one is configured', () => {
     const globalProvider = fakeProvider('booking-com');
     const decision = routeForIntent(makeIntent({ name: 'Tuscany', country: 'IT' }), {
       real: [globalProvider],
     });
     expect(decision.kind).toBe('inventory');
     if (decision.kind !== 'inventory') return;
-    // Real provider only - MockItaly does not join the list when a
-    // real provider already serves the country.
     expect(decision.providers.map((p) => p.id as string)).toEqual(['booking-com']);
   });
 

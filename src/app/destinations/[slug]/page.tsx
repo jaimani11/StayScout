@@ -1,15 +1,39 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ITALIAN_DESTINATIONS, findDestinationBySlugOrAlias } from '@lib/curation/destinations';
-import { STAYS_BY_DESTINATION } from '@/providers/mock-italy/data';
+import { resolveDestinationPhoto } from '@lib/imagery/destination-photo';
+import {
+  buildExpediaSearchUrl,
+  getExpediaAffiliateConfig,
+} from '@lib/affiliate/expedia-link-builder';
+import { encodeAffiliateLink } from '@lib/affiliate/link-encoder';
 import { DestinationHero } from '@/features/destinations/destination-hero';
-import { FeaturedStays } from '@/features/destinations/featured-stays';
 import { PlanTripCta } from '@/features/destinations/plan-trip-cta';
+import { DestinationThingsToDoRail } from '@/features/destinations/destination-things-to-do-rail';
+import { DestinationStayCta } from '@/features/destinations/destination-stay-cta';
 import { DestinationJsonLd } from './destination-jsonld';
 
 /**
- * Static destination page. Generated at build time for the 7 curated
- * Italian destinations; unknown slugs 404.
+ * Destination detail page. Generated at build time for each curated
+ * destination; unknown slugs 404.
+ *
+ * Post-H2 structure (no mock-italy):
+ *
+ *   1. Hero - background photo resolved by `resolveDestinationPhoto`
+ *      (curated Unsplash IDs in `lib/imagery/destination-photo-data`),
+ *      editorial copy from `lib/curation/destinations`.
+ *   2. Live "Things to do" rail - Viator inventory scoped to the
+ *      destination, fetched client-side.
+ *   3. "Where to stay" CTA - destination-prefilled Expedia search,
+ *      routed through `/r/[id]` for affiliate attribution. Until
+ *      real stay inventory lands we don't pretend to have it; the
+ *      CTA is honest about handing off to the partner.
+ *   4. Plan-trip CTA - lands the visitor in the workspace with the
+ *      destination prompt pre-filled.
+ *
+ * The page is SSG because each piece above is deterministic per slug;
+ * the Viator rail fetches on the client so the static HTML stays
+ * fast + cacheable.
  */
 
 interface PageProps {
@@ -29,11 +53,14 @@ function siteUrl(): string {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const destination = findDestinationBySlugOrAlias(slug);
-  if (!destination) {
-    return { title: 'Destination not found · StayScout' };
-  }
-  const stays = STAYS_BY_DESTINATION[destination.slug] ?? [];
-  const heroImage = stays[0]?.photos[0]?.url;
+  if (!destination) return { title: 'Destination not found · StayScout' };
+
+  const heroPhoto = resolveDestinationPhoto({
+    name: destination.name,
+    country: 'IT',
+    region: destination.region,
+  });
+
   return {
     title: `${destination.name} · StayScout`,
     description: destination.oneLiner,
@@ -42,13 +69,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: destination.oneLiner,
       url: `${siteUrl()}/destinations/${destination.slug}`,
       type: 'article',
-      ...(heroImage ? { images: [{ url: heroImage }] } : {}),
+      images: [{ url: heroPhoto.url }],
     },
     twitter: {
       card: 'summary_large_image',
       title: `${destination.name} · StayScout`,
       description: destination.oneLiner,
-      ...(heroImage ? { images: [heroImage] } : {}),
+      images: [heroPhoto.url],
     },
   };
 }
@@ -58,24 +85,53 @@ export default async function DestinationPage({ params }: PageProps) {
   const destination = findDestinationBySlugOrAlias(slug);
   if (!destination) notFound();
 
-  const stays = STAYS_BY_DESTINATION[destination.slug] ?? [];
-  const heroPhoto = stays[0]?.photos[0];
-  const featured = stays.slice(0, 6);
+  const heroPhoto = resolveDestinationPhoto({
+    name: destination.name,
+    country: 'IT',
+    region: destination.region,
+  });
+
+  // Build the Expedia search href once at request time so the date
+  // window rolls forward and the affiliate config picks up env flips.
+  const expediaHref = buildDestinationExpediaHref(destination.name);
 
   return (
     <main>
       <DestinationJsonLd
         destination={destination}
         baseUrl={siteUrl()}
-        {...(heroPhoto ? { imageUrl: heroPhoto.url } : {})}
+        imageUrl={heroPhoto.url}
       />
       <DestinationHero
         destination={destination}
-        {...(heroPhoto?.url ? { heroImageUrl: heroPhoto.url } : {})}
-        {...(heroPhoto?.alt ? { heroImageAlt: heroPhoto.alt } : {})}
+        heroImageUrl={heroPhoto.url}
+        heroImageAlt={heroPhoto.alt}
       />
-      <FeaturedStays stays={featured} prefillPrompt={`${destination.name}, 7 nights, couple`} />
+      <DestinationThingsToDoRail destinationName={destination.name} />
+      <DestinationStayCta destination={destination} expediaHref={expediaHref} />
       <PlanTripCta destination={destination} />
     </main>
   );
+}
+
+function buildDestinationExpediaHref(destinationName: string): string {
+  const today = new Date();
+  const checkIn = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const checkOut = new Date(checkIn.getTime() + 5 * 24 * 60 * 60 * 1000);
+  const config = getExpediaAffiliateConfig();
+  const url = buildExpediaSearchUrl(
+    {
+      destination: destinationName,
+      checkIn: checkIn.toISOString().slice(0, 10),
+      checkOut: checkOut.toISOString().slice(0, 10),
+      adults: 2,
+    },
+    config,
+  );
+  const id = encodeAffiliateLink({
+    url,
+    providerId: 'expedia',
+    stayId: `destination-page-${destinationName.toLowerCase().replace(/\s+/g, '-')}`,
+  });
+  return `/r/${id}`;
 }

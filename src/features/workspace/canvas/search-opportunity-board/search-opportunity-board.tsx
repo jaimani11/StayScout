@@ -70,7 +70,10 @@ export function SearchOpportunityBoard({ opportunity }: Props) {
         change.
       </p>
 
-      <ThingsToDoRail destination={opportunity.destination.name} />
+      <ThingsToDoRail
+        destination={opportunity.destination.name}
+        vibeTags={opportunity.intentDigest.vibeTags}
+      />
     </div>
   );
 }

@@ -7,7 +7,6 @@ import {
   routeProviders,
   searchWithFanout,
 } from '@/providers';
-import { MockItalyProvider } from '@/providers';
 import type {
   Provider,
   ProviderContext,
@@ -70,9 +69,12 @@ describe('availability-aware provider registry', () => {
     expect(listAvailableRealProviders()).toEqual(['booking-com']);
   });
 
-  it('routeProvider returns MockItaly for Italy queries with no real providers', () => {
+  it('routeProvider falls back to LLM synthesized when no real providers are configured', () => {
+    // Slice H2 removed the MockItalyProvider fallback for Italy queries.
+    // With no real providers, every destination - Italian or otherwise -
+    // falls through to the dormant LLM synthesized stub.
     const p = routeProvider(baseIntent);
-    expect(p.id).toBe(MockItalyProvider.id);
+    expect(p.id).toBe('llm-synthesized');
   });
 
   it('routeProvider promotes Booking.com to first when keys are set', () => {
@@ -83,14 +85,13 @@ describe('availability-aware provider registry', () => {
     expect(p.id).toBe('booking-com');
   });
 
-  it('routeProviders includes both real + mock for covered destinations', () => {
+  it('routeProviders fans out real providers plus the dormant LLM fallback', () => {
     process.env.BOOKING_COM_AFFILIATE_ID = 'partner_42';
     process.env.BOOKING_COM_API_KEY = 'key_xyz';
     _resetProviderRegistryForTesting();
     const list = routeProviders(baseIntent);
     const ids = list.map((p) => p.id as string);
     expect(ids[0]).toBe('booking-com');
-    expect(ids).toContain(MockItalyProvider.id as string);
     expect(ids).toContain('llm-synthesized');
   });
 

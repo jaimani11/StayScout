@@ -1,15 +1,29 @@
 import type { Metadata } from 'next';
 import { ITALIAN_DESTINATIONS } from '@lib/curation/destinations';
-import { STAYS_BY_DESTINATION } from '@/providers/mock-italy/data';
+import { resolveDestinationPhoto } from '@lib/imagery/destination-photo';
 import { DestinationCard } from '@/features/destinations/destination-card';
 
 /**
- * Index of curated destinations. Static - no runtime cost.
+ * Destinations index. Editorial entry point - lists the curated
+ * destinations StayScout has written voice/mood content for. The
+ * full inventory (stays + things to do) lives on each detail page
+ * and is provider-backed (Viator for experiences; Expedia search
+ * CTA for stays until real stay inventory lands).
+ *
+ * Pre-H2 this page imported `STAYS_BY_DESTINATION` from the mock
+ * Italian provider to grab a hero photo per destination. After H2
+ * the photo comes from `resolveDestinationPhoto` - same hand-curated
+ * photo dataset, but no longer routed through a fake provider.
+ *
+ * The curation file is still Italy-only for now; broader coverage
+ * lands when we curate voice/moods for more destinations. The page
+ * keeps the editorial framing rather than pretending we have global
+ * destination pages already.
  */
 
 export const metadata: Metadata = {
   title: 'Destinations · StayScout',
-  description: 'Curated Italian destinations and the stays we love in each.',
+  description: 'Curated destinations and the places worth knowing in each.',
 };
 
 export default function DestinationsIndex() {
@@ -25,7 +39,7 @@ export default function DestinationsIndex() {
             color: 'var(--ink-tertiary)',
           }}
         >
-          Curated · Italy
+          Curated destinations
         </p>
         <h1
           className="mt-2"
@@ -51,20 +65,24 @@ export default function DestinationsIndex() {
             lineHeight: 1.55,
           }}
         >
-          Seven places we know well - the kind of working knowledge that comes from staying, not
-          visiting.
+          Places we know well. Each one carries an editorial brief and a live things-to-do rail
+          when you tap in.
         </p>
       </header>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {ITALIAN_DESTINATIONS.map((d) => {
-          const photo = STAYS_BY_DESTINATION[d.slug]?.[0]?.photos[0];
+          const photo = resolveDestinationPhoto({
+            name: d.name,
+            country: 'IT',
+            region: d.region,
+          });
           return (
             <DestinationCard
               key={d.slug}
               destination={d}
-              {...(photo?.url ? { imageUrl: photo.url } : {})}
-              {...(photo?.alt ? { imageAlt: photo.alt } : {})}
+              imageUrl={photo.url}
+              imageAlt={photo.alt}
             />
           );
         })}

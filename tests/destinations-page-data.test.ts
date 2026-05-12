@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ITALIAN_DESTINATIONS, findDestinationBySlugOrAlias } from '@/lib/curation/destinations';
 import { CURATED_MOODS } from '@/lib/curation/moods';
 import { containsBannedWord } from '@/lib/curation/voice';
-import { STAYS_BY_DESTINATION } from '@/providers/mock-italy/data';
+import { resolveDestinationPhoto } from '@lib/imagery/destination-photo';
 
 /**
  * Per-destination invariants enforced for `/destinations/[slug]` to
@@ -10,10 +10,15 @@ import { STAYS_BY_DESTINATION } from '@/providers/mock-italy/data';
  *   - have a Fraunces-italic headline + oneLiner that pass the voice lint
  *   - resolve via findDestinationBySlugOrAlias
  *   - have a curated mood snapshot
- *   - have ≥3 stays in STAYS_BY_DESTINATION
+ *   - have a resolvable hero photo via `resolveDestinationPhoto`
  *
- * Adding a destination later means satisfying all of these - the test
- * is the contract.
+ * Slice H2 removed the stays-per-destination requirement - destination
+ * pages now show a live "Things to do" rail (Viator) plus an Expedia
+ * search CTA instead of fake stay cards. The hero photo comes from
+ * the curated destination-photo lib instead of the mock provider.
+ *
+ * Adding a destination later means satisfying these invariants - the
+ * test is the contract.
  */
 
 describe('destination page data', () => {
@@ -42,15 +47,14 @@ describe('destination page data', () => {
         expect(mood?.destinationName).toBeTruthy();
       });
 
-      it('has at least 3 featured stays', () => {
-        const stays = STAYS_BY_DESTINATION[d.slug];
-        expect(stays).toBeDefined();
-        expect((stays?.length ?? 0) >= 3).toBe(true);
-      });
-
-      it('first stay has a usable photo for the hero', () => {
-        const stay = STAYS_BY_DESTINATION[d.slug]?.[0];
-        expect(stay?.photos.length ?? 0).toBeGreaterThan(0);
+      it('resolves to a hero photo via resolveDestinationPhoto', () => {
+        const photo = resolveDestinationPhoto({
+          name: d.name,
+          country: 'IT',
+          region: d.region,
+        });
+        expect(photo.url).toMatch(/^https:\/\/images\.unsplash\.com\//);
+        expect(photo.alt.length).toBeGreaterThan(0);
       });
     });
   }
