@@ -7,7 +7,8 @@ export type AdminSection =
   | 'bookings'
   | 'users'
   | 'memories'
-  | 'affiliate';
+  | 'affiliate'
+  | 'viator';
 
 interface AdminNavProps {
   active: AdminSection;
@@ -21,6 +22,7 @@ const LINKS: Array<{ id: AdminSection; label: string; href: string }> = [
   { id: 'users', label: 'Users', href: '/admin' },
   { id: 'memories', label: 'Memories', href: '/admin/memories' },
   { id: 'affiliate', label: 'Affiliate', href: '/admin/affiliate' },
+  { id: 'viator', label: 'Viator', href: '/admin/viator' },
 ];
 
 /**

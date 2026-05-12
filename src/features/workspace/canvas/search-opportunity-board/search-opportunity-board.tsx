@@ -3,6 +3,7 @@
 import type { SearchOpportunity } from '@core/search-opportunity';
 import { useWorkspaceStore } from '../../store/workspace-store';
 import { SearchOpportunityCard } from './search-opportunity-card';
+import { ThingsToDoRail } from './things-to-do-rail';
 
 /**
  * Slice F1 - SearchOpportunityBoard.
@@ -63,6 +64,8 @@ export function SearchOpportunityBoard({ opportunity }: Props) {
         send you straight to our partners for live availability. Affiliate links · prices may
         change.
       </p>
+
+      <ThingsToDoRail destination={opportunity.destination.name} />
     </div>
   );
 }

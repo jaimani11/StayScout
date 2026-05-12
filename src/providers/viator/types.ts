@@ -94,7 +94,10 @@ const ViatorDurationSchema = z
 
 const ViatorDestinationSchema = z
   .object({
-    ref: z.number().int().nullish(),
+    // OpenAPI spec types this as `integer` but the live API returns
+    // it as a numeric string (e.g. `"23271"`). Accept either so a
+    // future spec correction doesn't break us either way.
+    ref: z.union([z.number().int(), z.string()]).nullish(),
     primary: z.boolean().nullish(),
   })
   .passthrough();
