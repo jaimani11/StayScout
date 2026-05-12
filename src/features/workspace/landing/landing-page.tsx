@@ -5,32 +5,29 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useCallback, useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { ChevronRight, Sparkle, Send } from '@/features/shared/icons';
-import {
-  buildExpediaSearchUrl,
-  getExpediaAffiliateConfig,
-} from '@lib/affiliate/expedia-link-builder';
-import { encodeAffiliateLink } from '@lib/affiliate/link-encoder';
+import { DiscoveryRail } from '@/features/discovery';
+import { DISCOVERY_SECTIONS } from '@lib/discovery/sections';
 import { useWorkspaceStore } from '../store/workspace-store';
 import { useConciergeStream } from '../hooks/use-concierge-stream';
 
 /**
  * Landing page - what visitors see before they describe a trip.
  *
- * Layout (inspired by bedroomvillas.com):
+ * Layout:
  *
  *   1. Full-bleed hero with a rotating destination photo carousel
- *      as the background.
- *   2. Centered editorial title + tagline + a prominent search bar
- *      whose placeholder reads "Describe where you want to go..."
- *      so the natural-language input style is obvious at a glance.
- *   3. Featured destinations grid below the hero - 6 hand-curated
- *      cards, each clickable straight through to an Expedia search
- *      via the /r/[id] affiliate-tracking redirect.
+ *      as the background and the natural-language search bar centered
+ *      on top of it.
+ *   2. A sequence of discovery rails below the hero, driven by the
+ *      curated `DISCOVERY_SECTIONS` dataset. Each rail picks its own
+ *      layout (carousel, hero-rail, grid, editorial-slab) so the
+ *      browse experience varies as the user scrolls.
+ *   3. Disclosure footer at the bottom of the page.
  *
  * When the user submits the search (or types in the input + presses
- * enter), the workspace switches over to the existing chat-sidebar +
- * canvas split via the `useWorkspaceStore` state machine (a turn
- * appears, the landing page unmounts).
+ * enter), the workspace switches over to the chat-sidebar + canvas
+ * split via the `useWorkspaceStore` state machine (a turn appears,
+ * the landing page unmounts).
  *
  * This component is rendered by Workspace.tsx when no turn exists.
  * The chat-sidebar + canvas shell takes over after the first turn.
@@ -121,84 +118,11 @@ const SLIDES: readonly CarouselSlide[] = [
   },
 ];
 
-interface FeaturedDestination {
-  name: string;
-  tagline: string;
-  /** Hex pair so the card renders cleanly even if its photo fails. */
-  gradient: [string, string];
-  /** Optional photo - falls through to the gradient on error. */
-  photo?: { id: string; alt: string };
-}
-
-const FEATURED: readonly FeaturedDestination[] = [
-  {
-    name: 'Tokyo',
-    tagline: 'Three days of standing-up ramen, late train rides, neon districts.',
-    gradient: ['#1a1a3a', '#5b2466'],
-    photo: { id: '1540959733332-eab4deabeeaf', alt: 'Tokyo Shibuya' },
-  },
-  {
-    name: 'Paris',
-    tagline: 'Coffee on rue Cler, museum lines, late dinners on the Left Bank.',
-    gradient: ['#2a2a4a', '#7a5a3a'],
-    photo: { id: '1431274172761-fca41d930114', alt: 'Paris Eiffel Tower' },
-  },
-  {
-    name: 'Tuscany',
-    tagline: 'Slow mornings, vineyard lunches, hill towns at golden hour.',
-    gradient: ['#3a2a1a', '#aa7a4a'],
-    photo: { id: '1500382017468-9049fed747ef', alt: 'Tuscan-Umbrian hills' },
-  },
-  {
-    name: 'Iceland',
-    tagline: 'The ring road, geothermal pools, northern lights when you slow down.',
-    gradient: ['#0a1d2e', '#1c4d6e'],
-    photo: { id: '1500530855697-b586d89ba3ee', alt: 'Iceland glacier' },
-  },
-  {
-    name: 'Vancouver',
-    tagline: 'Pacific-Northwest weekend: harbor light, cedar saunas, early-closing kitchens.',
-    gradient: ['#1a2a3a', '#3a5a7a'],
-    photo: { id: '1502086223501-7ea6ecd79368', alt: 'Vancouver skyline' },
-  },
-  {
-    name: 'Maldives',
-    tagline: 'Overwater bungalows, snorkel-clear water, almost nothing to do.',
-    gradient: ['#0a4f7a', '#3aafbf'],
-    photo: { id: '1499678329028-101435549a4e', alt: 'Maldives bungalows' },
-  },
-];
-
 const SLIDE_INTERVAL_MS = 5000;
 const FIRST_ADVANCE_MS = 1000;
 
 function unsplashUrl(id: string, width: number): string {
   return `https://images.unsplash.com/photo-${id}?w=${width}&q=80&fit=crop&auto=format`;
-}
-
-/** Default a homepage curious visitor's search to in 30 days, 5 nights, 2 adults. */
-function defaultDates(): { checkIn: string; checkOut: string } {
-  const today = new Date();
-  const checkIn = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
-  const checkOut = new Date(checkIn.getTime() + 5 * 24 * 60 * 60 * 1000);
-  return {
-    checkIn: checkIn.toISOString().slice(0, 10),
-    checkOut: checkOut.toISOString().slice(0, 10),
-  };
-}
-
-function affiliateRedirectHref(destination: string): string {
-  const { checkIn, checkOut } = defaultDates();
-  const url = buildExpediaSearchUrl(
-    { destination, checkIn, checkOut, adults: 2 },
-    getExpediaAffiliateConfig(),
-  );
-  const id = encodeAffiliateLink({
-    url,
-    providerId: 'expedia',
-    stayId: `landing-${destination.toLowerCase()}`,
-  });
-  return `/r/${id}`;
 }
 
 // ============== LandingPage ==============
@@ -207,7 +131,7 @@ export function LandingPage() {
   return (
     <div className="relative h-full w-full overflow-y-auto">
       <LandingHero />
-      <FeaturedGrid />
+      <DiscoverySections />
       <LandingFooter />
     </div>
   );
@@ -560,151 +484,27 @@ function NaturalLanguageSearch() {
   );
 }
 
-// ============== Featured destinations grid ==============
+// ============== Discovery sections ==============
 
-function FeaturedGrid() {
+/**
+ * Renders the four discovery rails (Trending now, Romantic escapes,
+ * Luxury beach, Hidden gems) on a single dark canvas.
+ *
+ * Each rail's layout is governed by `DISCOVERY_SECTIONS[i].layout` so
+ * a curator can re-shape the homepage by editing the dataset alone.
+ */
+function DiscoverySections() {
   return (
-    <section
-      className="relative z-10 mx-auto w-full max-w-6xl px-6 py-16"
+    <div
+      className="relative z-10 w-full"
       style={{ background: 'var(--surface-base)' }}
     >
-      <div className="mb-8 flex items-end justify-between gap-4">
-        <div>
-          <div
-            style={{
-              fontFamily: 'var(--font-inter)',
-              fontSize: '0.65rem',
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              color: 'var(--ink-tertiary)',
-              marginBottom: '0.5rem',
-            }}
-          >
-            Or start with one of these
-          </div>
-          <h2
-            style={{
-              fontFamily: 'var(--font-fraunces)',
-              fontSize: 'clamp(1.8rem, 3vw, 2.4rem)',
-              fontWeight: 400,
-              lineHeight: 1.15,
-              letterSpacing: '-0.02em',
-              color: 'var(--ink-primary)',
-              margin: 0,
-            }}
-          >
-            Destinations StayScout loves.
-          </h2>
-        </div>
-        <p
-          style={{
-            fontFamily: 'var(--font-inter)',
-            fontSize: '0.85rem',
-            color: 'var(--ink-tertiary)',
-            margin: 0,
-            maxWidth: '20rem',
-            textAlign: 'right',
-          }}
-        >
-          Tap a card to search Expedia for that destination, prefilled.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {FEATURED.map((d) => (
-          <FeaturedCard key={d.name} destination={d} />
+      <div className="mx-auto flex max-w-6xl flex-col gap-20 px-6 pt-20 pb-12 md:gap-24">
+        {DISCOVERY_SECTIONS.map((section) => (
+          <DiscoveryRail key={section.slug} section={section} />
         ))}
       </div>
-    </section>
-  );
-}
-
-function FeaturedCard({ destination }: { destination: FeaturedDestination }) {
-  const [ok, setOk] = useState(true);
-  const href = affiliateRedirectHref(destination.name);
-
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer sponsored"
-      aria-label={`Search ${destination.name} on Expedia (affiliate link)`}
-      className="group relative block overflow-hidden transition-transform hover:-translate-y-0.5"
-      style={{
-        aspectRatio: '4/5',
-        borderRadius: '0.9rem',
-        border: '1px solid var(--border-subtle)',
-        boxShadow: 'var(--elev-card)',
-        textDecoration: 'none',
-      }}
-    >
-      {ok && destination.photo ? (
-        <Image
-          src={unsplashUrl(destination.photo.id, 800)}
-          alt={destination.photo.alt}
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          style={{ objectFit: 'cover' }}
-          onError={() => setOk(false)}
-        />
-      ) : (
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background: `linear-gradient(140deg, ${destination.gradient[0]} 0%, ${destination.gradient[1]} 100%)`,
-          }}
-        />
-      )}
-      <div
-        aria-hidden
-        className="absolute inset-0"
-        style={{
-          background:
-            'linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.15) 45%, rgba(0,0,0,0.7) 100%)',
-        }}
-      />
-      <div className="absolute right-5 bottom-5 left-5 flex flex-col gap-1.5">
-        <span
-          style={{
-            fontFamily: 'var(--font-fraunces)',
-            fontSize: '1.65rem',
-            fontWeight: 400,
-            lineHeight: 1,
-            letterSpacing: '-0.01em',
-            color: '#EDE6DB',
-            textShadow: '0 2px 8px rgba(0,0,0,0.55)',
-          }}
-        >
-          {destination.name}
-        </span>
-        <span
-          style={{
-            fontFamily: 'var(--font-inter)',
-            fontSize: '0.78rem',
-            lineHeight: 1.4,
-            color: 'rgba(237,230,219,0.88)',
-            textShadow: '0 1px 4px rgba(0,0,0,0.6)',
-          }}
-        >
-          {destination.tagline}
-        </span>
-        <span
-          className="mt-1 inline-flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
-          style={{
-            fontFamily: 'var(--font-inter)',
-            fontSize: '0.65rem',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            color: 'var(--accent-primary)',
-            textShadow: '0 1px 2px rgba(0,0,0,0.6)',
-          }}
-        >
-          Search on Expedia
-          <ChevronRight size={10} strokeWidth={2.4} />
-        </span>
-      </div>
-    </a>
+    </div>
   );
 }
 
